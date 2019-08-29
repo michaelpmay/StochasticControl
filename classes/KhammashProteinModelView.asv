@@ -1,0 +1,46 @@
+classdef KhammashProteinModelView
+  properties
+    axes
+    onSubView
+    offSubView
+    light=[0 .1];
+    nbins=50;
+  end
+  methods
+    function obj=KhammashProteinModelView(axes)
+      obj.axes=axes;
+      obj.onSubView=obj.buildSubView(obj.light(1));
+      obj.offSubView=obj.buildSubView(obj.light(2));
+    end
+    function view=buildSubView(obj,intensity)
+      build=ModelFactory;
+      model=build.unregulatedModelWithConstantLight(intensity);
+      solver=Solver(GenericSSA,model);
+      view=ProteinSubView(solver,obj.axes);
+      view.nbins=obj.nbins;
+    end
+    function setNBins=
+    function plotOnOffBiExpIntensityHistogram(obj,mu,sig,del)
+      hold on
+      obj.onSubView.plotBiExponentialIntensityHistogram(onData,'r-',mu,sig,del);
+      obj.offSubView.plotBiExponentialIntensityHistogram(offData,'b-',mu,sig,del);
+      hold off
+    end
+    function plotProteinHistogram(obj)
+      hold on
+      obj.onSubView.plotHistogram()
+      obj.offSubView.plotHistogram()
+      hold off
+    end
+    function plotHistogram(obj,modelData)
+      states=modelData.getState;
+      edges=0:(max(states)+1);
+      histogram(states,edges-.5);
+    end
+    function plotBiExponentialIntensityHistogram(obj,modelData,linespec,mu,sig,del)
+      intensity=modelData.getIntensity(mu,sig,del);
+      [probability,centers]=getBiexponentialHistogram(intensity,obj.nbins);
+      plot(obj.axes,centers,probability,linespec);
+    end
+  end
+end
