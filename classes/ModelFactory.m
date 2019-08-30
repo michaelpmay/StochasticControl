@@ -1,4 +1,4 @@
-wiclassdef ModelFactory
+classdef ModelFactory
 %valid [ka ga] = [.65 .0325] or [ka ga] = [.400 0.020]
   properties
     ko=.406 %.400 %.6500
@@ -54,7 +54,7 @@ wiclassdef ModelFactory
     function model=autoregulatedModelWithFrequencyInput(obj,frequency,amplitude)
       model=ModelPlugin();
       model.stoichMatrix=obj.stoichMatrix;
-      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude]
+      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude];
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.frequencyInput(t,x,[p(6) p(7)]) ; p(5)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
