@@ -12,14 +12,14 @@ time=[0 500];
 menu=ParallelMenu;
 for i=1:length(freq)
   for j=1:length(amp)
-    for k=1:length(initialState);
-    menu=menu.attachTicketItem(@analyzeUnregulatedFrequency,{freq(i),amp(j),initialState(k),linspace(time(1),time(2),10000/freq(i))})
+    for k=1:length(initialState)
+    menu=menu.attachTicketItem(@analyzeUnregulatedFrequency,{freq(i),amp(j),initialState(k),linspace(time(1),time(2),1000000/freq(i))})
     end
   end
 end
 for i=1:2
   for j=1:2
-    menu=menu.attachTicketItem(@analyzeAutoregulatedFrequency,{freq(i),amp(j),initialState(k),linspace(time(1),time(2),10000/freq(i))})
+    menu=menu.attachTicketItem(@analyzeAutoregulatedFrequency,{freq(i),amp(j),initialState(k),linspace(time(1),time(2),1000000/freq(i))})
   end
 end
 data=menu.run
