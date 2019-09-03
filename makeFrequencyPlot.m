@@ -19,24 +19,7 @@ for i=1:length(freq)
   end
 end
 data=menu.run
-
-figure()
-ind=1;
-for i=1:length(freq)
-  for j=1:length(amp)
-    subplot(2,2,ind);
-    plot(data{ind}.time,data{ind}.state)
-    ind=ind+1;
-  end
-end
-figure()
-for i=1:length(freq)
-  for j=1:length(amp)
-    subplot(2,2,ind-4);
-    plot(data{ind}.time,data{ind}.state)
-    ind=ind+1;
-  end
-end
+save('workspaceFrequencyPlot')
 
 function data=analyzeUnregulatedFrequency(frequency,intensity,state,time)
 build=ModelFactory;
