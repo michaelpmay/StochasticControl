@@ -1,0 +1,92 @@
+classdef GradientControlerOptimizer < ControlOptimizer & PrintObjects
+  properties
+    gradCutoffIndex=2500
+    initialRate=1;
+    minimumStep=.0005;
+    decrement=.99
+    gmresInputTolerance=1e-14
+    gmresInputMaxIter=100
+    score
+  end
+  properties (Hidden)
+    
+  end
+  methods
+    function [optimizedModel,obj]=optimizeControler(obj)
+      warning('MATLAB:eigs:IllConditionedA','off');
+      obj.score=obj.ProbabilityScore(model);
+      obj=obj.initializeControlInput(obj.initialInputLevel);
+      stepRate=obj.initialRate;
+      %controlHistory=zeros([obj.model.dims obj.numIterations]);
+      waitBar=waitbar(0,'Optimizing controler ... this may take a while');
+      for i=1:obj.numIterations
+        obj=obj.stepToNewControler(stepRate);
+        stepRate=obj.updateStepRate(stepRate);
+        waitbar(i/obj.numIterations,waitBar);
+      end
+      delete(waitBar);
+      optimizedModel=obj.model;
+    end
+    function stepRate=updateStepRate(obj,stepRate)
+      stepRate=stepRate*obj.decrement;
+      if stepRate<obj.minimumStep
+        stepRate=obj.minimumStep;
+      end
+    end
+    function obj=stepToNewControler(obj,stepRate)
+      grad=obj.getGrad();
+      grad=obj.trimGrad(grad);
+      obj=obj.setControl(obj.controlInput-grad*stepRate);
+    end
+    function grad=trimGrad(obj,grad)
+      gradCutoff=min(maxk(abs(grad(:)),obj.gradCutoffIndex));
+      grad(abs(grad)<gradCutoff)=0;
+    end
+    function obj=setControl(obj,controler)
+      controler=obj.setBounds(controler);
+      obj.controlInput=controler;
+      obj.model.controlInput=controler;
+    end
+    function boundedControler=setBounds(obj,controler)
+      controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;
+      controler(controler<obj.minControlerBounds)=obj.minControlerBounds;
+      boundedControler=controler;
+    end
+    function grad=getGrad(obj)
+      partial=obj.getPartial(obj.model);
+      grad=obj.score.C'*partial;
+      grad=reshape(grad,obj.model.dims);
+    end
+    
+    function [xVector,yVector]=getSampleSpace(obj,stepSize)
+      xVector=0:stepSize:(obj.model.dims(1)-1);
+      yVector=0:stepSize:(obj.model.dims(2)-1);
+    end
+    
+    function decoration=generateFileDecoration(obj)
+      scoreString=['_',replace(num2str(obj.getScore),'.','p'),'_'];
+      timeStamp=datestr(now);
+      timeStamp=replace(timeStamp,'-','');
+      timeStamp=replace(timeStamp,':','');
+      timeStamp=replace(timeStamp,' ','_');
+      randomIntegerString=['_',strrep((num2str(randi(9,1,8))),' ','')];
+      decoration=[scoreString,timeStamp,randomIntegerString];    
+    end
+    
+    function fileName=generateFileName(obj)
+      decoration=obj.generateFileDecoration();
+      fileName=[class(obj.model.parameters),decoration];
+    end
+    
+    function grad=getPartial(obj,model)
+      P=obj.getSteadyState;
+      Lambda=sparse(model.generator.bMatrix.*model.controlInput(:)'+model.generator.aMatrix);
+      B=kron(sparse(eye(prod(model.dims))),Lambda);
+      K=-(model.generator.bMatrix.*P(:)');
+      K=K(:);
+      grad=gmres(B,K,[],obj.gmresInputTolerance,obj.gmresInputMaxIter);
+      grad=reshape(grad,[prod(model.dims) prod(model.dims)]);
+    end
+    
+  end
+end

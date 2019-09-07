@@ -13,7 +13,7 @@ classdef GradientControlerOptimizer < ControlOptimizer & PrintObjects
   methods
     function [optimizedModel,obj]=optimizeControler(obj)
       warning('MATLAB:eigs:IllConditionedA','off');
-      obj.C=obj.getC;
+      obj.score=ProbabilityScore(obj.model);
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
@@ -41,18 +41,6 @@ classdef GradientControlerOptimizer < ControlOptimizer & PrintObjects
       gradCutoff=min(maxk(abs(grad(:)),obj.gradCutoffIndex));
       grad(abs(grad)<gradCutoff)=0;
     end
-    function C=getC(obj)
-      xv=0:(obj.model.dims(1)-1);
-      yv=0:(obj.model.dims(2)-1);
-      for i=1:length(xv)
-        for j=1:length(yv)
-          %C(i,j)=norm([i,j]-mu);
-          C(i,j)=([xv(i),yv(j)]'-obj.target)'*...
-            obj.sigma*([xv(i),yv(j)]'-obj.target);
-        end
-      end
-      C=C(:);
-    end
     function obj=setControl(obj,controler)
       controler=obj.setBounds(controler);
       obj.controlInput=controler;
@@ -65,7 +53,7 @@ classdef GradientControlerOptimizer < ControlOptimizer & PrintObjects
     end
     function grad=getGrad(obj)
       partial=obj.getPartial(obj.model);
-      grad=obj.C'*partial;
+      grad=obj.score.C'*partial;
       grad=reshape(grad,obj.model.dims);
     end
     

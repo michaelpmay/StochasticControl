@@ -4,7 +4,7 @@ classdef UniformControlerOptimizer < ControlOptimizer
   end
   methods
     function [model,obj]=optimizeControler(obj)
-        obj.C=obj.getC;
+        obj.score=ProbabilityScore(obj.model);
         levelRange=linspace(obj.range(1),obj.range(2),obj.numIterations);
         scoreRange=preAllocateVector(obj.numIterations);
         for i=1:obj.numIterations
