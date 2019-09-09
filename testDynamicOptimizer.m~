@@ -1,0 +1,4 @@
+addpath classes
+optimizer=DynamicControlOptimizer;
+build=
+optimizer.optimize(model)

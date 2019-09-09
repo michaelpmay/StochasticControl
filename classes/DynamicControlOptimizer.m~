@@ -1,22 +1,23 @@
 classdef DynamicControlOptimizer < SteadyStateControlOptimizer
   properties
+    model
+    score
     generator=TwoCellFSPGenerator
     time
     uRange=linspace(0,1,100);
   end
   methods
-    function obj=DynamicControlOptimizer()
+    function DynamicControlOptimizer()
+      build=ModelFactory:
+      build.autoretulated
     end
     function getSnapshotScore(time)
       probability=obj.model.snapTime(time);
       score=obj.score.getScore(probability);
     end
-    function model=optimize(obj,model)
-      obj.model=model;
+    function item=optimize(obj,item)
       for i=1:length(obj.time)
-        probability=obj.getProbability();
-        obj=obj.opimizeStep(probability);
-        
+        obj=obj.opimizeStep()
       end
     end
     function obj=optimizeStep(obj,probability)
