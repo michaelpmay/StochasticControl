@@ -1,4 +1,4 @@
-classdef GradientControlerOptimizer < ControlOptimizer & PrintObjects
+classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   properties
     gradCutoffIndex=2500
     initialRate=1;

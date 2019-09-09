@@ -8,14 +8,14 @@ model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numUIter;
-[uuModel,uuControler]=optimizeModel(model,controler)
+[uuModel,uuControler]=optimizeModel(model,controler);
 
 model=build.unregulatedModelWithoutInput;
 controler=GradientControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numGIter;
 controler.gmresInputMaxIter=gmresMaxIter;
-[ugModel,ugControler]=optimizeModel(model,controler)
+[ugModel,ugControler]=optimizeModel(model,controler);
 
 model=build.autoregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
@@ -28,7 +28,7 @@ controler=GradientControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numGIter;
 controler.gmresInputMaxIter=gmresMaxIter;
-[agModel,agControler]=optimizeModel(model,controler)
+[agModel,agControler]=optimizeModel(model,controler);
 
 save('ArrayFigOpt');
 

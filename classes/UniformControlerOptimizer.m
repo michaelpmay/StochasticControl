@@ -1,4 +1,4 @@
-classdef UniformControlerOptimizer < ControlOptimizer
+classdef UniformControlerOptimizer < SteadyStateControlOptimizer
   properties
     range=[0,2]
   end

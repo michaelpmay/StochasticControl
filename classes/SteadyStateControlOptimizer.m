@@ -1,4 +1,4 @@
-classdef ControlOptimizer
+classdef SteadyStateControlOptimizer
   properties
     model
     score

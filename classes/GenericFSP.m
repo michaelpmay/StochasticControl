@@ -17,6 +17,9 @@ classdef GenericFSP < GenericCME
       outData=GenericCMEData(obj.time,P)
       delete(waitBar)
     end
+    function snapTime(obj,time)
+      P(:)=expm(infGen*time)*obj.getInitialState;
+    end
     function data=appendMetaData(obj,data)
       data.meta.solver=class(obj);
       data.meta.timeStamp=datetime;
