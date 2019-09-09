@@ -14,9 +14,10 @@ classdef DynamicControlOptimizer < SteadyStateControlOptimizer
     function model=optimize(obj,model)
       obj.model=model;
       for i=1:length(obj.time)
+        
         probability=obj.getProbability();
         obj=obj.opimizeStep(probability);
-        
+        obj.integrateTimeStep();
       end
     end
     function obj=optimizeStep(obj,probability)
@@ -31,6 +32,8 @@ classdef DynamicControlOptimizer < SteadyStateControlOptimizer
     function convertToHistogram(obj,trajectory)
       
     end
-    
+    function integrateTimeStep(obj,dt)
+      
+    end
   end
 end

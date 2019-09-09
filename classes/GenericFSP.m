@@ -44,5 +44,11 @@ classdef GenericFSP < GenericCME
     function outData=formatTrajectory(obj,data)
       outData=data;
     end
+    function state=getSample(obj,time,state)
+      infGen=sparse(obj.getInfGenerator());
+      probabilty=expm(infGen*state);
+      cSumProbability=cumsum(probabilty);
+      [state]=find(csum>rand);
+    end
   end
 end

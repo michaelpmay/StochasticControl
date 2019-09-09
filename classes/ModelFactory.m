@@ -17,8 +17,22 @@ classdef ModelFactory
     dims=[50 50]
   end
   methods
-    function model=birthDecay(obj)
-      %todo
+    function model=birthDecayToyModel(obj)
+      model=ModelPlugin();
+      model.stoichMatrix=[1,-1];
+      model.time=linspace(0,100,500);
+      model.rxnRate=@(t,x,p)[p(1),p(2)*x(1)]
+      model.parameters=[1,1];
+      model.initialState=[0];
+    end
+    function model=birthDecayToyModel2D(obj)
+      model=ModelPlugin();
+      model.stoichMatrix=[1 -1  0  0
+                          0  0  1 -1];
+      model.time=linspace(0,100,500);
+      model.rxnRate=@(t,x,p)[p(1),p(2)*x(1),p(3),p(4)*x]
+      model.parameters=[1,1,1,1];
+      model.initialState=[0;0];
     end
     function model=unregulatedModelWithExperimentalInput(obj)
       model=ModelPlugin();
