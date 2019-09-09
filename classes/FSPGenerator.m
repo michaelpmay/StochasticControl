@@ -31,10 +31,10 @@ classdef FSPGenerator
     end
     function stateSpaceStoich=connectStates(obj,fromState,toState,stateSpaceStoich,rxnIndex,time)
       rxnRate=obj.model.evaluateRateEquation(0, fromState);
-      toIndex=num2cell([toState',fromState']+1);%positive A^I_J
-      fromIndex=num2cell([fromState',fromState']+1);%negative A^I_I
-      stateSpaceStoich(toIndex{:})=rxnRate(rxnIndex);
-      stateSpaceStoich(fromIndex{:})=-rxnRate(rxnIndex);
+      toIndex=num2cell([toState',fromState']+1);
+      fromIndex=num2cell([fromState',fromState']+1);
+      stateSpaceStoich(toIndex{:})=rxnRate(rxnIndex);%positive A^I_J
+      stateSpaceStoich(fromIndex{:})=-rxnRate(rxnIndex);%negative A^I_I
     end
     function tensor=preAllocateInfGenTensor(obj)
       tensorDims=[obj.dims,obj.dims];

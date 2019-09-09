@@ -1,4 +1,4 @@
-classdef TwoCellFSP < GenericFSP & PrintObjects
+classdef TwoCellFSP < SolverFSP & PrintObjects
   properties
     model
     controlInput
@@ -24,7 +24,7 @@ classdef TwoCellFSP < GenericFSP & PrintObjects
     end
     function Pss=getSteadyState(obj)
       infGenerator=obj.generator.getInfGenerator(obj.controlInput);
-      fsp=GenericFSP();
+      fsp=SolverFSP();
       fsp.infGenerator=infGenerator;
       Pss=fsp.getSteadyState;
       Pss=obj.reshapeField(Pss);

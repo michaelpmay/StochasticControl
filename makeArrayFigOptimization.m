@@ -1,9 +1,9 @@
 addpath classes
 build=ModelFactory;
 target=[30;10];
-numGIter=30;
-numUIter=50;
-gmresMaxIter=30;
+numGIter=3;
+numUIter=5;
+gmresMaxIter=8;
 model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
@@ -23,7 +23,7 @@ controler.score.target=target;
 controler.numIterations=numUIter;
 [auModel,auControler]=optimizeModel(model,controler);
 
-model=build.autoregulatedModelWithoutInput
+model=build.autoregulatedModelWithoutInput;
 controler=GradientControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numGIter;

@@ -1,9 +1,9 @@
-classdef GenericSSA < GenericCME
+classdef SolverSSA < GenericCME
   properties
     model
   end
   methods Private
-    function obj=GenericSSA(modelPlugin)
+    function obj=SolverSSA(modelPlugin)
       try
       obj.model=modelPlugin;
       catch

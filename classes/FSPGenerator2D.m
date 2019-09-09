@@ -8,7 +8,7 @@ classdef FSPGenerator2D
       for i=1:length(xMap)
         for j=1:length(ymap)
           state=[xMap(i),yMap(j)];
-          if obj.isInStateSpace(state+rxnVec);
+          if obj.isInStateSpace(state+rxnVec)
             stateSpaceStoich=obj.connectStates(state,state+rxnVec,stateSpaceStoich,rxnIndex);
           end
         end

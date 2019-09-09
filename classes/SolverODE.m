@@ -1,9 +1,9 @@
-classdef GenericODE < GenericCME
+classdef SolverODE < GenericCME
   properties
     model
   end
-  methods Private
-    function obj=GenericODE(modelPlugin)
+  methods
+    function obj=SolverODE(modelPlugin)
       try
       obj.model=modelPlugin;
       catch

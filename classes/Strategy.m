@@ -1,16 +1,16 @@
-classdef Solver
+classdef Strategy
   properties
-    strategy
+    solver
     model
   end
   methods
-    function obj=Solver(strategy,model)
-      obj.strategy=strategy;
+    function obj=Solver(solver,model)
+      obj.solver=solver;
       obj.model=model;
     end
     function data=run(obj)
-      obj.strategy.model=obj.model;
-      data=obj.strategy.run;
+      obj.solver.model=obj.model;
+      data=obj.solver.run;
     end
     function [obj,error]=accept(obj,visitor)
       [obj,error]=visitor.visit(obj);
