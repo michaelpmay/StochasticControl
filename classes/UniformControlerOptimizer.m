@@ -20,8 +20,8 @@ classdef UniformControlerOptimizer < SteadyStateControlOptimizer
         model=obj.model;
     end
     function obj=setControl(obj,controler)
-      controler=obj.setBounds(controler);
-      obj.controlInput=controler;
+      boundedControler=obj.setBounds(controler);
+      obj.controlInput=boundedControler;
       obj.model.controlInput=controler;
     end
     function boundedControler=setBounds(obj,controler)
