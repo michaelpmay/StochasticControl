@@ -17,11 +17,11 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
-      waitBar=waitbar(0,'Optimizing controler ... this may take a while');
+      %waitBar=waitbar(0,'Optimizing controler ... this may take a while');
       for i=1:obj.numIterations
         obj=obj.stepToNewControler(stepRate);
         stepRate=obj.updateStepRate(stepRate);
-        waitbar(i/obj.numIterations,waitBar);
+       % waitbar(i/obj.numIterations,waitBar);
       end
       delete(waitBar);
       optimizedModel=obj.model;

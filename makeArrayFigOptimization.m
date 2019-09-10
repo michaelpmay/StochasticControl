@@ -1,9 +1,10 @@
 addpath classes
+warning('off')
 build=ModelFactory;
 target=[30;10];
-numGIter=3;
-numUIter=5;
-gmresMaxIter=8;
+numGIter=30;
+numUIter=100;
+gmresMaxIter=200;
 model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
@@ -18,7 +19,7 @@ controler.gmresInputMaxIter=gmresMaxIter;
 [ugModel,ugControler]=optimizeModel(model,controler);
 
 model=build.autoregulatedModelWithoutInput;
-controler=ParallelUniformControlerOptimizer();
+controler=UniformControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numUIter;
 [auModel,auControler]=optimizeModel(model,controler);
@@ -30,7 +31,7 @@ controler.numIterations=numGIter;
 controler.gmresInputMaxIter=gmresMaxIter;
 [agModel,agControler]=optimizeModel(model,controler);
 
-save('ArrayFigOpt');
+save('ArrayFigOpt.mat');
 view=ArrayFigureView({uuControler,ugControler,auControler,agControler});
 view.plot
 
