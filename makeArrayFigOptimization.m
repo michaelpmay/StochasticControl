@@ -4,7 +4,7 @@ build=ModelFactory;
 target=[30;10];
 numGIter=30;
 numUIter=100;
-gmresMaxIter=200;
+gmresMaxIter=100;
 model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
@@ -31,7 +31,7 @@ controler.numIterations=numGIter;
 controler.gmresInputMaxIter=gmresMaxIter;
 [agModel,agControler]=optimizeModel(model,controler);
 
-save('ArrayFigOpt.mat');
+save('./workspaces/ArrayFigOpt.mat');
 view=ArrayFigureView({uuControler,ugControler,auControler,agControler});
 view.plot
 

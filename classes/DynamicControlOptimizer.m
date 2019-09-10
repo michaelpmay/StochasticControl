@@ -11,10 +11,10 @@ classdef DynamicControlOptimizer < SteadyStateControlOptimizer
       probability=obj.model.snapTime(time);
       score=obj.score.getScore(probability);
     end
-    function model=optimize(obj,model)
+    function model=optimize(obj,model,initialControlInput)
       obj.model=model;
+      obj.controlInput=initialControlInput;
       for i=1:length(obj.time)
-        
         probability=obj.getProbability();
         obj=obj.opimizeStep(probability);
         obj.integrateTimeStep();
