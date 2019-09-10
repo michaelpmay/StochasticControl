@@ -18,7 +18,7 @@ controler.gmresInputMaxIter=gmresMaxIter;
 [ugModel,ugControler]=optimizeModel(model,controler);
 
 model=build.autoregulatedModelWithoutInput;
-controler=UniformControlerOptimizer();
+controler=ParallelUniformControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numUIter;
 [auModel,auControler]=optimizeModel(model,controler);
@@ -31,12 +31,9 @@ controler.gmresInputMaxIter=gmresMaxIter;
 [agModel,agControler]=optimizeModel(model,controler);
 
 save('ArrayFigOpt');
+view=ArrayFigureView({uuControler,ugControler,auControler,agControler});
+view.plot
 
-AcademicFigure()
-plotModel(uuControler,1);
-plotModel(ugControler,2);
-plotModel(auControler,3);
-plotModel(agControler,4);
 
 function [optimalFSP,optimalControler]=optimizeModel(model,controlOptimizer)
 myFSP=TwoCellFSP(model);
