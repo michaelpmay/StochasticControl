@@ -1,5 +1,11 @@
 addpath classes
-optimizer=DynamicControlOptimizer;
+clear all
 build=ModelFactory;
 model=build.autoregulatedModelWithoutInput;
-optimizer.optimize(model);
+ssOptimizer=GradientControlerOptimizer
+ssOptimizer.model=TwoCellFSP(model)
+ssOptimizer.gmresMaxIter=2;
+ssOptimizer.numIterations=2;
+model=ssOptimizer.optimizeControler()
+dOptimizer=DynamicControlOptimizer(model)
+dOptimizer.optimize()

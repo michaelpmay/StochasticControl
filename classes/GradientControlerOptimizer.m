@@ -4,8 +4,8 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     initialRate=1;
     minimumStep=.0005;
     decrement=.99
-    gmresInputTolerance=1e-14
-    gmresInputMaxIter=100
+    gmresTolerance=1e-14
+    gmresMaxIter=100
   end
   properties (Hidden)
     
@@ -23,7 +23,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
         stepRate=obj.updateStepRate(stepRate);
        % waitbar(i/obj.numIterations,waitBar);
       end
-      delete(waitBar);
+      %delete(waitBar);
       optimizedModel=obj.model;
     end
     function stepRate=updateStepRate(obj,stepRate)
@@ -83,7 +83,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       B=kron(sparse(eye(prod(model.dims))),Lambda);
       K=-(model.generator.bMatrix.*P(:)');
       K=K(:);
-      grad=gmres(B,K,[],obj.gmresInputTolerance,obj.gmresInputMaxIter);
+      grad=gmres(B,K,[],obj.gmresTolerance,obj.gmresMaxIter);
       grad=reshape(grad,[prod(model.dims) prod(model.dims)]);
     end
     

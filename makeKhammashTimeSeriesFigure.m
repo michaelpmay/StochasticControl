@@ -8,7 +8,7 @@ model=build.khammashFitModel
 optimizer=ParameterOptimizer;
 optimizer.realData=KhammashTimeSeriesData;
 optimizer.maxIter=500;
-solver=Solver(GenericODE,model);
+solver=Strategy(SolverODE,model);
 %%
 AcademicFigure()
 

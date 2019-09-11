@@ -4,7 +4,7 @@ classdef Strategy
     model
   end
   methods
-    function obj=Solver(solver,model)
+    function obj=Strategy(solver,model)
       obj.solver=solver;
       obj.model=model;
     end

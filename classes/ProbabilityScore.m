@@ -5,15 +5,19 @@ classdef ProbabilityScore
     C
   end
   methods
-    function obj=ProbabilityScore(model)
-      obj.C=obj.makeC(model);
+    function obj=ProbabilityScore(modelfsp)
+      obj.C=obj.makeC(modelfsp);
     end
     function score=getScore(obj,P)
       score=obj.C'*P(:);
     end
+    function score=getDynamicScore(obj,P,infGen)
+      score=obj.C'*infGen*P(:);
+    end
     function C=makeC(obj,model)
       xv=0:(model.dims(1)-1);
       yv=0:(model.dims(2)-1);
+      C=preAllocateArray(length(xv),length(yv));
       for i=1:length(xv)
         for j=1:length(yv)
           C(i,j)=([xv(i),yv(j)]'-obj.target)'*...
