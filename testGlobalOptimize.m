@@ -1,2 +1,4 @@
 load dOptimizerWorkspace.mat
-U=dOptimizer.globalOptimize();
+model.controlInput=controler;
+dOptimizer=DynamicControlOptimizer(model);
+U=dOptimizer.globalOptimize(.0001);

@@ -5,15 +5,12 @@ classdef DynamicControlOptimizer
     uRange=linspace(0,1,10);
     score
   end
-  properties (Hidden)
-    
-  end
   methods
     function obj=DynamicControlOptimizer(model)
       obj.modelFsp=model;
       obj.score=ProbabilityScore(model);
     end
-    function [data, minModelFsp,u,sample]=optimize(obj) 
+    function [data, minModelFsp,u,sample]=optimize(obj)
       warning('off');
       minModelFsp(1)=obj.modelFsp;
       minModelFsp(1).time=[obj.time(1) obj.time(2)];
@@ -30,16 +27,24 @@ classdef DynamicControlOptimizer
         minModelFsp(i).time=linspace(obj.time(i),obj.time(i+1), 5);
         minModelFsp(i).infGenerator=obj.getInfGenerator(minModelFsp(i));
         minModelFsp(i).initialState=obj.getInitialState(data(i-1).state(:,end));
-        data(i)=minModelFsp(i).run;   
+        data(i)=minModelFsp(i).run;
       end
       data=obj.parseData(data);
     end
-    function U=globalOptimize(obj)
+    function U=globalOptimize(obj,minProb)
+      probability=obj.getSteadyState;
+      u=preAllocateArray(obj.modelFsp.dims(1),obj.modelFsp.dims(2));
+      numElementsString=num2str(sum(sum(probability>minProb)));
+      index=0;
       for i=1:obj.modelFsp.dims(1)
         for j=1:obj.modelFsp.dims(2)
-          fprintf(['iteration: ',num2str(i-1),'/',num2str(j-1),'\n'])
-          sample=obj.getDeltaDist(i,j);
-          [u(i,j),minModelFsp]=obj.getDynamicU(sample);
+          
+          if probability(i,j)>minProb
+            index=index+1;
+            fprintf(['iteration: ',num2str(index),'/',numElementsString,'\n']);
+            sample=getInitialState(obj,probability);
+            [u(i,j),minModelFsp]=obj.getDynamicU(sample);
+          end
         end
       end
     end
@@ -100,7 +105,7 @@ classdef DynamicControlOptimizer
       YVec=Y(:);
     end
     function [u,minModel]=getDynamicU(obj,Q)
-      n=length(obj.uRange);  
+      n=length(obj.uRange);
       for i=1:n
         tempModel(i)=obj.modelFsp;
         tempModel(i).controlInput(Q+1)=tempModel(i).controlInput(Q+1)+obj.uRange(i);
