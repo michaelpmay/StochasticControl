@@ -34,7 +34,7 @@ classdef DynamicControlOptimizer
       end
       data=obj.parseData(data);
     end
-    function globalOptimize(obj)
+    function U=globalOptimize(obj)
       for i=1:obj.modelFsp.dims(1)
         for j=1:obj.modelFsp.dims(2)
           fprintf(['iteration: ',num2str(i-1),'/',num2str(j-1),'\n'])
