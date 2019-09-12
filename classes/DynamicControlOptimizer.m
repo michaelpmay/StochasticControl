@@ -1,7 +1,7 @@
 classdef DynamicControlOptimizer
   properties
     modelFsp
-    time=linspace(0,10,10)
+    time=linspace(0,1,10)
     uRange=linspace(0,1,10);
     score
   end
@@ -13,15 +13,45 @@ classdef DynamicControlOptimizer
       obj.modelFsp=model;
       obj.score=ProbabilityScore(model);
     end
-    function optimize(obj)    
-      for i=1:length(obj.time)
-        sample=obj.sampleProbability(1);
-        [u,minModel]=obj.getDynamicU(sample);
-        
+    function [data, minModelFsp,u]=optimize(obj) 
+      warning('off');
+      minModelFsp(1)=obj.modelFsp;
+      minModelFsp(1).time=[obj.time(1) obj.time(2)];
+      probability=obj.getSteadyState;
+      minModelFsp(1).initialState=obj.getInitialState(probability);
+      minModelFsp(1).infGenerator=obj.getInfGenerator(minModelFsp(1));
+      data(1)=minModelFsp(1).run();
+      u(1)=0;
+      for i=2:(length(obj.time)-1)
+        sample=obj.sampleProbability(data(i-1).state(:,end),1);
+        [u(i),minModelFsp(i)]=obj.getDynamicU(sample);
+        minModelFsp(i).time=linspace(obj.time(i),obj.time(i+1), 5);
+        minModelFsp(i).infGenerator=obj.getInfGenerator(minModelFsp(i));
+        minModelFsp(i).initialState=obj.getInitialState(data(i-1).state(:,end));
+        data(i)=minModelFsp(i).run;   
       end
+      data=obj.parseData(data);
+    end
+    function initialState=getInitialState(obj,probability)
+      initialState=zeros(obj.modelFsp.dims);
+      sample=obj.sampleProbability(probability,1);
+      initialState(sample(1)+1,sample(2)+1)=1;
+      initialState=initialState(:);
+    end
+    function data=parseData(obj,data)
+      time(1)=data(1).time(1);
+      state(:,1)=data(1).state(:,1);
+      for i=1:length(data)
+        n=length(data(i).time(2:end));
+        for j=1:n
+          time(end+1)=data(i).time(j+1);
+          state(:,end+1)=data(i).state(:,j+1);
+        end
+      end
+      data=GenericCMEData(time,state);
     end
     function controlInput=getControlInput(obj)
-      controlInput=obj.modelFsp.controlInput
+      controlInput=obj.modelFsp.controlInput;
     end
     function plotSamples(obj,numSamples)
       sampleVec=obj.sampleProbability(numSamples);
@@ -32,10 +62,14 @@ classdef DynamicControlOptimizer
       end
       hold off
     end
-    function sample=sampleProbability(obj,numSamples)
-      steadyStateProbability=obj.modelFsp.getSteadyState();
+    function sample=sampleSteadyStateProbability(obj,modelFsp,numSamples)
+      steadyStateProbability=modelFsp.getSteadyState();
       indecies=probabilitySampleFrom(steadyStateProbability(:),numSamples);
-      sample=obj.mapToXYIndex(indecies)
+      sample=obj.mapToXYIndex(indecies);
+    end
+    function sample=sampleProbability(obj,probability,numSamples)
+      indecies=probabilitySampleFrom(probability(:),numSamples);
+      sample=obj.mapToXYIndex(indecies);
     end
     function sample=mapToXYIndex(obj,index)
       [xMap,yMap]=obj.getElementMap();
@@ -51,23 +85,26 @@ classdef DynamicControlOptimizer
       YVec=Y(:);
     end
     function [u,minModel]=getDynamicU(obj,Q)
-      n=length(obj.uRange)      
+      n=length(obj.uRange);  
       for i=1:n
         tempModel(i)=obj.modelFsp;
-        tempModel(i).controlInput(Q+1)=tempModel(i).controlInput(Q+1)+obj.uRange(i)
-        dynamicScore(i)=obj.getDyanamicScore(tempModel(i))
+        tempModel(i).controlInput(Q+1)=tempModel(i).controlInput(Q+1)+obj.uRange(i);
+        dynamicScore(i)=obj.getDyanamicScore(tempModel(i));
       end
-      [minScore,minIndex]=min(dynamicScore)
+      [~,minIndex]=min(dynamicScore);
       u=obj.uRange(minIndex);
       minModel=tempModel(minIndex);
     end
     function score=getDyanamicScore(obj,modelfsp)
-      infGenerator=modelfsp.generator.getInfGenerator(modelfsp.controlInput);
+      infGenerator=obj.getInfGenerator(modelfsp);
       probability=modelfsp.getSteadyState();
       score=obj.score.getDynamicScore(probability,infGenerator);
     end
     function steadyStateProbability=getSteadyState(obj)
       steadyStateProbability=obj.modelFsp.getSteadyState();
+    end
+    function infGen=getInfGenerator(obj,modelFsp)
+      infGen=modelFsp.generator.getInfGenerator(modelFsp.controlInput);
     end
   end
 end

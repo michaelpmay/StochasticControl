@@ -9,13 +9,13 @@ classdef SolverFSP < GenericCME
       infGen=sparse(obj.getInfGenerator());
       initialState=sparse(obj.getInitialState());
       maxInd=length(obj.time);
-      waitBar=waitbar(0,'Running FSP');
+      %waitBar=waitbar(0,'Running FSP');
       for i=1:maxInd
-        waitbar(i/maxInd,waitBar);
+        %waitbar(i/maxInd,waitBar);
         P(:,i)=expm(infGen*obj.time(i))*initialState;
       end
       outData=GenericCMEData(obj.time,P)
-      delete(waitBar)
+      %delete(waitBar)
     end
     function snapTime(obj,time)
       P(:)=expm(infGen*time)*obj.getInitialState;
