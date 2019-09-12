@@ -1,15 +1,38 @@
 addpath classes
-clear all
-build=ModelFactory;
-model=build.autoregulatedModelWithoutInput;
-ssOptimizer=GradientControlerOptimizer
-ssOptimizer.model=TwoCellFSP(model)
-ssOptimizer.gmresMaxIter=2;
-ssOptimizer.numIterations=2;
-model=ssOptimizer.optimizeControler()
-dOptimizer=DynamicControlOptimizer(model)
+  load dOptimizerWorkspace.mat
+%%
+
+%%
+dOptimizer.time=linspace(0,5,50)
 [data,modelFsp,u]=dOptimizer.optimize()
-for i=1:34
+N=length(data.time)
+%%
+for i=1:N
 pcolor(reshape(data.state(:,i),[50 50]))
 pause(1)
 end
+%%
+pss=model.getSteadyState();
+steadyMarginal1=sum(pss,1);
+steadyMarginal2=sum(pss,2);
+
+
+sampleProbability=preAllocateArray(50,50);
+for i=1:N
+sampleProbability=sampleProbability+reshape(data.state(:,i),[50 50]);
+end
+sampleProbability=sampleProbability/N;
+dynamicP=sampleProbability;
+dyanmicMarginal1=sum(dynamicP,1);
+dynamicMarginal2=sum(dynamicP,2);
+%%
+figure
+hold on
+plot(steadyMarginal1);
+plot(steadyMarginal2);
+hold off
+figure
+hold on
+plot(dyanmicMarginal1);
+plot(dynamicMarginal2);
+hold off

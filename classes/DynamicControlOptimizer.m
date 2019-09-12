@@ -22,7 +22,9 @@ classdef DynamicControlOptimizer
       minModelFsp(1).infGenerator=obj.getInfGenerator(minModelFsp(1));
       data(1)=minModelFsp(1).run();
       u(1)=0;
+      N=length(obj.time);
       for i=2:(length(obj.time)-1)
+        fprintf(['iteration: ',num2str(i-1),'/',num2str(N-1),'\n'])
         sample=obj.sampleProbability(data(i-1).state(:,end),1);
         [u(i),minModelFsp(i)]=obj.getDynamicU(sample);
         minModelFsp(i).time=linspace(obj.time(i),obj.time(i+1), 5);

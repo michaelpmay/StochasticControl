@@ -14,7 +14,7 @@ classdef SolverFSP < GenericCME
         %waitbar(i/maxInd,waitBar);
         P(:,i)=expm(infGen*obj.time(i))*initialState;
       end
-      outData=GenericCMEData(obj.time,P)
+      outData=GenericCMEData(obj.time,P);
       %delete(waitBar)
     end
     function snapTime(obj,time)
