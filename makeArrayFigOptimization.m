@@ -1,37 +1,42 @@
 addpath classes
+clear all;
 warning('off')
 build=ModelFactory;
 target=[30;10];
-numGIter=30;
-numUIter=100;
-gmresMaxIter=100;
+numGIter=3;
+numUIter=1;
+gmresMaxIter=1;
 model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numUIter;
 [uuModel,uuControler]=optimizeModel(model,controler);
+uuControlInput=uuControler.controlInput;
 
 model=build.unregulatedModelWithoutInput;
 controler=GradientControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numGIter;
-controler.gmresInputMaxIter=gmresMaxIter;
+controler.gmresMaxIter=gmresMaxIter;
 [ugModel,ugControler]=optimizeModel(model,controler);
+ugControlInput=ugControler.controlInput;
 
 model=build.autoregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numUIter;
 [auModel,auControler]=optimizeModel(model,controler);
+auControlInput=auControler.controlInput;
 
 model=build.autoregulatedModelWithoutInput;
 controler=GradientControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numGIter;
-controler.gmresInputMaxIter=gmresMaxIter;
+controler.gmresMaxIter=gmresMaxIter;
 [agModel,agControler]=optimizeModel(model,controler);
+agControlerInput=agControler.controlInput;
 
-save('./workspaces/ArrayFigOpt.mat');
+save('workspaces/ArrayFigOpt.mat');
 view=ArrayFigureView({uuControler,ugControler,auControler,agControler});
 view.plot
 
