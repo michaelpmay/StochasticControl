@@ -1,9 +1,21 @@
 addpath classes
+try
   load dOptimizerWorkspace.mat
+catch
+clear all
+build=ModelFactory;
+model=build.autoregulatedModelWithoutInput;
+ssOptimizer=GradientControlerOptimizer
+ssOptimizer.model=TwoCellFSP(model)
+ssOptimizer.gmresMaxIter=50;
+ssOptimizer.numIterations=30;
+model=ssOptimizer.optimizeControler()
+dOptimizer=DynamicControlOptimizer(model)
+end
 %%
 
 %%
-dOptimizer.time=linspace(0,5,50)
+dOptimizer.time=linspace(0,50,1000)
 [data,modelFsp,u]=dOptimizer.optimize()
 N=length(data.time)
 %%
@@ -25,6 +37,7 @@ sampleProbability=sampleProbability/N;
 dynamicP=sampleProbability;
 dyanmicMarginal1=sum(dynamicP,1);
 dynamicMarginal2=sum(dynamicP,2);
+%%
 figure
 hold on
 plot(steadyMarginal1);
@@ -35,6 +48,3 @@ hold on
 plot(dyanmicMarginal1);
 plot(dynamicMarginal2);
 hold off
-score=ProbabilityScore(model)
-score.getScore(pss)
-score.getScore(dynamicP)
