@@ -13,7 +13,7 @@ classdef DynamicControlOptimizer
       obj.modelFsp=model;
       obj.score=ProbabilityScore(model);
     end
-    function [data, minModelFsp,u,sample]=optimize(obj) 
+    function [data, minModelFsp,u]=optimize(obj) 
       warning('off');
       minModelFsp(1)=obj.modelFsp;
       minModelFsp(1).time=[obj.time(1) obj.time(2)];
@@ -34,18 +34,18 @@ classdef DynamicControlOptimizer
       end
       data=obj.parseData(data);
     end
-    function globalOptimize(obj)
+    function globalOptimize(obj,element)
       for i=1:obj.modelFsp.dims(1)
         for j=1:obj.modelFsp.dims(2)
-          fprintf(['iteration: ',num2str(i-1),'/',num2str(j-1),'\n'])
+          modelFsp=obj.modelFsp;
           sample=obj.getDeltaDist(i,j);
-          [u(i,j),minModelFsp]=obj.getDynamicU(sample);
+          [u{},minModelFsp]=obj.getDynamicU(sample);
         end
       end
     end
-    function initialState=getDeltaDist(obj,i,j)
+    function getDeltaDist(obj,element)
       initialState=zeros(obj.modelFsp.dims);
-      initialState(i,j)=1;
+      initialState(element)=1;
     end
     function initialState=getInitialState(obj,probability)
       initialState=zeros(obj.modelFsp.dims);
