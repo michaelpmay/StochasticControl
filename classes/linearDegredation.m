@@ -1,3 +1,3 @@
 function rate=linearDegredation(x,gamma)
-rate=gamma*x
+rate=gamma*x;
 end
