@@ -3,9 +3,9 @@ clear all;
 warning('off')
 build=ModelFactory;
 target=[30;10];
-numGIter=3;
-numUIter=1;
-gmresMaxIter=1;
+numGIter=30;
+numUIter=50;
+gmresMaxIter=150;
 model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
@@ -37,8 +37,8 @@ controler.gmresMaxIter=gmresMaxIter;
 agControlerInput=agControler.controlInput;
 
 save('workspaces/ArrayFigOpt.mat');
-view=ArrayFigureView({uuControler,ugControler,auControler,agControler});
-view.plot
+%view=ArrayFigureView({uuControler,ugControler,auControler,agControler});
+%view.plot
 
 
 function [optimalFSP,optimalControler]=optimizeModel(model,controlOptimizer)
