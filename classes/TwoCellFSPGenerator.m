@@ -87,7 +87,7 @@ classdef TwoCellFSPGenerator
       rate=rate(2);
     end
     function aArray=makeAArray(obj,model)
-      aArray=obj.makeHArray(model)+obj.getGArray(model);
+      aArray=obj.makeHArray(model)+obj.makeGArray(model);
     end
     function bMatrix=makeBMatrix(obj,model)
       bArray=obj.makeBArray(model);
@@ -109,12 +109,17 @@ classdef TwoCellFSPGenerator
         obj.bMatrix=obj.makeBMatrix(model);
       end
     end
-    function getAMatrix(model)
-      if isempty(obj.aMatrix)
+    function aMatrix=getAMatrix(model)
+      obj=obj.updateABMatrix;
+      aMatrix=obj.aMatrix;
+    end
+    function bMatrix=getBMatrix(model)
+      obj=obj.updateABMatrix;
+      bMatrix=obj.bMatrix;
     end
     function [xv, yv]=getXYV(obj,model)
       xv=0:(model.dims(1)-1);
       yv=0:(model.dims(2)-1);
     end
-  end
+    end
 end

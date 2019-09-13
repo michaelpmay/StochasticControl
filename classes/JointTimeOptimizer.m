@@ -28,7 +28,7 @@ classdef JointTimeOptimizer
       singularFsp.model.initialState(obj.initialState(2)+1)=1;
       singleProbability{1}=singularFsp.model.initialState;
       jointProbability=obj.getInitialProbability;
-      obj.score=ProbabilityScore(fsp);
+      obj.score=ProbabilityScore(model);
       N=length(obj.time)-1;
       for i=1:N
         fprintf(['\n iteration: ',num2str(i),'/',num2str(N),'\n'])
