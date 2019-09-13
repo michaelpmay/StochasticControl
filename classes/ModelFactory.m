@@ -78,7 +78,7 @@ classdef ModelFactory
       model=ModelPlugin();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[0 obj.ga lightLevel];
-      model.rxnRate=@(t,x,p)[p(1)+lightLevel ; p(2)*x(1)];
+      model.rxnRate=@(t,x,p)[p(1)+p(3) ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
