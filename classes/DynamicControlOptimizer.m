@@ -47,19 +47,33 @@ classdef DynamicControlOptimizer
         end
       end
     end
-    function iterativeGlobalOptimize(obj,fileName)
+    function iterativeGlobalOptimize(obj,fileName,stepReps,numReps)
       probability=obj.getSteadyState;
       [sortProb,index]=sort(probability(:),'descend');
       [xMap,yMap]=obj.getElementMap;
       u=nan(obj.modelFsp.dims);
       n=length(index);
-      for i=1:n
-        x=xMap(index(i));
-        y=yMap(index(i));
-        sample=getInitialState(obj,probability(x,y));
-        [u(x,y),minModelFsp]=obj.getDynamicU(sample);
-        save(fileName,'u');
+      ind=1;
+      for j=1:numReps
+        menu=ParallelMenu;
+        for i=1:stepReps
+        x=xMap(index(ind));
+        y=yMap(index(ind));
+        menu=menu.attachTicketItem(@obj.calculateSingleU,{probability,x,y});
+        ind=ind+1;
+        end
+        output=menu.run();
+        for i=1:stepReps
+          x=menu.ticketItems{i}.input{2};
+          y=menu.ticketItems{i}.input{3};
+          u(x,y)=output{i};
+        end
+        save(fileName,'u')
       end
+    end
+    function u=calculateSingleU(obj,probability,xIndex,yIndex)
+      sample=obj.getInitialState(probability(xIndex,yIndex));
+      [u,~]=obj.getDynamicU(sample);
     end
     function initialState=getDeltaDist(obj,i,j)
       initialState=zeros(obj.modelFsp.dims);
