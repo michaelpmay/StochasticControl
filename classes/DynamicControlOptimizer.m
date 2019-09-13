@@ -47,6 +47,20 @@ classdef DynamicControlOptimizer
         end
       end
     end
+    function iterativeGlobalOptimize(obj,fileName)
+      probability=obj.getSteadyState;
+      [sortProb,index]=sort(probability(:),'descend');
+      [xMap,yMap]=obj.getElementMap;
+      u=nan(obj.modelFsp.dims);
+      n=length(index);
+      for i=1:n
+        x=xMap(index(i));
+        y=yMap(index(i));
+        sample=getInitialState(obj,probability(x,y));
+        [u(x,y),minModelFsp]=obj.getDynamicU(sample);
+        save(fileName,'u');
+      end
+    end
     function initialState=getDeltaDist(obj,i,j)
       initialState=zeros(obj.modelFsp.dims);
       initialState(i,j)=1;
@@ -108,15 +122,18 @@ classdef DynamicControlOptimizer
       for i=1:n
         tempModel(i)=obj.modelFsp;
         tempModel(i).controlInput(Q+1)=tempModel(i).controlInput(Q+1)+obj.uRange(i);
-        dynamicScore(i)=obj.getDyanamicScore(tempModel(i));
+        dynamicScore(i)=obj.getDyanamicScore(tempModel(i),obj.deltaDistribution(Q));
       end
       [~,minIndex]=min(dynamicScore);
       u=obj.uRange(minIndex);
       minModel=tempModel(minIndex);
     end
-    function score=getDyanamicScore(obj,modelfsp)
+    function probability=deltaDistribution(obj,index)
+      probability=zeros(obj.modelFsp.dims);
+      probability(index(1)+1,index(2)+1)=1;
+    end
+    function score=getDyanamicScore(obj,modelfsp,probability)
       infGenerator=obj.getInfGenerator(modelfsp);
-      probability=modelfsp.getSteadyState();
       score=obj.score.getDynamicScore(probability,infGenerator);
     end
     function steadyStateProbability=getSteadyState(obj)
