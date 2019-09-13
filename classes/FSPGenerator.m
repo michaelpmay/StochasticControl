@@ -7,7 +7,8 @@ classdef FSPGenerator
     makeInfGen
   end
   methods
-    function infGenerator=getInfGen(obj)
+    function infGenerator=getInfGenerator(obj,model)
+      obj.model=model;
       N=prod(obj.dims);
       infGenerator=obj.getInfGenTensor();
       infGenerator=reshape(infGenerator,[N,N]);

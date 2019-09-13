@@ -5,6 +5,7 @@ classdef ModelPlugin
     stoichMatrix
     initialState
     time
+    dims
   end
   methods
     function obj=setParameters(obj,parameters)

@@ -3,8 +3,13 @@ addpath classes
 %%
 
 %%
+build=ModelFactory;
+model=build.autoregulatedModelWithoutInput
+modelFsp=TwoCellFSP(model);
+modelFsp.controlInput=controler;
+dOptimizer=DynamicControlOptimizer(modelFsp);
 dOptimizer.time=linspace(0,5,50)
-[data,modelFsp,u]=dOptimizer.optimize()
+[data,dModelFsp,u,samples]=dOptimizer.optimize()
 N=length(data.time)
 %%
 for i=1:N
@@ -12,7 +17,7 @@ pcolor(reshape(data.state(:,i),[50 50]))
 pause(1)
 end
 %%
-pss=model.getSteadyState();
+pss=modelFsp.getSteadyState();
 steadyMarginal1=sum(pss,1);
 steadyMarginal2=sum(pss,2);
 
@@ -38,3 +43,13 @@ hold off
 score=ProbabilityScore(model)
 score.getScore(pss)
 score.getScore(dynamicP)
+
+for i=1:50
+  for j=1:50
+    if ~isnan(U(i,j))
+      newControler(i,j)=U(i,j);
+    else
+      newControler(i,j)=controler(i,j) 
+    end
+  end
+end

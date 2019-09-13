@@ -13,7 +13,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   methods
     function [optimizedModel,obj]=optimizeControler(obj)
       warning('MATLAB:eigs:IllConditionedA','off');
-      obj.score=ProbabilityScore(obj.model);
+      obj.score=ProbabilityScore(obj.modelFsp.model);
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
@@ -43,8 +43,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     end
     function obj=setControl(obj,controler)
       controler=obj.setBounds(controler);
-      obj.controlInput=controler;
-      obj.model.controlInput=controler;
+      obj.modelFsp.model.controlInput=controler;
     end
     function boundedControler=setBounds(obj,controler)
       controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;
@@ -52,9 +51,9 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       boundedControler=controler;
     end
     function grad=getGrad(obj)
-      partial=obj.getPartial(obj.model);
+      partial=obj.getPartial(obj.modelFsp);
       grad=obj.score.C'*partial;
-      grad=reshape(grad,obj.model.dims);
+      grad=reshape(grad,obj.modelFsp.dims);
     end
     
     function [xVector,yVector]=getSampleSpace(obj,stepSize)
@@ -77,15 +76,17 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       fileName=[class(obj.model.parameters),decoration];
     end
     
-    function grad=getPartial(obj,model)
+    function grad=getPartial(obj,modelFsp)
       P=obj.getSteadyState;
-      Lambda=sparse(model.generator.bMatrix.*model.controlInput(:)'+model.generator.aMatrix);
-      B=kron(sparse(eye(prod(model.dims))),Lambda);
-      K=-(model.generator.bMatrix.*P(:)');
+      Lambda=sparse(modelFsp.generator.bMatrix.*modelFsp.model.controlInput(:)'+modelFsp.generator.aMatrix);
+      B=kron(sparse(eye(prod(modelFsp.dims))),Lambda);
+      K=-(modelFsp.generator.bMatrix.*P(:)');
       K=K(:);
       grad=gmres(B,K,[],obj.gmresTolerance,obj.gmresMaxIter);
-      grad=reshape(grad,[prod(model.dims) prod(model.dims)]);
+      grad=reshape(grad,[prod(modelFsp.dims) prod(modelFsp.dims)]);
     end
-    
+    function infGen=getInfGenerator(obj,modelFsp)
+      infGen=modelFsp.generator.getInfGenerator(modelFsp.controlInput);
+    end
   end
 end

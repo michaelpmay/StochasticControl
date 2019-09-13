@@ -22,11 +22,11 @@ classdef DynamicControlOptimizer
       N=length(obj.time);
       for i=2:(length(obj.time)-1)
         fprintf(['iteration: ',num2str(i-1),'/',num2str(N-1),'\n'])
-        sample=obj.sampleProbability(data(i-1).state(:,end),1);
-        [u(i),minModelFsp(i)]=obj.getDynamicU(sample);
+        sample(i-1,:)=obj.sampleProbability(data(i-1).state(:,end),1);
+        [u(i),minModelFsp(i)]=obj.getDynamicU(sample(i-1,:));
         minModelFsp(i).time=linspace(obj.time(i),obj.time(i+1), 5);
         minModelFsp(i).infGenerator=obj.getInfGenerator(minModelFsp(i));
-        minModelFsp(i).initialState=obj.getInitialState(data(i-1).state(:,end));
+        minModelFsp(i).initialState=obj.getInitialState(obj.deltaDistribution(sample));
         data(i)=minModelFsp(i).run;
       end
       data=obj.parseData(data);
@@ -39,13 +39,24 @@ classdef DynamicControlOptimizer
       for i=1:obj.modelFsp.dims(1)
         for j=1:obj.modelFsp.dims(2)   
           if probability(i,j)>minProb
-            index=index+1;
-            fprintf(['iteration: ',num2str(index),'/',numElementsString,'\n']);
-            sample=getInitialState(obj,probability);
-            [u(i,j),minModelFsp]=obj.getDynamicU(sample);
+            index=index+1
+            fprintf(['iteration: ',num2str(index),'/',numElementsString,'\n'])
+            sample=[i-1,j-1];
+            [u(i,j),minModelFsp]=obj.getDynamicU(sample)
           end
         end
       end
+    end
+    function [u,minModel]=getDynamicU(obj,Q)
+      n=length(obj.uRange);
+      for i=1:n
+        tempModel(i)=obj.modelFsp;
+        tempModel(i).controlInput(Q(1)+1,Q(2)+1)=tempModel(i).controlInput(Q(1)+1,Q(2)+1)+obj.uRange(i);
+        dynamicScore(i)=obj.getDyanamicScore(tempModel(i),obj.deltaDistribution(Q));
+      end
+      [~,minIndex]=min(dynamicScore);
+      u=obj.uRange(minIndex);
+      minModel=tempModel(minIndex);
     end
     function iterativeGlobalOptimize(obj,fileName,stepReps,numReps)
       probability=obj.getSteadyState;
@@ -130,17 +141,6 @@ classdef DynamicControlOptimizer
       [Y,X]=meshgrid(xVec,yVec);
       XVec=X(:);
       YVec=Y(:);
-    end
-    function [u,minModel]=getDynamicU(obj,Q)
-      n=length(obj.uRange);
-      for i=1:n
-        tempModel(i)=obj.modelFsp;
-        tempModel(i).controlInput(Q+1)=tempModel(i).controlInput(Q+1)+obj.uRange(i);
-        dynamicScore(i)=obj.getDyanamicScore(tempModel(i),obj.deltaDistribution(Q));
-      end
-      [~,minIndex]=min(dynamicScore);
-      u=obj.uRange(minIndex);
-      minModel=tempModel(minIndex);
     end
     function probability=deltaDistribution(obj,index)
       probability=zeros(obj.modelFsp.dims);

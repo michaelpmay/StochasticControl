@@ -3,7 +3,7 @@ clear all
 controlInput=getControlInput(100,30);
 function controlInput=getControlInput(gmresIter,numIter)
 build=ModelFactory;
-model=build.autoregulatedModelWithoutInput;
+model=build.autoregulatedControlModelWithUniformControler(.3)
 modelFsp=TwoCellFSP(model);
 optimizer=GradientControlerOptimizer;
 optimizer.gmresMaxIter=gmresIter;

@@ -1,6 +1,6 @@
 classdef SteadyStateControlOptimizer
   properties
-    model
+    modelFsp
     score
     controlInput
     maxControlerBounds=10
@@ -10,18 +10,18 @@ classdef SteadyStateControlOptimizer
     dims=[50 50]
   end
   methods
-    function [model,obj]=visit(obj,model)
-      obj.model=model;
-      obj.score=ProbabilityScore(model)
-      [model,obj]=obj.optimizeControler();
+    function [modelFsp,obj]=visit(obj,modelFsp)
+      obj.modelFsp=modelFsp;
+      obj.score=ProbabilityScore(modelFsp.model);
+      [modelFsp,obj]=obj.optimizeControler();
     end
     function obj=setControl(obj,controler)
       controler=obj.setBounds(controler);
       obj.controlInput=controler;
-      obj.model.controlInput=controler;
+      obj.modelFsp.model.controlInput=controler;
     end
     function obj=initializeControlInput(obj,level)
-      obj=obj.setControl(level*ones(obj.model.dims));
+      obj=obj.setControl(level*ones(obj.modelFsp.model.dims));
     end
     function boundedControler=setBounds(obj,controler)
       controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;
@@ -33,8 +33,7 @@ classdef SteadyStateControlOptimizer
       score=obj.score.getScore(steadyStateProbability(:));
     end
     function steadyState=getSteadyState(obj)
-      obj=obj.setControl(obj.controlInput);
-      steadyState=obj.model.getSteadyState();
+      steadyState=obj.modelFsp.getSteadyState();
     end
     function C=getC(obj)
       C=obj.score.C;

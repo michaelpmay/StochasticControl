@@ -5,8 +5,8 @@ classdef ProbabilityScore
     C
   end
   methods
-    function obj=ProbabilityScore(modelfsp)
-      obj.C=obj.makeC(modelfsp);
+    function obj=ProbabilityScore(model)
+      obj.C=obj.makeC(model);
     end
     function score=getScore(obj,P)
       score=obj.C'*P(:);

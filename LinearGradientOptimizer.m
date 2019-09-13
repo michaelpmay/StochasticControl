@@ -1,0 +1,3 @@
+classdef LinearGradientOptimizer < GradientOptimizer
+  
+end
