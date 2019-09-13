@@ -31,14 +31,13 @@ classdef DynamicControlOptimizer
       end
       data=obj.parseData(data);
     end
-    function U=globalOptimize(obj,minProb)
+    function u=globalOptimize(obj,minProb)
       probability=obj.getSteadyState;
-      u=preAllocateArray(obj.modelFsp.dims(1),obj.modelFsp.dims(2));
+      u=nan(obj.modelFsp.dims(1),obj.modelFsp.dims(2));
       numElementsString=num2str(sum(sum(probability>minProb)));
       index=0;
       for i=1:obj.modelFsp.dims(1)
-        for j=1:obj.modelFsp.dims(2)
-          
+        for j=1:obj.modelFsp.dims(2)   
           if probability(i,j)>minProb
             index=index+1;
             fprintf(['iteration: ',num2str(index),'/',numElementsString,'\n']);
