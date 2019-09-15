@@ -135,7 +135,7 @@ classdef DynamicControlOptimizer
       n=length(obj.uRange);
       for i=1:n
         tempModel(i)=obj.modelFsp;
-        tempModel(i).controlInput(Q+1)=tempModel(i).controlInput(Q+1)+obj.uRange(i);
+        tempModel(i).model.controlInput(Q+1)=tempModel(i).model.controlInput(Q+1)+obj.uRange(i);
         dynamicScore(i)=obj.getDyanamicScore(tempModel(i),obj.deltaDistribution(Q));
       end
       [~,minIndex]=min(dynamicScore);
@@ -154,7 +154,7 @@ classdef DynamicControlOptimizer
       steadyStateProbability=obj.modelFsp.getSteadyState();
     end
     function infGen=getInfGenerator(obj,modelFsp)
-      infGen=modelFsp.generator.getInfGenerator(modelFsp.controlInput);
+      infGen=modelFsp.getInfGenerator;
     end
   end
 end

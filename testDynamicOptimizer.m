@@ -1,8 +1,14 @@
-addpath classes
-  load dOptimizerWorkspace.mat
+build=ModelFactory;
+model=build.autoregulatedModelWithoutInput
+modelFsp=TwoCellFSP(model)
+optimizer=GradientControlerOptimizer
+optimizer.gmresMaxIter=1;
+optimizer.numIterations=1;
+modelFsp=modelFsp.accept(optimizer)
 %%
 
 %%
+dOptimizer=DynamicControlOptimizer(modelFsp)
 dOptimizer.time=linspace(0,5,50)
 [data,modelFsp,u]=dOptimizer.optimize()
 N=length(data.time)

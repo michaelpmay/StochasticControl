@@ -1,7 +1,6 @@
 classdef TwoCellFSP < SolverFSP & PrintObjects
   properties
     model
-    controlInput
     dims=[50 50]
   end
   properties (Hidden)
@@ -13,7 +12,6 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
       obj.model=model;
       obj.generator=TwoCellFSPGenerator(model);
       obj.generator.dims=obj.dims;
-      obj.controlInput=zeros(obj.dims);
     end
     function data=formatTrajectory(obj,data)
       newState=zeros([obj.dims(1),obj.dims(2),length(obj.time)]);
@@ -23,11 +21,14 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
       data=ModelFSPData(data.time,newState,data.meta);
     end
     function Pss=getSteadyState(obj)
-      infGenerator=obj.generator.getInfGenerator(obj.controlInput);
+      infGenerator=obj.getInfGenerator;
       fsp=SolverFSP();
       fsp.infGenerator=infGenerator;
       Pss=fsp.getSteadyState;
       Pss=obj.reshapeField(Pss);
+    end
+    function infGenerator=getInfGenerator(obj)
+      infGenerator=obj.generator.getInfGenerator(obj.model);
     end
     function grad=getGrad(obj)
       P=obj.getSteadyState;

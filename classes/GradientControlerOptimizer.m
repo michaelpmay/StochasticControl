@@ -13,7 +13,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   methods
     function [optimizedModel,obj]=optimizeControler(obj)
       warning('MATLAB:eigs:IllConditionedA','off');
-      obj.score=ProbabilityScore(obj.model);
+      obj.score=ProbabilityScore(obj.modelFsp);
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
@@ -24,7 +24,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
        % waitbar(i/obj.numIterations,waitBar);
       end
       %delete(waitBar);
-      optimizedModel=obj.model;
+      optimizedModel=obj.modelFsp;
     end
     function stepRate=updateStepRate(obj,stepRate)
       stepRate=stepRate*obj.decrement;
@@ -35,7 +35,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     function obj=stepToNewControler(obj,stepRate)
       grad=obj.getGrad();
       grad=obj.trimGrad(grad);
-      obj=obj.setControl(obj.controlInput-grad*stepRate);
+      obj=obj.setControl(obj.modelFsp.model.controlInput-grad*stepRate);
     end
     function grad=trimGrad(obj,grad)
       gradCutoff=min(maxk(abs(grad(:)),obj.gradCutoffIndex));
@@ -43,8 +43,8 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     end
     function obj=setControl(obj,controler)
       controler=obj.setBounds(controler);
-      obj.controlInput=controler;
-      obj.model.controlInput=controler;
+      obj.modelFsp.model.controlInput=controler;
+      obj.modelFsp.model.controlInput=controler;
     end
     function boundedControler=setBounds(obj,controler)
       controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;
@@ -52,14 +52,14 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       boundedControler=controler;
     end
     function grad=getGrad(obj)
-      partial=obj.getPartial(obj.model);
+      partial=obj.getPartial(obj.modelFsp.model);
       grad=obj.score.C'*partial;
-      grad=reshape(grad,obj.model.dims);
+      grad=reshape(grad,obj.modelFsp.dims);
     end
     
     function [xVector,yVector]=getSampleSpace(obj,stepSize)
-      xVector=0:stepSize:(obj.model.dims(1)-1);
-      yVector=0:stepSize:(obj.model.dims(2)-1);
+      xVector=0:stepSize:(obj.modelFsp.dims(1)-1);
+      yVector=0:stepSize:(obj.modelFsp.dims(2)-1);
     end
     
     function decoration=generateFileDecoration(obj)
@@ -79,12 +79,12 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     
     function grad=getPartial(obj,model)
       P=obj.getSteadyState;
-      Lambda=sparse(model.generator.bMatrix.*model.controlInput(:)'+model.generator.aMatrix);
-      B=kron(sparse(eye(prod(model.dims))),Lambda);
-      K=-(model.generator.bMatrix.*P(:)');
+      Lambda=sparse(obj.modelFsp.generator.bMatrix.*model.controlInput(:)'+obj.modelFsp.generator.aMatrix);
+      B=kron(sparse(eye(prod(obj.modelFsp.dims))),Lambda);
+      K=-(obj.modelFsp.generator.bMatrix.*P(:)');
       K=K(:);
       grad=gmres(B,K,[],obj.gmresTolerance,obj.gmresMaxIter);
-      grad=reshape(grad,[prod(model.dims) prod(model.dims)]);
+      grad=reshape(grad,[prod(obj.modelFsp.dims) prod(obj.modelFsp.dims)]);
     end
     
   end

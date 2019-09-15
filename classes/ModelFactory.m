@@ -15,10 +15,18 @@ classdef ModelFactory
     time=linspace(0,780)
     stoichMatrix=[1,-1]
     dims=[50 50]
+    controlable=true;
   end
   methods
+    function model=makeModelObject(obj)
+      if obj.controlable==true;
+        model=ControlModel;
+      else
+        model=ModelPlugin;
+      end
+    end
     function model=birthDecayToyModel(obj)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
       model.time=linspace(0,100,500);
       model.rxnRate=@(t,x,p)[p(1),p(2)*x(1)]
@@ -26,7 +34,7 @@ classdef ModelFactory
       model.initialState=[0];
     end
     function model=birthDecayToyModel2D(obj)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=[1 -1  0  0
                           0  0  1 -1];
       model.time=linspace(0,100,500);
@@ -35,7 +43,7 @@ classdef ModelFactory
       model.initialState=[0;0];
     end
     function model=unregulatedModelWithExperimentalInput(obj)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[obj.ko obj.ga obj.u];
       model.rxnRate=@(t,x,p)[p(1)+obj.ExperimentalInput(t,x,p(3:5)) ; p(2)*x(1)];
@@ -43,7 +51,7 @@ classdef ModelFactory
       model.time=obj.time;
     end
     function model=unregulatedModelWithFrequencyInput(obj,frequency,amplitude)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[obj.ko obj.ga frequency amplitude];
       model.rxnRate=@(t,x,p)[p(1)+obj.frequencyInput(t,x,p(3:4)) ; p(2)*x(1)];
@@ -51,7 +59,7 @@ classdef ModelFactory
       model.time=obj.time;
     end
     function model=unregulatedModelWithoutInput(obj)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[obj.ko obj.ga];
       model.rxnRate=@(t,x,p)[p(1);p(2)*x(1)];
@@ -59,7 +67,7 @@ classdef ModelFactory
       model.time=obj.time;
     end
     function model=autoregulatedModelWithoutInput(obj)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga];
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4));linearDegredation(x,p(5))];
@@ -75,7 +83,7 @@ classdef ModelFactory
       model.time=obj.time;
     end
     function model=unregulatedModelWithConstantLight(obj,lightLevel)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[0 obj.ga lightLevel];
       model.rxnRate=@(t,x,p)[p(1)+p(3) ; p(2)*x(1)];
@@ -83,7 +91,7 @@ classdef ModelFactory
       model.time=obj.time;
     end
     function model=khammashFitModelNoGamma(obj)
-      model=ModelPlugin();
+      model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[obj.ko obj.u];
       model.rxnRate=@(t,x,p)[p(1)+obj.ExperimentalInput(t,x,p(2:4)) ; .0203*x(1)];
@@ -94,7 +102,7 @@ classdef ModelFactory
       model=obj.unregulatedModelWithExperimentalInput()
     end
     function model=nCellSSA(obj,N,input)
-      model=ModelPlugin;
+      model=obj.makeModelObject();
       model.rxnRate=@(t,x,p)RateEq(t,x,p);
       model.time=obj.time;
       model.initialState=[floor(30*rand())]*ones(1,N);

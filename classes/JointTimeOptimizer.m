@@ -16,8 +16,9 @@ classdef JointTimeOptimizer
       
     end
     function modelSsa=optimize(obj,model)
-      ssa=obj.initializeModelSsa(model);
-      fsp=obj.initializeModelFsp(model);
+      ssa=obj.initializeSsa(model);
+      jointFsp=obj.initializeJointFsp(model);
+      singleFsp=obj.intializeSingularFSP(model)
       initialTarget=obj.initialState(1);
       initialNonTarget=obj.deltaDistribution(obj.initialState(2));
       initialJointDistribution=obj.makeJointDistribution(initialTarget,initialNonTarget)
@@ -45,7 +46,7 @@ classdef JointTimeOptimizer
       infGenerator=obj.getInfGenerator(modelfsp);
       score=obj.score.getDynamicScore(probability,infGenerator);
     end
-    function ssa=initializeModelSsa(obj,model)
+    function ssa=initializeSsa(obj,model)
       ssa=SolverSSA(model);
       ssa.model.initialState=obj.initialState(1);
     end

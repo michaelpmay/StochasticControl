@@ -106,8 +106,8 @@ classdef TwoCellFSPGenerator
       aArray=obj.getAArray();
       aMatrix=reshape(aArray,[prod(obj.dims),prod(obj.dims)]);
     end
-    function infGenerator=getInfGenerator(obj,input)
-      infGenerator=(obj.aMatrix+obj.bMatrix.*input(:)');
+    function infGenerator=getInfGenerator(obj,model)
+      infGenerator=(obj.aMatrix+obj.bMatrix.*model.controlInput(:)');
     end
     function [xv, yv]=getXYV(obj)
       xv=0:(obj.dims(1)-1);
