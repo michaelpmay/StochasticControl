@@ -1,22 +1,18 @@
 classdef TwoCellFSPGenerator
   properties
     model
-    dims=[50 50]
+    dims
   end
   properties(Hidden)
     aMatrix
     bMatrix
   end
   methods
-    function obj=TwoCellFSPGenerator(model)
-      try
+    function obj=TwoCellFSPGenerator(model,dims)
         obj.model=model;
+        obj.dims=dims;
         obj.aMatrix=obj.getAMatrix();
         obj.bMatrix=obj.getBMatrix();
-      catch
-        %do nothing
-      end
-      
     end
     function hArray=getHArray(obj)
       [xv,yv] = obj.getXYV();

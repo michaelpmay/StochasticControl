@@ -1,24 +1,18 @@
+addpath classes
 build=ModelFactory;
 model=build.autoregulatedModelWithoutInput
-modelFsp=TwoCellFSP(model)
+modelFsp=TwoCellFSP(model,[50 50])
 optimizer=GradientControlerOptimizer
-optimizer.gmresMaxIter=1;
-optimizer.numIterations=1;
+optimizer.gmresMaxIter=3;
+optimizer.numIterations=3;
 modelFsp=modelFsp.accept(optimizer)
-%%
 
-%%
 dOptimizer=DynamicControlOptimizer(modelFsp)
-dOptimizer.time=linspace(0,5,50)
-[data,modelFsp,u]=dOptimizer.optimize()
+dOptimizer.time=linspace(0,3,3)
+[data,dOptimizedModelFsp,u]=dOptimizer.optimize()
 N=length(data.time)
 %%
-for i=1:N
-pcolor(reshape(data.state(:,i),[50 50]))
-pause(1)
-end
-%%
-pss=model.getSteadyState();
+pss=modelFsp.getSteadyState();
 steadyMarginal1=sum(pss,1);
 steadyMarginal2=sum(pss,2);
 
@@ -41,6 +35,6 @@ hold on
 plot(dyanmicMarginal1);
 plot(dynamicMarginal2);
 hold off
-score=ProbabilityScore(model)
+score=ProbabilityScore(modelFsp)
 score.getScore(pss)
 score.getScore(dynamicP)

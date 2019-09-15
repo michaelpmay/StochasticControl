@@ -1,20 +1,20 @@
 classdef SolverFSP < GenericCME
   properties
-    time=[]
-    initialState=[]
-    infGenerator=[]
+    model
+    generator
+    dims
   end
   methods Private
     function outData=run(obj)
       infGen=sparse(obj.getInfGenerator());
       initialState=sparse(obj.getInitialState());
-      maxInd=length(obj.time);
+      maxInd=length(obj.model.time);
       %waitBar=waitbar(0,'Running FSP');
       for i=1:maxInd
         %waitbar(i/maxInd,waitBar);
-        P(:,i)=expm(infGen*obj.time(i))*initialState;
+        P(:,i)=expm(infGen*obj.model.time(i))*initialState;
       end
-      outData=GenericCMEData(obj.time,P);
+      outData=GenericCMEData(obj.model.time,P);
       %delete(waitBar)
     end
     function snapTime(obj,time)
@@ -36,10 +36,10 @@ classdef SolverFSP < GenericCME
       P=null(obj.getInfGenerator);
     end
     function out=getInfGenerator(obj)
-      out=obj.infGenerator;
+      out=obj.generator.getInfGenerator(obj.model);
     end
     function out=getInitialState(obj)
-      out=obj.initialState;
+      out=obj.model.initialState;
     end
     function outData=formatTrajectory(obj,data)
       outData=data;

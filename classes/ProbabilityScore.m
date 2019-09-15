@@ -14,9 +14,9 @@ classdef ProbabilityScore
     function score=getDynamicScore(obj,P,infGen)
       score=obj.C'*infGen*P(:);
     end
-    function C=makeC(obj,model)
-      xv=0:(model.dims(1)-1);
-      yv=0:(model.dims(2)-1);
+    function C=makeC(obj,modelFsp)
+      xv=0:(modelFsp.dims(1)-1);
+      yv=0:(modelFsp.dims(2)-1);
       C=preAllocateArray(length(xv),length(yv));
       for i=1:length(xv)
         for j=1:length(yv)

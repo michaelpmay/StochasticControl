@@ -13,10 +13,9 @@ classdef DynamicControlOptimizer
     function [data, minModelFsp,u,sample]=optimize(obj)
       warning('off');
       minModelFsp(1)=obj.modelFsp;
-      minModelFsp(1).time=[obj.time(1) obj.time(2)];
+      minModelFsp(1).model.time=[obj.time(1) obj.time(2)];
       probability=obj.getSteadyState;
-      minModelFsp(1).initialState=obj.getInitialState(probability);
-      minModelFsp(1).infGenerator=obj.getInfGenerator(minModelFsp(1));
+      minModelFsp(1).model.initialState=obj.getInitialState(probability);
       data(1)=minModelFsp(1).run();
       u(1)=0;
       N=length(obj.time);
@@ -24,9 +23,8 @@ classdef DynamicControlOptimizer
         fprintf(['iteration: ',num2str(i-1),'/',num2str(N-1),'\n'])
         sample=obj.sampleProbability(data(i-1).state(:,end),1);
         [u(i),minModelFsp(i)]=obj.getDynamicU(sample);
-        minModelFsp(i).time=linspace(obj.time(i),obj.time(i+1), 5);
-        minModelFsp(i).infGenerator=obj.getInfGenerator(minModelFsp(i));
-        minModelFsp(i).initialState=obj.getInitialState(data(i-1).state(:,end));
+        minModelFsp(i).model.time=linspace(obj.time(i),obj.time(i+1), 5);
+        minModelFsp(i).model.initialState=obj.getInitialState(data(i-1).state(:,end));
         data(i)=minModelFsp(i).run;
       end
       data=obj.parseData(data);

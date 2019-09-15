@@ -1,17 +1,12 @@
 classdef TwoCellFSP < SolverFSP & PrintObjects
-  properties
-    model
-    dims=[50 50]
-  end
   properties (Hidden)
-    maxU=50
-    generator
+    maxU=10
   end
   methods
-    function obj=TwoCellFSP(model)
+    function obj=TwoCellFSP(model,dims)
       obj.model=model;
-      obj.generator=TwoCellFSPGenerator(model);
-      obj.generator.dims=obj.dims;
+      obj.dims=dims;
+      obj.generator=TwoCellFSPGenerator(model,dims);
     end
     function data=formatTrajectory(obj,data)
       newState=zeros([obj.dims(1),obj.dims(2),length(obj.time)]);
@@ -19,13 +14,6 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
         newState(:,:,i)=reshape(data.state(:,i),[obj.dims(1),obj.dims(2)]);
       end
       data=ModelFSPData(data.time,newState,data.meta);
-    end
-    function Pss=getSteadyState(obj)
-      infGenerator=obj.getInfGenerator;
-      fsp=SolverFSP();
-      fsp.infGenerator=infGenerator;
-      Pss=fsp.getSteadyState;
-      Pss=obj.reshapeField(Pss);
     end
     function infGenerator=getInfGenerator(obj)
       infGenerator=obj.generator.getInfGenerator(obj.model);
