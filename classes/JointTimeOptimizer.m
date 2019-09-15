@@ -1,7 +1,6 @@
 classdef JointTimeOptimizer
   properties
-    modelSsa
-    modelFsp
+    model
     score
     uRange
     initialState=[5 5]
@@ -17,8 +16,11 @@ classdef JointTimeOptimizer
       
     end
     function modelSsa=optimize(obj,model)
-      obj=obj.initializeModelSsa(model);
-      obj=obj.initializeModelFsp(model);
+      ssa=obj.initializeModelSsa(model);
+      fsp=obj.initializeModelFsp(model);
+      initialTarget=obj.initialState(1);
+      initialNonTarget=obj.deltaDistribution(obj.initialState(2));
+      initialJointDistribution=obj.makeJointDistribution(initialTarget,initialNonTarget)
       for i=1:length(obj.time)
         [u,minModel]=obj.getDynamicU();
         minModel.time=[obj.time(i),obj.time(i+1)]
@@ -43,16 +45,16 @@ classdef JointTimeOptimizer
       infGenerator=obj.getInfGenerator(modelfsp);
       score=obj.score.getDynamicScore(probability,infGenerator);
     end
-    function obj=initializeModelSsa(obj,model)
-      obj.modelSsa=SolverSSA(model);
-      obj.modelSsa.model.initialState=obj.initialState(1);
+    function ssa=initializeModelSsa(obj,model)
+      ssa=SolverSSA(model);
+      ssa.model.initialState=obj.initialState(1);
     end
-    function obj=initializeModelFsp(obj,model)
-      obj.generator=FSPGenerator1D();
-      obj.generator.model=model
-      obj.generator.dims=obj.dims
-      obj.modelFsp=TwoCellFSP(model);
+    function fsp=initializeJointFsp(obj,model)
+      fsp=TwoCellFSP(model);
       obj.score=ProbabilityScore(obj);
+    end
+    function sFsp=initializeSingularFsp(obj,model)
+      
     end
     function getJointDistribution(obj,ssaState,probability)
       probability=zeros(size(model.dims))
