@@ -1,7 +1,6 @@
 classdef JointTimeOptimizer
   properties
-    modelSsa
-    modelFsp
+    model
     score
     uRange=[-.005 -.001 0 .001 .005];
     initialState=[30 30]
@@ -19,7 +18,7 @@ classdef JointTimeOptimizer
     end
     function [targetData,nonTargetData,u]=optimize(obj,model)
       ssa=SolverSSA(model);
-      fsp=TwoCellFSP(model);
+      fsp=TwoCellFSP(model,obj.dims);
       singularFsp=SolverFSP();
       singularFsp.model=model;
       singularFsp.generator=FSPGenerator1D;
@@ -28,7 +27,7 @@ classdef JointTimeOptimizer
       singularFsp.model.initialState(obj.initialState(2)+1)=1;
       singleProbability{1}=singularFsp.model.initialState;
       jointProbability=obj.getInitialProbability;
-      obj.score=ProbabilityScore(model);
+      obj.score=ProbabilityScore(fsp);
       N=length(obj.time)-1;
       for i=1:N
         fprintf(['\n iteration: ',num2str(i),'/',num2str(N),'\n'])
@@ -72,7 +71,7 @@ classdef JointTimeOptimizer
     end
     function [u,minModel]=getDynamicU(obj,model,probability)
       n=length(obj.uRange);
-      modelFsp=TwoCellFSP(model);
+      modelFsp=TwoCellFSP(model,obj.dims);
       for i=1:length(obj.uRange)
         tempModel(i)=modelFsp;
         newInput=model.controlInput+obj.uRange(i);
