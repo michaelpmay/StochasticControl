@@ -3,7 +3,7 @@ classdef SteadyStateControlOptimizer
     maxControlerBounds=10
     minControlerBounds=00
     numIterations=50
-    initialInputLevel=.8
+    initialInputLevel=.4
     dims=[50 50]
     modelFsp
     score
