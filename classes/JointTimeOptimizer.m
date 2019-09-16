@@ -2,23 +2,31 @@ classdef JointTimeOptimizer
   properties
     model
     score
-    uRange=[-.005 -.001 0 .001 .005];
+    uRange=linspace(0,1,10);
     initialState=[30 30]
-    time=linspace(0,10,100);
+    time=[0 10];
     initialU
     dims=[50 50]
     initialLight=.3
+    deltaTRange=linspace(.1,1,10)
   end
   properties(Hidden)
     generator
+    stateGenerators=[]
   end
   methods
     function obj=JointTimeOptimizer()
       
     end
-    function [targetData,nonTargetData,u]=optimize(obj,model)
+    function [analysis]=analyze(obj,model)
+      for i=1:length(obj.deltaTRange)
+        [analysis{i}]=optimizeForFixedDeltaT(obj,model,obj.deltaTRange(i));
+        obj.stateGenerators=[];
+      end
+    end
+    function [analysis]=optimizeForFixedDeltaT(obj,model,deltaT)
       ssa=SolverSSA(model);
-      fsp=TwoCellFSP(model,obj.dims);
+      jointFsp=TwoCellFSP(model,obj.dims);
       singularFsp=SolverFSP();
       singularFsp.model=model;
       singularFsp.generator=FSPGenerator1D;
@@ -27,13 +35,14 @@ classdef JointTimeOptimizer
       singularFsp.model.initialState(obj.initialState(2)+1)=1;
       singleProbability{1}=singularFsp.model.initialState;
       jointProbability=obj.getInitialProbability;
-      obj.score=ProbabilityScore(fsp);
-      N=length(obj.time)-1;
+      obj.score=ProbabilityScore(jointFsp);
+      obj=obj.updateStateGenerators(jointFsp,deltaT);
+      time=obj.time(1):deltaT:obj.time(end)
+      N=length(time)-1;
       for i=1:N
         fprintf(['\n iteration: ',num2str(i),'/',num2str(N),'\n'])
-        model(i).time=[obj.time(i) obj.time(i+1)];
-        [model(i).controlInput,u(i)]=obj.getDynamicUControler(model(i),jointProbability);
-        u
+        model(i).time=[time(i) time(i+1)];
+        [model(i).controlInput,u(i),dynamicScore(i)]=obj.getDynamicUControler(model(i),jointProbability,deltaT);
         if i==1
           model(i).initialState=obj.initialState(1);
         else
@@ -54,49 +63,65 @@ classdef JointTimeOptimizer
         jointProbability=zeros(obj.dims);
         jointProbability(ssaData(i).node{1}.state(end)+1,:)=[singleProbability{i+1}(:,end)];
         model(i+1)=model(i);
-        pcolorProbability(jointProbability);
-        drawnow();
-        pause(.1)
+        score(i)= obj.score.getScore(jointProbability);
       end
-      [targetData]=obj.parseSsaData(ssaData);
-      [nonTargetData]=obj.parseFspData(singularFspData);
+      [targetData]=obj.parseSsaData(ssaData,time);
+      [nonTargetData]=obj.parseFspData(singularFspData,time);
+      analysis.targetData=targetData;
+      analysis.nonTargetData=nonTargetData;
+      analysis.time=time;
+      analysis.u=u;
+      analysis.dynamicScore=dynamicScore;
+      analysis.score=score;
     end
     function probability=getInitialProbability(obj)
       probability=zeros(obj.dims);
       probability(obj.initialState(1)+1,obj.initialState(2)+1)=1;
     end
-    function [controler,u]=getDynamicUControler(obj,model,probability)
-      [u,model]=obj.getDynamicU(model,probability(:));
-      controler=ones(obj.dims)*u;
+    function [controler,u,score]=getDynamicUControler(obj,model,probability,deltaT)
+      [u,model,score]=obj.getDynamicU(model,probability(:),deltaT);
+      controler=model.controlInput;
     end
-    function [u,minModel]=getDynamicU(obj,model,probability)
+    function [u,model,score]=getDynamicU(obj,model,probability,deltaT)
       n=length(obj.uRange);
       modelFsp=TwoCellFSP(model,obj.dims);
+      obj=obj.updateStateGenerators(modelFsp,deltaT);
       for i=1:length(obj.uRange)
-        tempModel(i)=modelFsp;
-        newInput=model.controlInput+obj.uRange(i);
-        newInput(newInput<0)=0;
-        tempModel(i).model.controlInput=newInput;
-        dynamicScore(i)=obj.getDyanamicScore(tempModel(i),probability);
+        dynamicScore(i)=obj.score.getDynamicScore(probability,obj.stateGenerators{i});
       end
       [~,minIndex]=min(dynamicScore);
-      u=newInput(1,1);
-      minModel=tempModel(minIndex).model;
+      u=obj.uRange(minIndex);
+      model=obj.setInput(model,u);
+      score=dynamicScore(minIndex);
     end
-    function score=getDyanamicScore(obj,modelfsp,probability)
-      infGenerator=obj.getInfGenerator(modelfsp);
-      score=obj.score.getDynamicScore(probability,infGenerator);
+    function obj=updateStateGenerators(obj,modelFsp,deltaT)
+      
+      if isempty(obj.stateGenerators)
+        fprintf('Updating State Transition Matricies\n')
+        for i=1:length(obj.uRange)
+          tempModelFsp=modelFsp;
+          tempModelFsp.model.controlInput=ones(obj.dims)*obj.uRange(i);
+          infGenerator=tempModelFsp.getInfGenerator();
+          obj.stateGenerators{i}=expm(infGenerator*deltaT);
+        end
+      end
     end
-    function data=parseSsaData(obj,data)
+    function score=getDyanamicScore(obj,probability,stateGenerator,deltaT)
+      score=obj.score.getDynamicScore(probability,stateGenerator,deltaT);
+    end
+    function model=setInput(obj,model,inputValue)
+      model.controlInput=ones(obj.dims)*inputValue;
+    end
+    function data=parseSsaData(obj,data,time)
       state(1)=data(1).node{1}.state(1);
       for i=1:size(data,2)
         state(end+1)=data(i).node{1}.state(end);
       end
       data=SSAData();
       data.node{1}.state=state;
-      data.node{1}.time=obj.time;
+      data.node{1}.time=time;
     end
-    function data=parseFspData(obj,data)
+    function data=parseFspData(obj,data,time)
       probability=obj.getInitialProbability;
       state(:,2)=data(1).state(:,1);
       for i=1:length(data)
@@ -104,7 +129,7 @@ classdef JointTimeOptimizer
       end
       data=GenericCMEData;
       data.state=state;
-      data.time=obj.time;
+      data.time=time;
     end
     function obj=initializeModelSsa(obj,model)
       obj.modelSsa=SolverSSA(model);

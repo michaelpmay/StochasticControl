@@ -16,7 +16,7 @@ classdef SolverSSA < GenericCME
         timeSeriesData=obj.runTrajectory();
         timeSeriesData=obj.formatTrajectory(timeSeriesData);
         timeSeriesData=obj.appendMetaData(timeSeriesData);
-        data=data.appendNode(timeSeriesData)
+        data=data.appendNode(timeSeriesData);
       end
     end
     
