@@ -21,7 +21,7 @@ classdef JointTimeOptimizer
     function [analysis]=analyze(obj,model)
       menu=ParallelMenu;
       for i=1:length(obj.deltaTRange)
-        menu=menu.attachTicketItem(@obj.optimizeForFixedDeltaT,{obj,model,obj.deltaTRange(i)})
+        menu=menu.attachTicketItem(@obj.optimizeForFixedDeltaT,{model,obj.deltaTRange(i)})
       end
       analysis=menu.run;
     end
