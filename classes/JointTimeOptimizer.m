@@ -8,7 +8,7 @@ classdef JointTimeOptimizer
     initialU
     dims=[50 50]
     initialLight=.3
-    deltaTRange=linspace(.1,1,10)
+    deltaTRange=.1:.1:5
   end
   properties(Hidden)
     generator

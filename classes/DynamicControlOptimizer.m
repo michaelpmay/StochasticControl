@@ -2,7 +2,7 @@ classdef DynamicControlOptimizer
   properties
     modelFsp
     time=linspace(0,1,10)
-    uRange=linspace(0,1,10);
+    uRange=linspace(0,1,11);
     score
   end
   methods
