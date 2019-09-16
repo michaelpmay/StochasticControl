@@ -101,6 +101,12 @@ classdef ModelFactory
     function model=khammashFitModel(obj)
       model=obj.unregulatedModelWithExperimentalInput()
     end
+    function model=optimizedTwoCellModel(obj)
+        model=obj.autoregulatedModelWithoutInput;
+        load('inFiles/controlInputInjector.mat');
+        model.controlInput=controlInput;
+        model=TwoCellFSP(model,obj.dims);
+    end
     function model=nCellSSA(obj,N,input)
       model=obj.makeModelObject();
       model.rxnRate=@(t,x,p)RateEq(t,x,p);

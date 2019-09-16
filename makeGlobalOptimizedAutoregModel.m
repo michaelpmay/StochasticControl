@@ -1,6 +1,6 @@
 addpath classes/
 clear all
-controlInput=getControlInput(30,30,.6);
+controlInput=getControlInput(80,30,.6);
 function controlInput=getControlInput(gmresIter,numIter,inputLevel)
 build=ModelFactory;
 model=build.autoregulatedModelWithoutInput;
