@@ -19,10 +19,11 @@ classdef JointTimeOptimizer
       
     end
     function [analysis]=analyze(obj,model)
+      menu=ParallelMenu;
       for i=1:length(obj.deltaTRange)
-        [analysis{i}]=optimizeForFixedDeltaT(obj,model,obj.deltaTRange(i));
-        obj.stateGenerators=[];
+        menu=menu.attachTicketItem(@obj.optimizeForFixedDeltaT,{obj,model,obj.deltaTRange(i)})
       end
+      analysis=menu.run;
     end
     function [analysis]=optimizeForFixedDeltaT(obj,model,deltaT)
       ssa=SolverSSA(model);
