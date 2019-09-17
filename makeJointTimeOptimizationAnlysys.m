@@ -1,9 +1,9 @@
 addpath classes
 build=ModelFactory;
-modelFsp=build.optimizedTwoCellModel;
+model=build.autoregulatedModelWithUniformInput(.3);
 optimizer=JointTimeOptimizer;
 optimizer.time=[0,100]
-analysis=optimizer.analyze(modelFsp.model);
+analysis=optimizer.analyze(model);
 
 for i=1:50
 endScore(i)=analysis{i}.score(end)
