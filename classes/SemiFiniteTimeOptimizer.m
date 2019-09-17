@@ -1,6 +1,6 @@
 classdef SemiFiniteTimeOptimizer < GradientControlerOptimizer
   properties
-    deltaT
+    tauSpace=.1:.1:5
     partialElements
     maxElements=20;
   end
