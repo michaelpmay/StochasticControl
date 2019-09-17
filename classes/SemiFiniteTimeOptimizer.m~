@@ -1,6 +1,7 @@
 classdef SemiFiniteTimeOptimizer < GradientControlerOptimizer
   properties
-    deltaT
+    tauSpace=.5:.5:10
+    initialState
     partialElements
     maxElements=20;
   end
@@ -19,33 +20,35 @@ classdef SemiFiniteTimeOptimizer < GradientControlerOptimizer
     function u=optimizeUForSingleTau(obj,tau)
       u=ones(obj.dims)*obj.initialInputLevel;
       obj.modelFsp.model.controlInput=u;
-      probability=obj.getSteadyState;
+      obj.initialState=obj.getSteadyState;
+      tempModelFsp=obj.modelFsp;
       rate=obj.initialRate;
       for i=1:obj.numIterations
-        u=obj.stepToNewControler(u,tau,probability,rate);
+        obj=obj.updatePartialElements(u(:))
+        u=obj.stepToNewControler(u,rate,tau);
+        tempModelFsp.controlInput=u;
         rate=rate*obj.decrement;
       end
     end
-    function u=stepToNewControler(obj,u,tau,probability,rate)
-      gradU=obj.getGrad(u,tau,probability);
+    function u=stepToNewControler(obj,u,rate,tau)
+      gradU=obj.getGrad(u,tau);
       u=u+rate*gradU;
       u=obj.setBounds(u);
     end
-    function gradU=getGrad(obj,u,tau,probability)
-      obj=obj.updatePartialElements(u(:));
+    function gradU=getGrad(obj,tau)
       grad=zeros(prod(obj.modelFsp.dims),prod(obj.modelFsp.dims));
       for i=1:obj.maxElements
         for j=1:i
           grad=grad+obj.partialElements{i,j}*tau^i;
         end
       end
-      gradU=obj.score.C'*(grad.*probability(:));
+      gradU=obj.score.C'*(grad.*obj.initialState(:));
       gradU=reshape(gradU,obj.dims);
     end
     function obj=updatePartialElements(obj,controlInput)
       A=obj.modelFsp.generator.getAMatrix;
       B=obj.modelFsp.generator.getBMatrix;
-      Bu=B.*controlInput(:);
+      Bu=B.*controlInput(:)';
       A=sparse(A);
       Bu=sparse(Bu);
       L=A+Bu;

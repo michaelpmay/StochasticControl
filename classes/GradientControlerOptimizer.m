@@ -54,11 +54,6 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       obj.modelFsp.model.controlInput=controler;
       obj.modelFsp.model.controlInput=controler;
     end
-    function boundedControler=setBounds(obj,controler)
-      controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;
-      controler(controler<obj.minControlerBounds)=obj.minControlerBounds;
-      boundedControler=controler;
-    end
     function grad=getGrad(obj)
       partial=obj.getPartial(obj.modelFsp.model);
       grad=obj.score.C'*partial;
