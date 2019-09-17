@@ -1,7 +1,7 @@
 addpath classes
 build=ModelFactory;
-modelFsp=build.optimizedTwoCellModel;
+model=build.autoregulatedModelWithUniformInput(.3);
 optimizer=JointTimeOptimizer;
-optimizer.time=linspace(0,1,3);
+optimizer.time=[0 10];
 optimizer.deltaTRange=linspace(.1,1,2);
 optimizer.analyze(model)
