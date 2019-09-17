@@ -2,9 +2,9 @@ addpath classes
 build=ModelFactory;
 model=build.autoregulatedModelWithUniformInput(.3);
 optimizer=JointTimeOptimizer;
-optimizer.time=[0,100]
+optimizer.time=[0,100];
 analysis=optimizer.analyze(model);
-
+save('analysis','analysis');
 for i=1:50
 endScore(i)=analysis{i}.score(end)
 deltaT(i)=analysis{i}.time(2)-analysis{i}.time(1)
