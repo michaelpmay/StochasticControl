@@ -5,4 +5,4 @@ model=build.autoregulatedModelWithUniformInput(.3);
 optimizer=JointTimeOptimizer;
 optimizer.time=[0 10];
 optimizer.deltaTRange=linspace(.1,1,2);
-optimizer.parallelAnalyze(model)
+analysis=optimizer.parallelAnalyze(model)
