@@ -2,9 +2,9 @@ classdef JointTimeOptimizer
   properties
     model
     score
-    uRange=linspace(0,1,10);
+    uRange=linspace(0,1,10)
     initialState=[30 30]
-    time=[0 10];
+    time=[0 10]
     initialU
     dims=[50 50]
     initialLight=.3
@@ -38,7 +38,7 @@ classdef JointTimeOptimizer
       N=length(time)-1;
       for i=1:N
         printLoopIterations(i,N);
-        
+        model(i).time=[time(i) time(i+1)];
         [model(i).controlInput,u(i),dynamicScore(i)]=obj.getDynamicUControler(model(i),jointProbability,deltaT);
         if i==1
           model(i).initialState=obj.initialState(1);
@@ -47,7 +47,6 @@ classdef JointTimeOptimizer
         end
         ssa.model=model(i);
         ssa.model.parameters(6)=u(i);
-        model(i).time=[time(i) time(i+1)];
         ssaData(i)=ssa.run;
         singularFsp.model=model(i);
         singularFsp.model.initialState=singleProbability{end};
