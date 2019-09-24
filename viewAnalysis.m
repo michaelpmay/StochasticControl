@@ -1,4 +1,5 @@
 load analysis
+addpath classes
 close all
 for i=1:50
 endScore(i)=analysis{i}.score(end)
