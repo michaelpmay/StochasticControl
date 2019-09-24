@@ -40,6 +40,7 @@ classdef JointTimeOptimizer
         printLoopIterations(i,N);
         model(i).time=[time(i) time(i+1)];
         [model(i).controlInput,u(i),dynamicScore(i)]=obj.getDynamicUControler(model(i),jointProbability,deltaT);
+        
         if i==1
           model(i).initialState=obj.initialState(1);
         else
@@ -54,7 +55,7 @@ classdef JointTimeOptimizer
         singularFspData(i)=singularFsp.run();
         singleProbability{i+1}=singularFspData(i).state(:,end);
         %probabilityRow=fspData(i).state();
-        jointPrbability=obj.getJointDistribution(ssaData(i).node{1}.state(end),singleProbability{i+1}(:,end));
+        jointProbability=obj.getJointDistribution(ssaData(i).node{1}.state(end),singleProbability{i+1}(:,end));
         model(i+1)=model(i);
         score(i)= obj.score.getScore(jointProbability);
       end
@@ -79,8 +80,8 @@ classdef JointTimeOptimizer
       for i=1:maxTimeIndex-1
         infGenerator=obj.getBestInfGenerator(jointProbability,deltaT);
         singularFsp=singularFsp.iterateStep(infGenerator,deltaT);
-        singularProbability=singularFsp.getLastState();
-        jointProbability={};%todo
+        sProbability=singularFsp.getLastState();
+        jointProbability=obj.getJointDistribution(obj.initialState(1),sProbability);%todo
       end
     end
     function [obj,ssa,jointFsp,singularFsp]=initializeLoopVariables(obj,model,deltaT)
@@ -89,9 +90,6 @@ classdef JointTimeOptimizer
       singularFsp=obj.initilize1DFSP(model);
       obj.score=ProbabilityScore(obj);
       obj=obj.updateStateGenerators(jointFsp,deltaT);
-    end
-    function fsp=initilizeIterableFSP(obj,model)
-      %todo
     end
     function fsp=initilize1DFSP(obj,model)
       fsp=SolverFSP;
