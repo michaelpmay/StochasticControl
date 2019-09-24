@@ -114,7 +114,7 @@ classdef JointTimeOptimizer
     end
     
     function [controler,u,score]=getDynamicUControler(obj,model,probability,deltaT)
-      [u,model,score]=obj.getDynamicU(model,probability(:),deltaT);
+       c[u,model,score]=obj.getDynamicU(model,probability(:),deltaT);
       controler=model.controlInput;
     end
     
