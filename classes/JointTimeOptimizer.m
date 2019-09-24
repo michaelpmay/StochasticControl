@@ -30,6 +30,11 @@ classdef JointTimeOptimizer
       end
       analysis=menu.run;
     end
+    function analysis=fastAnalyze(obj,model)
+      for i=1:length(obj.deltaTRange)
+        analysis{i}=obj.optimizeForFixedDeltaTFast(model,obj.deltaTRange(i))
+      end
+    end
     function [analysis]=optimizeForFixedDeltaT(obj,model,deltaT)
       [obj,ssa,~,singularFsp]=obj.initializeLoopVariables(model,deltaT);
       jointProbability=obj.getInitialProbability();
@@ -54,7 +59,6 @@ classdef JointTimeOptimizer
         singularFsp.model.parameters(6)=u(i);
         singularFspData(i)=singularFsp.run();
         singleProbability{i+1}=singularFspData(i).state(:,end);
-        %probabilityRow=fspData(i).state();
         jointProbability=obj.getJointDistribution(ssaData(i).node{1}.state(end),singleProbability{i+1}(:,end));
         model(i+1)=model(i);
         score(i)= obj.score.getScore(jointProbability);
@@ -68,20 +72,23 @@ classdef JointTimeOptimizer
       analysis.dynamicScore=dynamicScore;
       analysis.score=score;
     end
-    function optimizeForFixedDeltaTFast(obj)
-      [obj,ssa,jointFsp,singularFsp]=obj.initializeLoopVariables(model);
-      singularFsp=IterableFsp();
-      singularFsp.state=obj.getInitialProbability;
-      sProbability=singularFsp.initialState;
-      jointProbability=obj.getJointDistribution(obj.initialState(1),sProbability)
-      obj=obj.updateStateGenerators(modelFsp,deltaT);
+    function analysis=optimizeForFixedDeltaTFast(obj,model,deltaT)
+      [obj,ssa,jointFsp,singularFsp]=obj.initializeLoopVariables(model,deltaT);
+      jointFsp=obj.intializeIterableJointFsp;
+      singularFsp=IterableFsp;
+      singularFsp.state=sum(obj.getInitialProbability,1)';
+      singularFsp.time=[0];
+      sProbability=singularFsp.getLastState;
+      jointProbability=obj.getInitialProbability;
       time=obj.time(1):deltaT:obj.time(end);
       maxTimeIndex=length(time);
       for i=1:maxTimeIndex-1
-        infGenerator=obj.getBestInfGenerator(jointProbability,deltaT);
-        singularFsp=singularFsp.iterateStep(infGenerator,deltaT);
+        stateGenerator=obj.getBestStateGenerator(jointProbability,deltaT);
+        simpleStateGenerator=obj.downSizeStateGenerator(stateGenerator)
+        singularFsp=singularFsp.iterateStep(simpleStateGenerator,deltaT);
+        jointFsp=jointFsp.iterateStep(ststeGenerator,delta);
         sProbability=singularFsp.getLastState();
-        jointProbability=obj.getJointDistribution(obj.initialState(1),sProbability);%todo
+        jointProbability=obj.getJointDistribution(obj.initialState(1),sProbability);
       end
     end
     function [obj,ssa,jointFsp,singularFsp]=initializeLoopVariables(obj,model,deltaT)
@@ -91,6 +98,9 @@ classdef JointTimeOptimizer
       obj.score=ProbabilityScore(obj);
       obj=obj.updateStateGenerators(jointFsp,deltaT);
     end
+    function downSizeStateGenerator(obj,stateGenerator)
+      
+    end
     function fsp=initilize1DFSP(obj,model)
       fsp=SolverFSP;
       fsp.model=model;
@@ -99,13 +109,18 @@ classdef JointTimeOptimizer
       fsp.model.initialState=zeros(obj.dims(2),1);
       fsp.model.initialState(obj.initialState(2)+1)=1;
     end
-    
-    function bestInfGen=getBestInfGenerator(obj,probability,deltaT)
+    function fsp=intializeIterableJointFsp(obj)
+      fsp=IterableFsp;
+      initialState=obj.getInitialProbability();
+      fsp.state=initialState(:);
+      fsp.time=[0];
+    end
+    function bestStateGen=getBestStateGenerator(obj,probability,deltaT)
       for i=1:length(obj.uRange)
-        dynamicScore(i)=obj.score.getDynamicScore(probability,obj.stateGenerators{i});
+        dynamicScore(i)=obj.score.getDynamicScore(probability(:),obj.stateGenerators{i});
       end
       [~,minIndex]=min(dynamicScore);
-      bestInfGen=obj.stateGenerators(minIndex);
+      bestStateGen=obj.stateGenerators{minIndex};
     end
     
     function probability=getInitialProbability(obj)

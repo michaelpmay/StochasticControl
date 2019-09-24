@@ -7,10 +7,6 @@ classdef IterableFsp
     
   end
   methods
-    function obj=IterableFsp(initialState,initialTime)
-      obj.state=initialState;
-      obj.time=initialTime;
-    end
     function obj=iterate(stateGenIndex,time)
       obj=obj.appendNextState(obj.step{stateGenIndex});
       obj=obj.appendNextTime(time);
