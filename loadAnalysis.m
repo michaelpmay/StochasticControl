@@ -10,6 +10,6 @@ analysis{i}.time=time;
 analysis{i}.u=u;
 analysis{i}.score=score;
 analysis{i}.dynamicScore=dynamicScore;
-analysis{i}.targetData=targetData;
-analysis{i}.nonTargetData=nonTargetData;
+analysis{i}.targetData.node{1}.state=targetData;
+analysis{i}.nonTargetData.state=nonTargetData;
 end
