@@ -86,7 +86,7 @@ classdef JointTimeOptimizer
         stateGenerator=obj.getBestStateGenerator(jointProbability,deltaT);
         simpleStateGenerator=obj.downSizeStateGenerator(stateGenerator)
         singularFsp=singularFsp.iterateStep(simpleStateGenerator,deltaT);
-        jointFsp=jointFsp.iterateStep(ststeGenerator,delta);
+        jointFsp=jointFsp.iterateStep(stateGenerator,delta);
         sProbability=singularFsp.getLastState();
         jointProbability=obj.getJointDistribution(obj.initialState(1),sProbability);
       end
@@ -98,8 +98,10 @@ classdef JointTimeOptimizer
       obj.score=ProbabilityScore(obj);
       obj=obj.updateStateGenerators(jointFsp,deltaT);
     end
-    function downSizeStateGenerator(obj,stateGenerator)
-      
+    function singularStateGenerator=downSizeStateGenerator(obj,stateGenerator)
+      stateGenerator=Tensor(reshape(stateGenerator,[obj.dims obj.dims]));
+      singularStateGenerator=stateGenerator.contract(2,4);%could be 1,3 i dont know
+      singularStateGenerator=singularStateGenerator.getElements;
     end
     function fsp=initilize1DFSP(obj,model)
       fsp=SolverFSP;
