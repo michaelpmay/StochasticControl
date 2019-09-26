@@ -1,20 +1,10 @@
-analysis=loadAnalysis;
+%analysis=loadAnalysis
 addpath classes
 close all
 for i=1:length(analysis)
 endScore(i)=analysis{i}.score(end);
 deltaT(i)=analysis{i}.time(2)-analysis{i}.time(1);
 end
-
-AcademicFigure
-hold on
-plot(analysis{10}.time,[0,analysis{10}.score])
-plot(analysis{20}.time,[0,analysis{20}.score])
-plot(analysis{30}.time,[0,analysis{30}.score])
-plot(analysis{40}.time,[0,analysis{40}.score])
-plot(analysis{50}.time,[0,analysis{50}.score])
-hold off
-title('score of 10 20 30 40 50 vs time')
 
 AcademicFigure
 hold on
