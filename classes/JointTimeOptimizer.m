@@ -84,22 +84,31 @@ classdef JointTimeOptimizer
       [obj,ssa,jointFsp,singularFsp]=obj.initializeLoopVariables(model,deltaT);
       jointFsp=obj.intializeIterableJointFsp;
       jointProbability=obj.getInitialProbability;
-      time=obj.time(1):deltaT:obj.time(end);
-      maxTimeIndex=length(time);
+      maxTimeIndex=length(obj.time);
       for i=1:maxTimeIndex-1
-        [stateGenerator,dynamicScore(i),u(i)]=obj.getBestStateGenerator(jointProbability,deltaT);
+        [stateGenerator,dynamicScore(i),u(i)]=obj.getBestStateGenerator(jointProbability);
         jointFsp=jointFsp.iterateStep(stateGenerator,deltaT);
+        subplot(2,2,4)
+        pcolorProbability(reshape(jointFsp.getLastState,obj.dims))
         sample(i,:)=obj.sampleFrom(jointFsp.getLastState);
         marginalProbability=sum(reshape(jointFsp.getLastState,[50 50]),1);
-        jointProbability=obj.getJointDistribution(sample(i,1),marginalProbability);
+        jointProbability=obj.getJointDistribution(sample(i,2),marginalProbability);
         jointFsp.state(:,end)=jointProbability(:);
+        subplot(2,2,1)
+        pcolorProbability(reshape(jointProbability,obj.dims));
+        subplot(2,2,2)
+        plot(marginalProbability);
+        subplot(2,2,3)
+        pcolorProbability(jointProbability)
+        drawnow();
+        pause(.1);
       end
       for i=1:size(jointFsp.state,2)
         score(i)=obj.score.getScore(jointFsp.state(:,i));
       end
       analysis.targetData.node{1}.state=sample(:,1)';
       analysis.nonTargetData=jointFsp.state;
-      analysis.time=time;
+      analysis.time=obj.time;
       analysis.u=u;
       analysis.dynamicScore=dynamicScore;
       analysis.score=score;
@@ -139,7 +148,7 @@ classdef JointTimeOptimizer
       fsp.state=initialState(:);
       fsp.time=[0];
     end
-    function [bestStateGen,score,u]=getBestStateGenerator(obj,probability,deltaT)
+    function [bestStateGen,score,u]=getBestStateGenerator(obj,probability)
       for i=1:length(obj.uRange)
         dynamicScore(i)=obj.score.getDynamicScore(probability(:),obj.stateGenerators{i});
       end
