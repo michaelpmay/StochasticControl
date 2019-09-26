@@ -13,6 +13,7 @@ classdef JointTimeOptimizer
   properties(Hidden)
     generator
     stateGenerators=[]
+    singularStateGenerators=[]
   end
   methods
     function obj=JointTimeOptimizer()
@@ -83,13 +84,18 @@ classdef JointTimeOptimizer
       time=obj.time(1):deltaT:obj.time(end);
       maxTimeIndex=length(time);
       for i=1:maxTimeIndex-1
-        stateGenerator=obj.getBestStateGenerator(jointProbability,deltaT);
+        [stateGenerator,score(i),u(i)]=obj.getBestStateGenerator(jointProbability,deltaT);
         simpleStateGenerator=obj.downSizeStateGenerator(stateGenerator)
         singularFsp=singularFsp.iterateStep(simpleStateGenerator,deltaT);
-        jointFsp=jointFsp.iterateStep(stateGenerator,delta);
+        jointFsp=jointFsp.iterateStep(stateGenerator,deltaT);
         sProbability=singularFsp.getLastState();
         jointProbability=obj.getJointDistribution(obj.initialState(1),sProbability);
       end
+      analysis.time=obj.time;
+      analysis.score=score;
+      analysis.u=u;
+      analysis.nonTargetData=singularFsp.run();
+      analysis.targetData=
     end
     function [obj,ssa,jointFsp,singularFsp]=initializeLoopVariables(obj,model,deltaT)
       ssa=SolverSSA(model);
@@ -99,9 +105,10 @@ classdef JointTimeOptimizer
       obj=obj.updateStateGenerators(jointFsp,deltaT);
     end
     function singularStateGenerator=downSizeStateGenerator(obj,stateGenerator)
-      stateGenerator=Tensor(reshape(stateGenerator,[obj.dims obj.dims]));
-      singularStateGenerator=stateGenerator.contract(2,4);%could be 1,3 i dont know
-      singularStateGenerator=singularStateGenerator.getElements;
+      stateGenerator=reshape(stateGenerator,[obj.dims obj.dims]);
+      singularStateGenerator=sum(stateGenerator,1);
+      singularStateGenerator=sum(singularStateGenerator,3);
+      singularStateGenerator=squeeze(singularStateGenerator);
     end
     function fsp=initilize1DFSP(obj,model)
       fsp=SolverFSP;
@@ -117,12 +124,14 @@ classdef JointTimeOptimizer
       fsp.state=initialState(:);
       fsp.time=[0];
     end
-    function bestStateGen=getBestStateGenerator(obj,probability,deltaT)
+    function [bestStateGen,score,u]=getBestStateGenerator(obj,probability,deltaT)
       for i=1:length(obj.uRange)
         dynamicScore(i)=obj.score.getDynamicScore(probability(:),obj.stateGenerators{i});
       end
       [~,minIndex]=min(dynamicScore);
       bestStateGen=obj.stateGenerators{minIndex};
+      u=obj.uRange(minIndex);
+      score=dynamicScore(minIndex);
     end
     
     function probability=getInitialProbability(obj)
