@@ -5,7 +5,7 @@ lightOnModel.time=linspace(0,5000,20000);
 lightOffModel=build.unregulatedModelWithConstantLight(0)
 ligntOffModel.time=linspace(0,5000,20000);
 
-onSSA=GenericSSA(lightOnModel);
+onSSA=SolverSSA(lightOnModel);
 onData=onSSA.run();
 onData=onData.trimInitial(2000);
 onData=IntensityMapSSAData(onData);
