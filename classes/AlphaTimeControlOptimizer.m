@@ -8,7 +8,10 @@ classdef AlphaTimeControlOptimizer
     maxBounds=0
     dims=[50 50]
     time
-    rate=1;
+    rate=2;
+    alpha=.01;
+    rDegredation=.90;
+    aDegredation=.3;
   end
   properties(Hidden)
     iterableFsp=IterableFsp;
@@ -37,24 +40,26 @@ classdef AlphaTimeControlOptimizer
       deltaT=obj.time(2)-obj.time(1);
       rate=obj.rate;
       alpha=.5;
-      for i=1:length(obj.time)
-        model=obj.stepToNewControler(model,control{i},probability{i},rate,alpha);
+      N=length(obj.time);
+      for i=1:N
+        printLoopIterations(i,N);
+        model=obj.stepToNewControler(model,control{i},probability{i},rate,alpha,deltaT);
         obj=obj.stepToNewTime(model,deltaT);
         control{i+1}=model.controlInput;%updateControler
         probability{i+1}=obj.iterableFsp.getLastState;%updateProbability 
-        alpha=alpha/1.01    
-        rate=rate/1.001;
+        alpha=alpha*obj.aDegredation;    
+        rate=rate*obj.rDegredation;
       end
     end
     function controlInput=getOptimalControler(obj)
-      file=load('inFiles/controlInputInjector.mat');
+      file=load('inFiles/controlInput.mat');
       controlInput=file.controlInput;
     end
-    function model=stepToNewControler(obj,model,probability,ssControler,stepRate,alpha)
+    function model=stepToNewControler(obj,model,probability,ssControler,stepRate,alpha,deltaT)
       gGrad=obj.getGreedyGrad(model,probability);
       sGrad=obj.getSteadyStateGrad(model);
       grad=obj.mixGrad(gGrad,sGrad,alpha);
-      newControlInput=model.controlInput-grad*stepRate;
+      newControlInput=model.controlInput-grad*stepRate*deltaT;
       model.controlInput=obj.trimInput(newControlInput);
     end
     function grad=getGreedyGrad(obj,model,probability)
