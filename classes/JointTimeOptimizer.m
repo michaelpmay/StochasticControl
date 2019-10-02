@@ -94,14 +94,14 @@ classdef JointTimeOptimizer
         marginalProbability=sum(reshape(jointFsp.getLastState,[50 50]),1);
         jointProbability=obj.getJointDistribution(sample(i,2),marginalProbability);
         jointFsp.state(:,end)=jointProbability(:);
-        subplot(2,2,1)
-        pcolorProbability(reshape(jointProbability,obj.dims));
-        subplot(2,2,2)
-        plot(marginalProbability);
-        subplot(2,2,3)
-        pcolorProbability(jointProbability)
-        drawnow();
-        pause(.1);
+%        subplot(2,2,1)
+%        pcolorProbability(reshape(jointProbability,obj.dims));
+%        subplot(2,2,2)
+%        plot(marginalProbability);
+%        subplot(2,2,3)
+%        pcolorProbability(jointProbability)
+%        drawnow();
+%        pause(.1);
       end
       for i=1:size(jointFsp.state,2)
         score(i)=obj.score.getScore(jointFsp.state(:,i));
