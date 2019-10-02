@@ -8,8 +8,10 @@ classdef AlphaTimeControlOptimizer
     maxBounds=0
     dims=[50 50]
     time
-    rate=1;
-    initialState
+    rate=2;
+    alpha=.01;
+    rDegredation=.90;
+    aDegredation=.3;
   end
   properties(Hidden)
     iterableFsp=IterableFsp;
@@ -19,53 +21,45 @@ classdef AlphaTimeControlOptimizer
       obj.modelFsp=modelFsp;
       obj.score=ProbabilityScore(obj.modelFsp);
       obj.generator=TwoCellFSPGenerator(obj.modelFsp.model,obj.dims);
-      obj.time=linspace(1,10,100);
-      obj.initialControler=ones(obj.dims)*.3;
-      obj.initialState=zeros(obj.dims);
-      obj.initialState(10,10)=1;
+      obj.time=modelFsp.model.time;
+      obj.initialControler=modelFsp.model.controlInput;
       obj.minBounds=0;
       obj.maxBounds=10;
-      obj.iterableFsp.state=obj.initialState(:);
+      obj.iterableFsp.state=modelFsp.getSteadyState;
     end
     function modelFsp=getOptimumModelFsp(obj)
       build=ModelFactory;
       modelFsp=build.optimizedTwoCellModel;
     end
-    function optimize(obj)
+    function [probability,control]=optimize(obj)
       modelFsp=obj.modelFsp;
       modelFsp.model.controlInput=obj.initialControler;
       model=modelFsp.model;
-      control=obj.initialControler;
-      probability=modelFsp.getSteadyState;
+      control{1}=obj.initialControler;
+      probability{1}=modelFsp.getSteadyState;
       deltaT=obj.time(2)-obj.time(1);
       rate=obj.rate;
       alpha=.5;
-      for i=1:length(obj.time)
-        model=obj.stepToNewControler(model,control,probability,rate,alpha);
+      N=length(obj.time);
+      for i=1:N
+        printLoopIterations(i,N);
+        model=obj.stepToNewControler(model,control{i},probability{i},rate,alpha,deltaT);
         obj=obj.stepToNewTime(model,deltaT);
-        control=model.controlInput;%updateControler
-        probability=obj.iterableFsp.getLastState;%updatePRobability 
-        alpha=alpha/1.1    
-        rate=rate/1.01;
-        subplot(1,2,1)
-        pcolorProbability(control);
-        colorbar();
-        subplot(1,2,2)
-        pcolorProbability(reshape(probability,obj.dims));        
-        colorbar();
-        drawnow();
-        pause(.1);
+        control{i+1}=model.controlInput;%updateControler
+        probability{i+1}=obj.iterableFsp.getLastState;%updateProbability 
+        alpha=alpha*obj.aDegredation;    
+        rate=rate*obj.rDegredation;
       end
     end
     function controlInput=getOptimalControler(obj)
       file=load('inFiles/controlInput.mat');
       controlInput=file.controlInput;
     end
-    function model=stepToNewControler(obj,model,probability,ssControler,stepRate,alpha)
+    function model=stepToNewControler(obj,model,probability,ssControler,stepRate,alpha,deltaT)
       gGrad=obj.getGreedyGrad(model,probability);
       sGrad=obj.getSteadyStateGrad(model);
       grad=obj.mixGrad(gGrad,sGrad,alpha);
-      newControlInput=model.controlInput-grad*stepRate;
+      newControlInput=model.controlInput-grad*stepRate*deltaT;
       model.controlInput=obj.trimInput(newControlInput);
     end
     function grad=getGreedyGrad(obj,model,probability)

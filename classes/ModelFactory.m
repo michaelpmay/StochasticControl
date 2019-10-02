@@ -112,7 +112,7 @@ classdef ModelFactory
     end
     function model=optimizedTwoCellModel(obj)
         model=obj.autoregulatedModelWithoutInput;
-        load('inFiles/controlInputInjector.mat');
+        load('inFiles/controlInput.mat');
         model.controlInput=controlInput;
         model=TwoCellFSP(model,obj.dims);
     end
