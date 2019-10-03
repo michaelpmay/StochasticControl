@@ -47,13 +47,12 @@ classdef JointTimeOptimizer
       [obj,ssa,~,singularFsp]=obj.initializeLoopVariables(model,deltaT);
       jointProbability=obj.getInitialProbability();
       singleProbability{1}=jointProbability(obj.initialState(1)+1,:)';
-      time=obj.time(1):deltaT:obj.time(end);
+      time=obj.time;
       N=length(time)-1;
       for i=1:N
         printLoopIterations(i,N);
         model(i).time=[time(i) time(i+1)];
         [model(i).controlInput,u(i),dynamicScore(i)]=obj.getDynamicUControler(model(i),jointProbability,deltaT);
-        
         if i==1
           model(i).initialState=obj.initialState(1);
         else

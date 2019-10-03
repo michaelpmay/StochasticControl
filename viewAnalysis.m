@@ -1,9 +1,10 @@
-analysis=loadAnalysis
+%analysis=loadAnalysis
 addpath classes
 close all
+deltaTRange=0.1:0.1:20
 for i=1:length(analysis)
 endScore(i)=analysis{i}.score(end);
-deltaT(i)=analysis{i}.time(2)-analysis{i}.time(1);
+deltaT(i)=deltaTRange(i);
 end
 
 AcademicFigure
@@ -42,7 +43,7 @@ title('U vs time')
 AcademicFigure
 hold on
 for i=1:length(analysis)
-  n=floor(length(analysis{i}.score)/3);
+  n=floor(length(analysis{i}.score)/4);
   plot(deltaT(i),mean(analysis{i}.score(n:end)),'ro')
 end
 title('mean score vs dt')
