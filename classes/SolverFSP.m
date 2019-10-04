@@ -36,7 +36,7 @@ classdef SolverFSP < GenericCME
       P=null(obj.getInfGenerator);
     end
     function out=getInfGenerator(obj)
-      out=obj.generator.getInfGenerator(obj.model);
+      out=obj.generator.getInfGenerator(obj.model,obj.dims);
     end
     function out=getInitialState(obj)
       out=obj.model.initialState;

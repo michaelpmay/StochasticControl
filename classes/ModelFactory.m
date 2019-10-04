@@ -132,5 +132,14 @@ classdef ModelFactory
         end
       end
     end
+    function model=simple2by2Model(obj)
+      model=obj.makeModelObject();
+      model.rxnRate=@(t,x,p)[p(1)+exp(-p(5)*t);p(2)*x(1);p(3)+exp(-p(6)*t);p(4)*x(2)]
+      model.time=linspace(0,100,100);
+      model.stoichMatrix=[-1  1  0  0;
+                           0  0  1 -1];
+      model.parameters=[1 1 1 1 0 0];
+      model.initialState=[0 0];
+    end
   end
 end
