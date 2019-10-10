@@ -34,8 +34,6 @@ classdef IterableFsp
       data=GenericCMEData(obj.time,obj.state);
     end
     function probability=test(obj,generator)
-      size(obj.getLastState)
-      size(generator)
       probability=generator*obj.getLastState;
     end
   end

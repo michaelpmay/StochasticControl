@@ -39,23 +39,26 @@ classdef JointTimeOptimizer
       obj.score=ProbabilityScore(obj.dims);
       xModelFsp=makeIterableFsp(obj,1);
       yModelFsp=makeIterableFsp(obj,2);
-      maxTimeIndex=length(obj.time)
-      for i=1:maxTimeIndex;
-        index=obj.getBestStateGeneratorIndex(xModelFsp,yModelFsp);
+      maxTimeIndex=length(obj.time);
+      for i=1:maxTimeIndex
+        [index,score]=obj.getBestStateGeneratorIndex(xModelFsp,yModelFsp);
         xModelFsp=xModelFsp.iterateGenerator(index,obj.time(i));
         yModelFsp=yModelFsp.iterateGenerator(index,obj.time(i));
-        sample=sampleFrom(xModelFsp.getLastState,1);
+        sample(i)=sampleFrom(xModelFsp.getLastState,1);
         xModelFsp.state(:,end+1)=zeros(obj.dims(1),1);
-        xModelFsp.state(sample+1,end)=1;
+        xModelFsp.state(sample(i)+1,end)=1;
         xModelFsp.time(end+1)=xModelFsp.time(end);
-        obj.uRange(index)
       end
+      analysis.targetState=sample;
+      analysis.nonTargetState=yModelFsp.state;
+      analysis.time=yModelFsp.time;
+      analysis.score=score;
     end
     function make1DModels(obj,model)
       generators=obj.updateStateGenerators
     end
     function modelFsp=make1DModel(obj,model)
-      modelFsp=SolverFSP()
+      modelFsp=SolverFSP();
       modelFsp.model=model;
       modelFsp.dims=obj.dims(1);
       modelFsp.generator=FSPGenerator1D;
@@ -88,23 +91,14 @@ classdef JointTimeOptimizer
       fsp.state=initialState(:);
       fsp.time=[0];
     end
-    function [bestStateGen,score,u]=getBestStateGenerator(obj,probability)
-      for i=1:length(obj.uRange)
-        dynamicScore(i)=obj.score.getDynamicScore(probability(:),obj.stateGenerators{i});
-      end
-      [~,minIndex]=min(dynamicScore);
-      bestStateGen=obj.stateGenerators{minIndex};
-      u=obj.uRange(minIndex);
-      score=dynamicScore(minIndex);
-    end
-    function minIndex=getBestStateGeneratorIndex(obj,xModel,yModel)
+    function [minIndex,minScore]=getBestStateGeneratorIndex(obj,xModel,yModel)
       for i=1:length(obj.uRange)
         xProbability=xModel.testGenerator(i);
         yProbability=yModel.testGenerator(i);
         jointProbability=joint(xProbability,yProbability);
         dynamicScore(i)=obj.score.getScore(jointProbability);
       end
-      [~,minIndex]=min(dynamicScore);
+      [minScore,minIndex]=min(dynamicScore);
     end
     function probability=getInitialProbability(obj)
       probability=zeros(obj.dims);
