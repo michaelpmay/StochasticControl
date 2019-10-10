@@ -41,18 +41,20 @@ classdef JointTimeOptimizer
       yModelFsp=makeIterableFsp(obj,2);
       maxTimeIndex=length(obj.time);
       for i=1:maxTimeIndex
-        [index,score]=obj.getBestStateGeneratorIndex(xModelFsp,yModelFsp);
+        [index,score(i)]=obj.getBestStateGeneratorIndex(xModelFsp,yModelFsp);
         xModelFsp=xModelFsp.iterateGenerator(index,obj.time(i));
         yModelFsp=yModelFsp.iterateGenerator(index,obj.time(i));
         sample(i)=sampleFrom(xModelFsp.getLastState,1);
         xModelFsp.state(:,end+1)=zeros(obj.dims(1),1);
         xModelFsp.state(sample(i)+1,end)=1;
         xModelFsp.time(end+1)=xModelFsp.time(end);
+        u(i)=obj.uRange(index);
       end
       analysis.targetState=sample;
       analysis.nonTargetState=yModelFsp.state;
       analysis.time=yModelFsp.time;
       analysis.score=score;
+      analysis.u=u;
     end
     function make1DModels(obj,model)
       generators=obj.updateStateGenerators
