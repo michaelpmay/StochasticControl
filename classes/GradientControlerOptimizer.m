@@ -15,7 +15,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   methods
     function [optimizedModel,obj]=optimizeControler(obj)
       warning('MATLAB:eigs:IllConditionedA','off');
-      obj.score=ProbabilityScore(obj.modelFsp);
+      obj.score=ProbabilityScore(obj.modelFsp.dims);
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
@@ -23,7 +23,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       for i=1:obj.numIterations
         obj=obj.stepToNewControler(stepRate);
         stepRate=obj.updateStepRate(stepRate);
-        if obj.saveInject;
+        if obj.saveInject
           obj.saveInjector();
         end
         if obj.plotInject()

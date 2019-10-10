@@ -1,3 +1,3 @@
 addpath classes
 build=ModelFactory;
-myModel=build.birthDecayToyModel
+myModel=build.birthDecayToyModel;

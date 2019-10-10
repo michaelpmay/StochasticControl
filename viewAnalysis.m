@@ -1,4 +1,4 @@
-%analysis=loadAnalysis
+analysis=loadAnalysis
 addpath classes
 close all
 deltaTRange=0.1:0.1:20

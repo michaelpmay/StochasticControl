@@ -11,7 +11,7 @@ classdef SteadyStateControlOptimizer
   methods
     function [modelFsp,obj]=visit(obj,modelFsp)
       obj.modelFsp=modelFsp;
-      obj.score=ProbabilityScore(modelFsp)
+      obj.score=ProbabilityScore(obj.dims)
       [modelFsp,obj]=obj.optimizeControler();
     end
     function obj=setControl(obj,controler)

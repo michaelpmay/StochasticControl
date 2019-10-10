@@ -7,8 +7,8 @@ classdef IterableFsp
     
   end
   methods
-    function obj=iterate(stateGenIndex,time)
-      obj=obj.appendNextState(obj.step{stateGenIndex});
+    function obj=iterate(obj,stateGenerator,time)
+      obj=obj.appendNextState(obj.stateStep(stateGenerator));
       obj=obj.appendNextTime(time);
     end
     function obj=iterateStep(obj,stateGenerator,timeStep)
@@ -32,6 +32,11 @@ classdef IterableFsp
     end
     function data=run(obj)
       data=GenericCMEData(obj.time,obj.state);
+    end
+    function probability=test(obj,generator)
+      size(obj.getLastState)
+      size(generator)
+      probability=generator*obj.getLastState;
     end
   end
 end 

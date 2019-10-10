@@ -1,12 +1,12 @@
 classdef ProbabilityScore
   properties
-    target=[30; 10] 
+    target=[30; 5] 
     sigma=[1 0;0 1]
     C
   end
   methods
-    function obj=ProbabilityScore(modelfsp)
-      obj.C=obj.makeC(modelfsp);
+    function obj=ProbabilityScore(dims)
+      obj.C=obj.makeC(dims);
     end
     function score=getScore(obj,P)
       score=obj.C'*P(:);
@@ -15,9 +15,9 @@ classdef ProbabilityScore
       %score=obj.C'*infGen*P(:);
       score=obj.C'*stateGen*P;
     end
-    function C=makeC(obj,modelFsp)
-      xv=0:(modelFsp.dims(1)-1);
-      yv=0:(modelFsp.dims(2)-1);
+    function C=makeC(obj,dims)
+      xv=0:(dims(1)-1);
+      yv=0:(dims(2)-1);
       C=preAllocateArray(length(xv),length(yv));
       for i=1:length(xv)
         for j=1:length(yv)

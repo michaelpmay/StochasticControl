@@ -1,7 +1,9 @@
-
-model=ModelFSP(AutoregulatedParameters);
-model.gmresInputMaxIter=5;
-controler=ControlerOptimizer(model);
+addpathClasses
+build=ModelFactory;
+model=build.autoregulatedModelWithoutInput;
+modelFsp=TwoCellFSP(model,[50 50]);
+controler=GradientControlerOptimizer();
 controler.gradCutoffIndex=2500;
-[optimizedControler,U]=controler.optimizeControler(1);
+modelFsp.accept(controler);
+[optimizedControler,U]=controler.optimizeControler();
 
