@@ -2,8 +2,11 @@ addpath classes
 build=ModelFactory;
 model=build.autoregulatedModelWithoutInput;
 modelFsp=TwoCellFSP(model,[50 50]);
-controler=GradientControlerOptimizer();
+modelFsp.model.controlInput=.3*ones(50,1);
+controler=ReducedGradientControlerOptimizer();
 controler.gradCutoffIndex=2500;
+controler.gmresMaxIter=100;
+controler.initialRate=.1;
 modelFsp.accept(controler);
 [optimizedControler,U]=controler.optimizeControler();
 

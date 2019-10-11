@@ -24,7 +24,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
         obj=obj.stepToNewControler(stepRate);
         stepRate=obj.updateStepRate(stepRate);
         if obj.saveInject
-          obj.saveInjector();
+          obj.saveInjector('controlInputInjector');
         end
         if obj.plotInject()
           obj.plotInjector();
@@ -59,10 +59,10 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       grad=obj.score.C'*partial;
       grad=reshape(grad,obj.modelFsp.dims);
     end
-    function saveInjector(obj)
+    function saveInjector(obj,filename)
       if obj.saveInject
         controlInput=obj.modelFsp.model.controlInput;
-        save('controlInputInjector','controlInput');
+        save(filename,'controlInput');
       end
     end
     function plotInjector(obj)

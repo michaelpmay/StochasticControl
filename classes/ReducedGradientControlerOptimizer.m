@@ -22,11 +22,13 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
         obj=obj.stepToNewControler(stepRate);
         stepRate=obj.updateStepRate(stepRate);
         if obj.saveInject
-          obj.saveInjector();
+          obj.saveInjector('ReducedControlInputInjector');
         end
         if obj.plotInject()
           obj.plotInjector();
         end
+        plot(obj.modelFsp.model.controlInput);
+        drawnow();
        % waitbar(i/obj.numIterations,waitBar);
       end
       %delete(waitBar);
