@@ -7,15 +7,8 @@ freq=[.1 .0001];
 amp=[.35];%.315
 initialState=[0 40];
 time=[0 50000];
-steps=250000;%5000000
+steps=250000;%250000
 menu=ParallelMenu;
-% for i=1:length(freq)
-%   for j=1:length(amp)
-%     for k=1:length(initialState)
-%       menu=menu.attachTicketItem(@analyzeUnregulatedFrequency,{freq(i),amp(j),initialState(k),linspace(time(1),time(2),steps/freq(i))});
-%     end
-%   end
-% end
 for i=1:length(freq)
   for j=1:length(amp)
     for k=1:length(initialState)
@@ -24,14 +17,21 @@ for i=1:length(freq)
   end
 end
 data=menu.run
-makePlots(data);
+makePlots(data,menu,build);
+
+menu=ParallelMenu;
+for i=1:length(freq)
+  for j=1:length(amp)
+    for k=1:length(initialState)
+      menu=menu.attachTicketItem(@analyzeUnregulatedFrequency,{freq(i),amp(j),initialState(k),linspace(time(1),time(2),steps)});
+    end
+  end
+end
+data=menu.run;
+makePlots(data,menu,build);
 %save('workspaceFrequencyPlot')
 
-
-
-
-
-function makePlots(data)
+function makePlots(data,menu,factory)
 for i=1:2:length(data)
   figure
   hold on
@@ -49,7 +49,7 @@ for i=1:length(data)
   trimData{i}.time=linspace(0,2,length(trimData{i}.time));
   trimData{i}.state=data{i}.state(N:end);
 end
-figure
+AcademicFigure;
 for i=1:2:length(data)
   hold on
   plot(trimData{i}.time,trimData{i}.state);
@@ -57,11 +57,12 @@ for i=1:2:length(data)
   hold off
 end
 timeSeries10=linspace(0,20,500);
-funSeries10=build.frequencyInput(timeSeries10,0,[.1 .315]);
+funSeries10=factory.frequencyInput(timeSeries10,0,[.1 .315]);
+AcademicFigure;
 plot(timeSeries10,funSeries10);
 end
 
-function data=analyzeUnregulatedFrequency(model,frequency,intensity,state,time)
+function data=analyzeUnregulatedFrequency(frequency,intensity,state,time)
 build=ModelFactory;
 model=build.unregulatedModelWithFrequencyInput(frequency,intensity);
 solver=SolverODE(model);
@@ -70,7 +71,9 @@ solver.model.initialState=state;
 data=solver.run();
 end
 
-function data=analyze(model,frequency,intensity,state,time)
+function data=analyzeAutoregulatedFrequency(frequency,intensity,state,time)
+build=ModelFactory;
+model=build.autoregulatedModelWithFrequencyInput(frequency,intensity);
 solver=SolverODE(model);
 solver.model.time=time;
 solver.model.initialState=state;

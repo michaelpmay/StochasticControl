@@ -16,7 +16,7 @@ classdef KhammashProteinModelView
     end
     function view=buildSubView(obj,intensity)
       build=ModelFactory;
-      model=build.unregulatedModelWithConstantLight(intensity);
+      model=build.unregulatedModelWithUniformLight(intensity);
       solver=SolverSSA(model);
       view=ProteinSubView(solver,obj.axes);
       view.nbins=obj.nbins;

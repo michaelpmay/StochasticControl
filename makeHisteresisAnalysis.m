@@ -1,15 +1,16 @@
 %makeHisteresisFigure
-addpath classes\
+addpath classes
 build=ModelFactory;
 autoModel=build.autoregulatedModelWithUniformInput(0);
 unregModel=build.unregulatedModelWithUniformLight(0);
-performAnalysis(autoModel,lightIndex);
-performAnalysis(unregModel,lightIndex);
-function performAnalysis(model,lightIndex)
+AcademicFigure;
+hold on
+performAnalysis(autoModel,6,'rx-','bo-');%parameter on model to tweak is 6
+performAnalysis(unregModel,3,'kx-','ko-');%parameter on model to tweak is 3
+
+function performAnalysis(model,lightIndex,spec1,spec2)
 modelOde=SolverODE(model);
 analyzer=HisteresisAnalysis(modelOde);
 [upAnalysis,downAnalysis]=analyzer.analyze(lightIndex);
-AcademicFigure;
-hold on
-plot(analyzer.uRange,upAnalysis,'rx-',analyzer.uRange,downAnalysis,'bo-');
+plot(analyzer.uRange,upAnalysis,spec1,analyzer.uRange,downAnalysis,spec2);
 end
