@@ -10,7 +10,7 @@ classdef ModelFactory
     ExperimentalInput=@(t,x,u)(u(1)*(t<270)+u(3)*(t>570)+...
                                u(2)*((t>=270)&(t<=570)))
     ControlInput=@(t,x,field)field(f(1)+1,x(2)+1);
-    frequencyInput=@(t,x,u)u(2)*(abs(sawtooth(2*pi*u(1)*t)))
+    frequencyInput=@(t,x,u)u(2)*(abs(sawtooth(2*pi*u(1).*t)))
     u=[200.6588    1.3809   60.6751]
     time=linspace(0,780)
     stoichMatrix=[1,-1]
