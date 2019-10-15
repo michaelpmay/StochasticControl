@@ -7,7 +7,7 @@ freq=[.1 .0001];
 amp=[.35];%.315
 initialState=[0 40];
 time=[0 50000];
-steps=50000;%5000000
+steps=250000;%5000000
 menu=ParallelMenu;
 % for i=1:length(freq)
 %   for j=1:length(amp)
@@ -24,7 +24,14 @@ for i=1:length(freq)
   end
 end
 data=menu.run
+makePlots(data);
 %save('workspaceFrequencyPlot')
+
+
+
+
+
+function makePlots(data)
 for i=1:2:length(data)
   figure
   hold on
@@ -52,13 +59,9 @@ end
 timeSeries10=linspace(0,20,500);
 funSeries10=build.frequencyInput(timeSeries10,0,[.1 .315]);
 plot(timeSeries10,funSeries10);
+end
 
-
-
-
-
-
-function data=analyzeUnregulatedFrequency(frequency,intensity,state,time)
+function data=analyzeUnregulatedFrequency(model,frequency,intensity,state,time)
 build=ModelFactory;
 model=build.unregulatedModelWithFrequencyInput(frequency,intensity);
 solver=SolverODE(model);
@@ -67,9 +70,7 @@ solver.model.initialState=state;
 data=solver.run();
 end
 
-function data=analyzeAutoregulatedFrequency(frequency,intensity,state,time)
-build=ModelFactory;
-model=build.autoregulatedModelWithFrequencyInput(frequency,intensity);
+function data=analyze(model,frequency,intensity,state,time)
 solver=SolverODE(model);
 solver.model.time=time;
 solver.model.initialState=state;

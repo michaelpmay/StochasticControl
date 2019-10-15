@@ -91,7 +91,7 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=unregulatedModelWithConstantLight(obj,lightLevel)
+    function model=unregulatedModelWithUniformLight(obj,lightLevel)
       model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
       model.parameters=[0 obj.ga lightLevel];
