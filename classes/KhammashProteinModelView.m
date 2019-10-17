@@ -12,11 +12,12 @@ classdef KhammashProteinModelView
       obj.axes=axes;
       obj.onSubView=obj.buildSubView(obj.light(1));
       obj.offSubView=obj.buildSubView(obj.light(2));
-      obj.setTime(obj.time);
+      obj=obj.setTime(obj.time);
     end
     function view=buildSubView(obj,intensity)
       build=ModelFactory;
       model=build.unregulatedModelWithUniformLight(intensity);
+      model.time=obj.time;
       solver=SolverSSA(model);
       view=ProteinSubView(solver,obj.axes);
       view.nbins=obj.nbins;
@@ -40,6 +41,7 @@ classdef KhammashProteinModelView
     end
     function plotProteinHistogram(obj)
       hold on
+
       obj.onSubView.plotProteinHistogram()
       obj.offSubView.plotProteinHistogram()
       hold off

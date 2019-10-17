@@ -34,7 +34,10 @@ classdef SSAData
       data.time=obj.node{sampleIndex}.time;
       data.state=obj.node{sampleIndex}.state(speciesIndex,:);
     end
-    
+    function data=getAllTimeSeries(obj,sampleIndex)
+      data.time=obj.node{sampleIndex}.time;
+      data.state=obj.node{sampleIndex}.state;
+    end
     function visual=view(obj)
       visual=ViewSSAData(obj);
     end

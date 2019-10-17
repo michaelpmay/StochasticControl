@@ -4,7 +4,7 @@ classdef ProteinSubView
     solver
     nbins=50;
     light=[0 .1]
-    time=linspace(0,1000,10000);
+    time=linspace(0,50000,50000);
     trim=5000;
   end
   methods
