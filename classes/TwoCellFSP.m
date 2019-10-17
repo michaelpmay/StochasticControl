@@ -33,6 +33,10 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
     function field=reshapeField(obj,field)
       field=reshape(field,obj.dims);
     end
+    function probability=getSteadyStateReshape(obj)
+      probability=obj.getSteadyState();
+      probability=obj.reshapeField(probability);
+    end
   end
 end
 
