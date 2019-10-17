@@ -11,7 +11,7 @@ classdef ViewTwoCellFSP
     end
     
     function plotSteadyState(obj,target)
-      data=obj.solver.getSteadyState;
+      data=obj.solver.getSteadyStateReshape;
       [xVec,yVec]=obj.solver.generator.getXYV;
       [X,Y]=meshgrid(xVec,yVec);
       pFig=pcolor(X,Y,data);
@@ -33,7 +33,7 @@ classdef ViewTwoCellFSP
     
     function plotMarginals(obj)
       [xVec,yVec]=obj.solver.generator.getXYV;
-      data=obj.solver.getSteadyState();
+      data=obj.solver.getSteadyStateReshape();
       xMarginal=sum(data,1);
       yMarginal=sum(data,2);
       hold on
@@ -65,7 +65,7 @@ classdef ViewTwoCellFSP
     
     function figHandle=plotControlInput(obj)
       [xv,yv]=obj.solver.generator.getXYV();
-      figHandle=imagesc(xv,yv,obj.solver.controlInput);
+      figHandle=imagesc(xv,yv,obj.solver.model.controlInput);
       set(gca,'YDir','normal');
       caxis(obj.caxis);
       colorbar()
@@ -88,8 +88,8 @@ classdef ViewTwoCellFSP
       %first solver is the two Cell solver, second solver is the parameters to generate a two cell solver
       Hill=@(x)obj.solver.generator.getProductionRate(x);
       Gamma=@(x)obj.solver.generator.getDegredationRate(x);
-      sumForce=@(x,y)[Hill(x)-Gamma(x)+obj.solver.controlInput(x+1,y+1);
-        Hill(y)-Gamma(y)+obj.solver.controlInput(x+1,y+1)];
+      sumForce=@(x,y)[Hill(x)-Gamma(x)+obj.solver.model.controlInput(x+1,y+1);
+        Hill(y)-Gamma(y)+obj.solver.model.controlInput(x+1,y+1)];
     end
   end
 end
