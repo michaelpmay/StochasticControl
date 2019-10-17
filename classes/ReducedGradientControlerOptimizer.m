@@ -8,7 +8,7 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
   methods
     function obj=ReducedGradientControlerOptimizer()
       obj.controlDims=obj.dims(1);
-      obj.plotInject=false;
+      obj.plotInject=true;
       obj.saveInject=false;
     end
     function [optimizedModel,obj]=optimizeControler(obj)
@@ -72,6 +72,15 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
       controlInput=obj.jacobian*obj.modelFsp.model.controlInput;
       obj=obj.setControl(controlInput);
       steadyState=obj.modelFsp.getSteadyState();
+    end
+    function plotInjector(obj)
+      if obj.plotInject()
+        subplot(1,2,1)
+        plot(obj.modelFsp.model.controlInput);
+        subplot(1,2,2);
+        pcolorProbability(reshape(obj.getSteadyState,obj.dims));
+        drawnow();
+      end
     end
   end
 end
