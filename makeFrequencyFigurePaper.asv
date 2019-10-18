@@ -1,4 +1,0 @@
-atregFrequencyFigure=openfig('figures\AutoReglatedFrequency.fig','reuse');
-ax1=gca;
-unregFrequencyFigure=openfig('figures\UnregulatedFrequency.fig','reuse');
-ax2=gca;

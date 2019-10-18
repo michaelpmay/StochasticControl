@@ -8,21 +8,24 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
   methods
     function obj=ReducedGradientControlerOptimizer()
       obj.controlDims=obj.dims(1);
-      obj.plotInject=false;
+      obj.plotInject=true;
       obj.saveInject=false;
     end
-    function [optimizedModel,obj]=optimizeControler(obj)
+    function [optimizedModel,obj]=optimizeControler(obj,saveResponse)
       warning('MATLAB:eigs:IllConditionedA','off');
       obj.score=ProbabilityScore(obj.modelFsp.dims);
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
+      if obj.saveInject & saveRespons==[]
+        saveResponse=input('Please input save injector file name:\n','s')
+      end
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
       %waitBar=waitbar(0,'Optimizing controler ... this may take a while');
       for i=1:obj.numIterations
         obj=obj.stepToNewControler(stepRate);
         stepRate=obj.updateStepRate(stepRate);
         if obj.saveInject
-          obj.saveInjector('ReducedControlInputInjector');
+          obj.saveInjector(saveResponse);
         end
         if obj.plotInject()
           obj.plotInjector();
@@ -37,7 +40,7 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
     function grad=getGrad(obj)
       obj=obj.getJacobian();
       partial=obj.getPartial(obj.modelFsp.model);
-      partial=partial*obj.jacobian;
+      partial=obj.jacobian*partial;
       grad=obj.score.C'*(partial);
       grad=grad(:);
     end
@@ -56,7 +59,7 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
     end
     function grad=getPartial(obj,model)
       P=obj.getSteadyState;
-      controlInput=obj.jacobian*obj.modelFsp.model.controlInput;
+      controlInput=obj.jacobian*model.controlInput;
       Lambda=sparse(obj.modelFsp.generator.bMatrix.*controlInput(:)'+obj.modelFsp.generator.aMatrix);
       B=kron(sparse(eye(prod(obj.modelFsp.dims))),Lambda);
       K=-(obj.modelFsp.generator.bMatrix.*P(:)');
@@ -68,10 +71,20 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
       obj=obj.setControl(level*ones(obj.controlDims,1));
     end
     function steadyState=getSteadyState(obj)
+      warning('MATLAB:eigs:IllConditionedA','off');
       obj=obj.getJacobian;
       controlInput=obj.jacobian*obj.modelFsp.model.controlInput;
       obj=obj.setControl(controlInput);
       steadyState=obj.modelFsp.getSteadyState();
+    end
+    function plotInjector(obj)
+      if obj.plotInject()
+        subplot(1,2,1)
+        plot(obj.modelFsp.model.controlInput);
+        subplot(1,2,2);
+        pcolorProbability(reshape(obj.getSteadyState,obj.dims));
+        drawnow();
+      end
     end
   end
 end
