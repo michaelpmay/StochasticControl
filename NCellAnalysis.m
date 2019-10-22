@@ -3,14 +3,14 @@ classdef NCellAnalysis
     model
     input={@(t,x)0,@(t,x)0,@(t,x)0,@(t,x)0}
     nRange=[1 2 4 8 16 32 64]
-    time=linspace(0,10000,10000);
+    time=linspace(0,25000,25000);
     trim=500;
   end
   methods
     function score=analyze(obj)
       for i=1:length(obj.nRange)
         for j=1:length(obj.input)
-          score(j,i)=obj.analyzeSingleN(obj.nRange(i),obj.input{j})
+          score(j,i)=obj.analyzeSingleN(obj.nRange(i),obj.input{j});
         end
       end
     end
@@ -18,7 +18,7 @@ classdef NCellAnalysis
       menu=ParallelMenu;
       for i=1:length(obj.nRange)
         for j=1:length(obj.input)
-          menu=menu.add(@obj.analyzeSingleN,{obj.nRange(i),obj.input{j}})
+          menu=menu.add(@obj.analyzeSingleN,{obj.nRange(i),obj.input{j}});
         end
       end
       data=menu.run;
@@ -39,6 +39,7 @@ classdef NCellAnalysis
       data.trimInitial(obj.trim);
       scorer=ProbabilityScore([200 200]);
       score=scorer.getSSATrajectoryScore(data);
+      fprintf('Completed %i \n',N);
     end
     
   end
