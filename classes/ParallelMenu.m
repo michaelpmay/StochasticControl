@@ -25,6 +25,9 @@ methods
   function obj=attachTicketItem(obj,runnable,input)
     obj.ticketItems{obj.length()+1}=ParallelTicket(runnable,input);
   end
+  function obj=add(obj,runnable,input)
+    obj=obj.attachTicketItem(runnable,input)
+  end
   function obj=clearAll(obj)
     obj.ticketItems={};
   end
