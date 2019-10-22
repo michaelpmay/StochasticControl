@@ -1,11 +1,13 @@
 classdef ProbabilityScore
   properties
-    target=[30; 5] 
+    target=[30;10] 
     sigma=[1 0;0 1]
     C
+    dims
   end
   methods
     function obj=ProbabilityScore(dims)
+      obj.dims=dims;
       obj.C=obj.makeC(dims);
     end
     function score=getScore(obj,P)
@@ -14,6 +16,20 @@ classdef ProbabilityScore
     function score=getDynamicScore(obj,P,stateGen)
       %score=obj.C'*infGen*P(:);
       score=obj.C'*stateGen*P;
+    end
+    function score=getSSATrajectoryScore(obj,ssaData)
+      data=ssaData.getAllTimeSeries(1);
+      [n,m]=size(data.state);
+      X=zeros(obj.dims);
+      for i=1:m
+        for j=2:n
+          x=data.state(1,i)+1;
+          y=data.state(j,i)+1;
+          X(x,y)=X(x,y)+1;
+        end
+      end
+      X=X./sum(sum(X));
+      score=obj.getScore(X);
     end
     function C=makeC(obj,dims)
       xv=0:(dims(1)-1);

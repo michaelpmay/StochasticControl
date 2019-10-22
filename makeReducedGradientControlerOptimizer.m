@@ -7,5 +7,6 @@ controler=ReducedGradientControlerOptimizer();
 modelFsp.accept(controler);
 controler.gmresMaxIter=2
 controler.saveInject=true;
+controler.plotInject=true;
 [optimizedControler,U]=controler.optimizeControler();
 
