@@ -14,9 +14,10 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
     function [optimizedModel,obj]=optimizeControler(obj,saveResponse)
       warning('MATLAB:eigs:IllConditionedA','off');
       obj.score=ProbabilityScore(obj.modelFsp.dims);
+      obj.score.target=[10;30];
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
-      if obj.saveInject & saveRespons==[]
+      if obj.saveInject & ~exist('saveResponse')
         saveResponse=input('Please input save injector file name:\n','s')
       end
       %controlHistory=zeros([obj.model.dims obj.numIterations]);
@@ -30,8 +31,8 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
         if obj.plotInject()
           obj.plotInjector();
         end
-        plot(obj.modelFsp.model.controlInput);
-        drawnow();
+        %plot(obj.modelFsp.model.controlInput);
+        %drawnow();
        % waitbar(i/obj.numIterations,waitBar);
       end
       %delete(waitBar);
@@ -40,7 +41,7 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
     function grad=getGrad(obj)
       obj=obj.getJacobian();
       partial=obj.getPartial(obj.modelFsp.model);
-      partial=obj.jacobian*partial;
+      partial=partial*obj.jacobian;
       grad=obj.score.C'*(partial);
       grad=grad(:);
     end
