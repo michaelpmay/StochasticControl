@@ -1,6 +1,6 @@
 addpath classes
-maxIter=90
-initialRate=.05;
+maxIter=110
+initialRate=.1;
 build=ModelFactory;
 model=build.autoregulatedModelWithoutInput;
 modelFsp=TwoCellFSP(model,[50 50]);
