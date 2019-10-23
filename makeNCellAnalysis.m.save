@@ -1,6 +1,6 @@
 addpath classes
 analyzer=NCellAnalysis();
-load inFiles/autoregulatedReducedControler_110gmres.mat
+load inFiles/autoregulatedreducedControler_110gmres.mat
 controlInput(200)=0;
 analyzer.input{2}=@(t,x)controlInput(x(1)+1);
 load inFiles/controlInput.mat
