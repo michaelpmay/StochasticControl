@@ -14,7 +14,7 @@ analyzer.input{5}=@(t,x)mean(controlInput(x(1)+1,x(2:end)+1));
 analyzer.input{6}=@(t,x)uEx(x(1)+1);
 analyzer.input{7}=@(t,x)uMx(x(1)+1);
 analyzer.nRange=[64 32 16 8 4 2 1]
-list={(5,2),(5,3)};
+list={[1,1],[1,2],[1,3],[1,4],[1,5],[1,6],[1,7]};
 score=analyzer.parallelAnalyze(list);  
 
 
