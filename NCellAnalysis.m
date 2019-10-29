@@ -14,7 +14,7 @@ classdef NCellAnalysis
         score=obj.analyzeFromList(varargin{1});
       end
     end
-    function analyzeFromArray(obj)
+    function score=analyzeFromArray(obj)
       for i=1:length(obj.nRange)
         for j=1:length(obj.input)
           score(j,i)=obj.analyzeSingleN(obj.nRange(i),obj.input{j},i,j);
