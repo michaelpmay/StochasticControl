@@ -14,10 +14,8 @@ analyzer.input{5}=@(t,x)mean(controlInput(x(1)+1,x(2:end)+1));
 analyzer.input{6}=@(t,x)uEx(x(1)+1);
 analyzer.input{7}=@(t,x)uMx(x(1)+1);
 analyzer.nRange=[32 16 8 4 2 1]
-list={[1,3],[1,4],[1,5],[1,6],[1,7],[2,4],[2,5]};
-for i=1:10
-score{i}=analyzer.parallelAnalyze();
-save(['scoreMat_',num2str(i)],'score');  
+for i=3:10
+score{i}=analyzer.parallelAnalyzeWithFileName(['scoreMat_',num2str(i)]);
 end
 
 function u=getUEx()

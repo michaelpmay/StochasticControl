@@ -28,6 +28,10 @@ classdef NCellAnalysis
         score(m,n)=obj.analyzeSingleN(obj.nRange(m),obj.input{n},m,n);
       end
     end
+    function score=parallelAnalyzeWithFileName(obj,filename)
+      score=obj.parallelAnalyzeFromArray();
+      save(filename,'score');
+    end
     function score=parallelAnalyze(obj,varargin)
       menu=ParallelMenu;
       if length(varargin)==0;
