@@ -17,7 +17,9 @@ classdef NCellAnalysis
     function score=analyzeFromArray(obj)
       for i=1:length(obj.nRange)
         for j=1:length(obj.input)
-          score(j,i)=obj.analyzeSingleN(obj.nRange(i),obj.input{j},i,j);
+          score(j,i)=obj.analyzeSingleN(obj.nRange(i),obj.input{j});
+          save(['score/score_',num2str(i),num2str(j)],'score')
+          fprintf('Completed %i \n',obj.nRange(i));
         end
       end
     end
@@ -25,7 +27,9 @@ classdef NCellAnalysis
       for i =1:length(list)
         m=list{i}(1);
         n=list{i}(2);
-        score(m,n)=obj.analyzeSingleN(obj.nRange(m),obj.input{n},m,n);
+        score(n,m)=obj.analyzeSingleN(obj.nRange(m),obj.input{n});
+        save(['score/score_',num2str(m),num2str(n)],'score')
+        fprintf('Completed %i \n',N);
       end
     end
     function score=parallelAnalyzeWithFileName(obj,filename)
@@ -44,7 +48,9 @@ classdef NCellAnalysis
       menu=ParallelMenu;
       for i=1:length(obj.nRange)
         for j=1:length(obj.input)
-          menu=menu.add(@obj.analyzeSingleN,{obj.nRange(i),obj.input{j},i,j});
+          menu=menu.add(@obj.analyzeSingleN,{obj.nRange(i),obj.input{j}});
+          %save(['score/score_',num2str(i),num2str(j)],'score')
+          %fprintf('Completed %i \n',N);
         end
       end
       data=menu.run;
@@ -61,7 +67,7 @@ classdef NCellAnalysis
       for i=1:length(list)
         n=list{i}(1);
         m=list{i}(2);
-        menu=menu.add(@obj.analyzeSingleN,{obj.nRange(n),obj.input{m},n,m});
+        menu=menu.add(@obj.analyzeSingleN,{obj.nRange(n),obj.input{m}});
       end
       data=menu.run;
       for i=1:length(data)
@@ -70,17 +76,15 @@ classdef NCellAnalysis
         score(m,n)=data{i};
       end
     end
-    function score=analyzeSingleN(obj,N,input,i,j)
+    function score=analyzeSingleN(obj,N,input)
       build=ModelFactory;
-      model=build.infCellAutoregulatedModel(N+1,input);
+      model=build.nCellAutoregulatedModel(N+1,input);
       model.time=obj.time;
       ssa=SolverSSA(model);
       data=ssa.run();
       data.trimInitial(obj.trim);
       scorer=ProbabilityScore([200 200]);
       score=scorer.getSSATrajectoryScore(data);
-      save(['score/score_',num2str(i),num2str(j)],'score')
-      fprintf('Completed %i \n',N);
     end
   end
 end

@@ -18,6 +18,10 @@ classdef ProbabilityScore
       score=obj.C'*stateGen*P;
     end
     function score=getSSATrajectoryScore(obj,ssaData)
+      X=obj.getFSPSampleSpace(ssaData);
+      score=obj.getScore(X);
+    end
+    function X=getFSPSampleSpace(obj,ssaData)
       data=ssaData.getAllTimeSeries(1);
       [n,m]=size(data.state);
       X=zeros(obj.dims);
@@ -29,7 +33,6 @@ classdef ProbabilityScore
         end
       end
       X=X./sum(sum(X));
-      score=obj.getScore(X);
     end
     function C=makeC(obj,dims)
       xv=0:(dims(1)-1);

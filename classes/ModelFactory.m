@@ -17,6 +17,7 @@ classdef ModelFactory
     stoichMatrix=[1,-1]
     dims=[50 50]
     controlable=true;
+    ssaBoundary=50;
   end
   methods
     function model=makeModelObject(obj)
@@ -121,13 +122,14 @@ classdef ModelFactory
     function model=nCellAutoregulatedModel(obj,N,input)
       model=obj.makeModelObject();
       model.rxnRate=@(t,x,p)RateEq(t,x,p);
+      score=ProbabilityScore(obj.dims);
       model.time=obj.time;
-      model.initialState=[floor(30*rand())]*ones(1,N);
+      model.initialState=[score.target(1),score.target(2)*ones(1,N-1)]';
       model.stoichMatrix=[eye(N),-1*eye(N)];
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga];
       function R=RateEq(t,x,p)
         for k=1:N
-          R(k)=hill(x(k),p(1),p(2),p(3),p(4))+input(t,x);
+          R(k)=(hill(x(k),p(1),p(2),p(3),p(4))+input(t,x))*(x(k)<obj.ssaBoundary);
         end
         for k=1:N
           R(end+1)=linearDegredation(x(k),p(5));
@@ -142,7 +144,7 @@ classdef ModelFactory
       model=obj.makeModelObject();
       model.rxnRate=@(t,x,p)RateEq(t,x,p);
       model.time=obj.time;
-      model.initialState=[floor(30*rand())]*ones(1,N);
+      model.initialState=([floor(30*rand())]*ones(1,N))';
       model.stoichMatrix=[eye(N),-1*eye(N)];
       model.parameters=[obj.ka obj.ga];
       function R=RateEq(t,x,p)
