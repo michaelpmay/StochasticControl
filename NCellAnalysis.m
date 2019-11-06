@@ -37,11 +37,33 @@ classdef NCellAnalysis
       save(filename,'score');
     end
     function score=parallelAnalyze(obj,varargin)
-      menu=ParallelMenu;
       if length(varargin)==0;
         score=obj.parallelAnalyzeFromArray;
       else
         score=obj.parallelAnalyzeFromList(varargin{1});
+      end
+    end
+    function parallelAnalyzeWithRepetitions(obj,N)
+      menu=ParallelMenu;
+      for k=1:N
+        for i=1:length(obj.nRange)
+          for j=1:length(obj.input)
+            menu=menu.add(@obj.analyzeSingleN,{obj.nRange(i),obj.input{j}});
+          %save(['score/score_',num2str(i),num2str(j)],'score')
+          %fprintf('Completed %i \n',N);
+          end
+        end
+      end
+      data=menu.run;
+      l=1;
+      score={}
+      for k=1:N
+        for i=1:length(obj.nRange)
+          for j=1:length(obj.input)
+            score{k}(j,i)=data{l};
+            l=l+1;
+          end
+        end
       end
     end
     function score=parallelAnalyzeFromArray(obj)
