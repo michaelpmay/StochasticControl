@@ -37,6 +37,10 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
       probability=obj.getSteadyState();
       probability=obj.reshapeField(probability);
     end
+    function [xv,yv]=getXYV(obj)
+      xv=[0:1:(obj.dims(1)-1)];
+      yv=[0:1:(obj.dims(2)-1)];
+    end
   end
 end
 
