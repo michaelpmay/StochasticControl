@@ -51,6 +51,12 @@ classdef SSAData
         obj.node{i}.state=obj.node{i}.state(:,timeIndex:end);
       end
     end
+    function obj=parse(obj,stepSize)
+      for i=1:obj.length
+        obj.node{i}.time=obj.node{i}.time(1:stepSize:end);
+        obj.node{i}.state=obj.node{i}.state(:,1:stepSize:end);
+      end
+    end
   end
   
 end

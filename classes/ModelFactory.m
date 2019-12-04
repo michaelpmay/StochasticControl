@@ -181,5 +181,24 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
+    function model=nCellAutoregulatedSwapModel(obj,N,input,time)
+      model=obj.nCellAutoregulatedModel(N);
+      model.time=time;
+      model.rxnRate=@(t,x,p)RateEq(t,x,p);
+ 
+      function R=RateEq(t,x,p)
+        tVec=linspace(time(1),time(end),N+1);
+        tVec=tVec(1:(end-1));
+        ind=find(tVec<=t,N,'last');
+        ind=ind(end);
+        for k=1:N
+          R(k)=(hill(x(k),p(1),p(2),p(3),p(4))+input(x(ind)));
+        end
+        for k=1:N
+          R(end+1)=linearDegredation(x(k),p(5));
+        end
+      end
+      
+    end
   end
 end
