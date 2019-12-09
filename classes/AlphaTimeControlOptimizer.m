@@ -8,10 +8,10 @@ classdef AlphaTimeControlOptimizer
     maxBounds=0
     dims=[50 50]
     time
-    rate=2;
-    alpha=.01;
-    rDegredation=.90;
-    aDegredation=.3;
+    rate=.5;
+    alpha=.5;
+    rDegredation=-.1;
+    aDegredation=-.03;
   end
   properties(Hidden)
     iterableFsp=IterableFsp;
@@ -19,7 +19,7 @@ classdef AlphaTimeControlOptimizer
   methods
     function obj=AlphaTimeControlOptimizer(modelFsp)
       obj.modelFsp=modelFsp;
-      obj.score=ProbabilityScore(obj.modelFsp);
+      obj.score=ProbabilityScore(obj.modelFsp.dims);
       obj.generator=TwoCellFSPGenerator(obj.modelFsp.model,obj.dims);
       obj.time=modelFsp.model.time;
       obj.initialControler=modelFsp.model.controlInput;
@@ -38,18 +38,17 @@ classdef AlphaTimeControlOptimizer
       control{1}=obj.initialControler;
       probability{1}=modelFsp.getSteadyState;
       deltaT=obj.time(2)-obj.time(1);
-      rate=obj.rate;
-      alpha=.5;
+      A=obj.alpha;
       N=length(obj.time);
       for i=1:N
         printLoopIterations(i,N);
-        model=obj.stepToNewControler(model,control{i},probability{i},rate,alpha,deltaT);
+        model=obj.stepToNewControler(model,control{i},probability{i},obj.rate,obj.alpha,deltaT);
         obj=obj.stepToNewTime(model,deltaT);
         control{i+1}=model.controlInput;%updateControler
         probability{i+1}=obj.iterableFsp.getLastState;%updateProbability 
-        alpha=alpha*obj.aDegredation;    
-        rate=rate*obj.rDegredation;
+        obj.alpha=A*exp(obj.aDegredation*deltaT);    
       end
+      probability=cell2mat(probability(1:end-1));
     end
     function controlInput=getOptimalControler(obj)
       file=load('inFiles/controlInput.mat');

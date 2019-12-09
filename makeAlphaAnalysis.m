@@ -1,23 +1,36 @@
-%clear all
 addpath classes
+clear all
 build=ModelFactory;
+initialControlLevel=.3*ones([50 50]);
 modelFsp=build.optimizedTwoCellModel;
-modelFsp.model.time=linspace(0,1000,500);
-modelFsp.model.time=linspace(0,100,100);
-initialModel=modelFsp;
-initialModel.model.controlInput=.3*ones([50 50]);
-modelFsp.model.initialState=initialModel.getSteadyState;
-optimizer=AlphaTimeControlOptimizer(initialModel);
-[probability,control]=optimizer.optimize;
-%data=modelFsp.run();
-probScorer=ProbabilityScore(modelFsp)
-for i=1:length(data.time)
-  badScore(i)=probScorer.getScore(data.state(:,i));
+modelFsp.model.time=linspace(0,500,500);
+tempModel=modelFsp;
+tempModel.model.controlInput=initialControlLevel;
+modelFsp.model.initialState=tempModel.getSteadyState;
+data=modelFsp.run();
+probScorer=ProbabilityScore(modelFsp.dims);
+pScore=probScorer.getFSPTrajectoryScore(data.state);
+alpha=linspace(0,1,5)
+for i=1:length(alpha)
+optimizer=AlphaTimeControlOptimizer(modelFsp);
+optimizer.alpha=alpha(i);
+optimizer.initialControler=initialControlLevel;
+[alphaProbability{i},control]=optimizer.optimize;
+alphaScore{i}=probScorer.getFSPTrajectoryScore(alphaProbability{i});
 end
-for i=1:length(modelFsp.model.time)
-  goodScore(i)=probScorer.getScore(probability{i});
-end
+%% badmodel
+optimizer.alpha=1;
+optimizer.aDegredation=0;
+[localProbability,localControl]=optimizer.optimize;
+localScore=probScorer.getFSPTrajectoryScore(localProbability);
+%%
+
+%%
+figure
 hold on
-plot(linspace(0,100,50),badScore,'r-')
-plot(initialModel.model.time,goodScore,'b-')
+plot(modelFsp.model.time,pScore,'r-')
+for i=1:length(alphaScore)
+plot(modelFsp.model.time,alphaScore{i},'b-')
+end
+plot(modelFsp.model.time,localScore,'g-')
 hold off

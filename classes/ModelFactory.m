@@ -136,6 +136,7 @@ classdef ModelFactory
         end
       end
     end
+
     function model=infCellAutoregulatedModel(obj,N,input)
       load inFiles/reducedControlInput.mat
       model=obj.nCellAutoregulatedModel(N,input);
@@ -150,6 +151,23 @@ classdef ModelFactory
       function R=RateEq(t,x,p)
         for k=1:N
           R(k)=p(1)+input(x(1)+1);
+        end
+        for k=1:N
+          R(end+1)=linearDegredation(x(k),p(2));
+        end
+      end
+    end
+    function model=nCellUnregulatedSwapModel(obj,N,input,time)
+      model=obj.nCellUnregulatedModel(N,input);
+      model.rxnRate=@(t,x,p)RateEq(t,x,p);
+      model.time=time;
+      function R=RateEq(t,x,p)
+        tVec=linspace(time(1),time(end),N+1);
+        tVec=tVec(1:(end-1));
+        ind=find(tVec<=t,N,'last');
+        ind=ind(end);
+        for k=1:N
+          R(k)=p(1)+input(x(ind)+1);
         end
         for k=1:N
           R(end+1)=linearDegredation(x(k),p(2));

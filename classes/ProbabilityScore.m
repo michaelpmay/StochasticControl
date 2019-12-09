@@ -21,6 +21,11 @@ classdef ProbabilityScore
       X=obj.getFSPSampleSpace(ssaData);
       score=obj.getScore(X);
     end
+    function score=getFSPTrajectoryScore(obj,fspState)
+      for i=1:size(fspState,2)
+        score(i)=obj.getScore(fspState(:,i));
+      end
+    end
     function X=getFSPSampleSpace(obj,ssaData)
       data=ssaData.getAllTimeSeries(1);
       [n,m]=size(data.state);
