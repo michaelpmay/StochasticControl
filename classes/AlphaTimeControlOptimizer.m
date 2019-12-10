@@ -10,7 +10,7 @@ classdef AlphaTimeControlOptimizer
     time
     rate=.5;
     alpha=.5;
-    rDegredation=-.1;
+    rDegredation=-.01;
     aDegredation=-.03;
   end
   properties(Hidden)
@@ -46,7 +46,7 @@ classdef AlphaTimeControlOptimizer
         obj=obj.stepToNewTime(model,deltaT);
         control{i+1}=model.controlInput;%updateControler
         probability{i+1}=obj.iterableFsp.getLastState;%updateProbability 
-        obj.alpha=A*exp(obj.aDegredation*deltaT);    
+        obj.alpha=obj.alpha*(1+obj.aDegredation*deltaT);    
       end
       probability=cell2mat(probability(1:end-1));
     end
