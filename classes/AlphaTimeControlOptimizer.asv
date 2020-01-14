@@ -10,6 +10,7 @@ classdef AlphaTimeControlOptimizer
     time
     rate=.1;
     alpha=.5;
+    rDegredation=-.01;
     aDegredation=-.03;
   end
   properties(Hidden)
@@ -41,7 +42,7 @@ classdef AlphaTimeControlOptimizer
       N=length(obj.time);
       for i=1:N
         printLoopIterations(i,N);
-        model=obj.stepToNewControler(model,probability{i},obj.rate,obj.alpha,deltaT);
+        model=obj.stepToNewControler(model,probability{i},control{i},obj.rate,obj.alpha,deltaT);
         obj=obj.stepToNewTime(model,deltaT);
         control{i+1}=model.controlInput;%updateControler
         probability{i+1}=obj.iterableFsp.getLastState;%updateProbability 
@@ -53,10 +54,10 @@ classdef AlphaTimeControlOptimizer
       file=load('inFiles/controlInput.mat');
       controlInput=file.controlInput;
     end
-    function model=stepToNewControler(obj,model,probability,stepRate,alpha,deltaT)
+    function model=stepToNewControler(obj,model,probability,ssControler,stepRate,alpha,deltaT)
       gGrad=obj.getGreedyGrad(probability);
       sGrad=obj.getSteadyStateGrad(model);
-      grad=obj.mixGrad(sGrad,gGrad,alpha);
+      grad=obj.mixGrad(gGrad,sGrad,alpha);
       newControlInput=model.controlInput-grad*stepRate*deltaT;
       model.controlInput=obj.trimInput(newControlInput);
     end
