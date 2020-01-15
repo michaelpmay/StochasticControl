@@ -38,7 +38,6 @@ classdef AlphaTimeControlOptimizer
       control{1}=obj.initialControler;
       probability{1}=modelFsp.getSteadyState;
       deltaT=obj.time(2)-obj.time(1);
-      A=obj.alpha;
       N=length(obj.time);
       for i=1:N
         printLoopIterations(i,N);
