@@ -1,4 +1,4 @@
-classdef JointTimeOptimizer
+ classdef JointTimeOptimizer
   properties
     model
     score

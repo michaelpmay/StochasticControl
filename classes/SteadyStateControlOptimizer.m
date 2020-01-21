@@ -4,14 +4,13 @@ classdef SteadyStateControlOptimizer
     minControlerBounds=00
     numIterations=50
     initialInputLevel=.4
-    dims=[50 50]
     modelFsp
     score
   end
   methods
     function [modelFsp,obj]=visit(obj,modelFsp)
       obj.modelFsp=modelFsp;
-      obj.score=ProbabilityScore(obj.dims);
+      obj.score=ProbabilityScore(modelFsp.dims);
       [modelFsp,obj]=obj.optimizeControler();
     end
     function obj=setControl(obj,controler)

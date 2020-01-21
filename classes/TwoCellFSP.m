@@ -18,15 +18,6 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
     function infGenerator=getInfGenerator(obj)
       infGenerator=obj.generator.getInfGenerator(obj.model);
     end
-    function grad=getGrad(obj)
-      P=obj.getSteadyState;
-      Lambda=sparse(obj.generator.bMatrix.*obj.controlInput(:)'+obj.generator.aMatrix);
-      B=kron(sparse(eye(prod(obj.dims))),Lambda);
-      C=-(obj.generator.bMatrix.*P(:)');
-      C=C(:);
-      grad=gmres(B,C,[],obj.gmresInputTolerance,obj.gmresInputMaxIter);
-      grad=reshape(grad,[prod(obj.dims) prod(obj.dims)]);
-    end
     function [model,optimizer]=accept(obj,optimizer)
       [model,optimizer]=optimizer.visit(obj);
     end

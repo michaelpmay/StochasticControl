@@ -20,8 +20,6 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
       if obj.saveInject & ~exist('saveResponse')
         saveResponse=input('Please input save injector file name:\n','s')
       end
-      %controlHistory=zeros([obj.model.dims obj.numIterations]);
-      %waitBar=waitbar(0,'Optimizing controler ... this may take a while');
       for i=1:obj.numIterations
         obj=obj.stepToNewControler(stepRate);
         stepRate=obj.updateStepRate(stepRate);
@@ -31,11 +29,7 @@ classdef ReducedGradientControlerOptimizer < GradientControlerOptimizer
         if obj.plotInject()
           obj.plotInjector();
         end
-        %plot(obj.modelFsp.model.controlInput);
-        %drawnow();
-       % waitbar(i/obj.numIterations,waitBar);
       end
-      %delete(waitBar);
       optimizedModel=obj.modelFsp;
     end
     function grad=getGrad(obj)
