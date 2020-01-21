@@ -1,10 +1,10 @@
 addpath classes
 clear all;
-stepSize=.005;
+stepSize=5;
 dims=[40 40]
-builder=ModelFactory;
+builder=ModelFactory
 model=builder.autoregulatedModelWithoutInput;
-model.controlInput=.35*ones(dims);
+model.controlInput=0.0000*ones(dims);
 modelFsp=TwoCellFSP(model,dims);
 N=prod(modelFsp.dims);
 A=modelFsp.generator.getAMatrix;
@@ -12,8 +12,7 @@ B=modelFsp.generator.getBMatrix;
 J=eye(N+1);
 J=J(:,1:(end-1));
 P=modelFsp.getSteadyState;
-l=0*ones(N,N);
-l(:,N+1)=model.controlInput(:);
+l=1*ones(N,N+1);
 X=[P;1];
 
 score=ProbabilityScore(dims);
@@ -25,22 +24,20 @@ for i=1:50
   currentScore(i)=C'*[P]
   X=[P;1];
   U=l*X;
-  L=A+B.*U';
-  phi=B.*(l*J*P)'+L;
+  L=A+B.*U;
+  phi=B.*(l*J*P)+L;
   %PhiInv=pinv((B.*X)*l+L);
-  omega=(B.*P');
+  G=B;
+  G(end,end+1)=0;
+  omega=(G.*X');
   omega=omega(:);
-  K=kron(speye(N),phi);
-  grad=gmres(K,omega,[],1e-10,60);
-  grad=-reshape(grad,[N N]);
-  l=l-((C'*grad)'.*X')*stepSize;
+  K=kron(speye(N+1),phi);
+  inverse=gmres(K,omega,[],1e-10,50);
+  grad=reshape(inverse,[N+1 N]);
+  l=l-grad*stepSize;
   control{i}=l;
   Unew=l*X;
-  Unew(Unew<0)=0;
-  Unew(Unew>10)=10;
-  
   modelFsp.model.controlInput=reshape(Unew(1:prod(dims)),dims);
-  
   subplot(1,2,2);
   pcolorProbability(modelFsp.model.controlInput);
   colorbar()
