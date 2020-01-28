@@ -73,7 +73,7 @@ for i=1:Z
   iterFsp.state(:,end)=Pxy(:);
   scoreWithoutE(i)=C'*iterFsp.getLastState()
 end
-
+save('matlab2.mat')
 function J=getJacobian(dims)
   for i=1:dims(1)
     X=zeros(dims);
