@@ -1,14 +1,10 @@
 addpath classes
 clear all;
-parfor i=1:4
-scoreTrajectory{i}=simulate()
-end
-save workspace4Trajectory2
-function scoreWithE=simulate()
-stepSize=5;
 dims=[50 50];
 lowerBound=0;
 upperBound=20;
+dt=.1;
+uRange=linspace(0,2,101);
 score=ProbabilityScore(dims);
 C=score.C;
 builder=ModelFactory;
@@ -21,6 +17,15 @@ modelFsp=TwoCellFSP(model,dims);
 N=prod(modelFsp.dims);
 A=modelFsp.generator.getAMatrix;
 B=modelFsp.generator.getBMatrix;
+genSet=makeGeneratorSet(uRange,A,B,dt);
+for i=1:30
+  scoreTrajectory{end+1}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,1);
+end
+for i=1:30
+  scoreTrajectoryNoE{end+1}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,0);
+end
+function score=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,FB)
+K=1000;
 Po=ones(N,1);
 Po=Po./sum(Po);
 iterFsp=IterableFsp;
@@ -41,9 +46,10 @@ iterFsp.state=Ps;
 E=[Ps-Ps];
 Ep=.5*ones(N,1);
 U=modelFsp.model.controlInput(:);
-dt=.1
-for i=1:300
-  iterFsp=iterFsp.iterateStep(expm(A+B.*(U(:)')),dt);
+id=1;
+for i=1:K
+  printLoopIterations(i,K)
+  iterFsp=iterFsp.iterateStep(genSet{id},dt);
   Pxyn=reshape(iterFsp.getLastState,dims);
   Px=sum(Pxyn,1);
   Py=sum(Pxyn,2);
@@ -51,14 +57,25 @@ for i=1:300
   Pxy=zeros(dims);
   Pxy(s+1,:)=Px;
   iterFsp.state(:,end)=Pxy(:);
-  scoreWithE(i)=C'*iterFsp.getLastState()
+  score(i)=C'*iterFsp.getLastState();
   E=[iterFsp.getLastState-Ps];
-  l=[-(C'*(B.*iterFsp.getLastState'))'.*E'*5];
+  if FB==true
+    l=[-(C'*(B.*iterFsp.getLastState'))'.*E'*5];
+  else
+    l=0*[-(C'*(B.*iterFsp.getLastState'))'.*E'*5];
+  end
   U=shiftJ*l*E+optimalControler;
   U(U<lowerBound)=lowerBound;
   U(U>upperBound)=upperBound;
-  U=squareify(U,dims);
-  U=U(:);
+  u=U(s+1);
+  [ u, id ] = min( abs( uRange-u ) );
+end
+end
+function generatorSet=makeGeneratorSet(uRange,A,B,dt)
+N=length(uRange)
+for i=1:N
+  printLoopIterations(i,N);
+  generatorSet{i}=expm(dt.*(A+B.*uRange(i)));
 end
 end
 function J=getJacobian(dims)
