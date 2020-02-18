@@ -9,7 +9,6 @@ classdef ViewTwoCellFSP
       obj.axes=axes;
       obj.solver=solver;
     end
-    
     function plotSteadyState(obj,target)
       data=obj.solver.getSteadyStateReshape;
       [xVec,yVec]=obj.solver.generator.getXYV;
@@ -20,8 +19,7 @@ classdef ViewTwoCellFSP
       title('Steady State Joint Distribution');
       xlabel('Species Count');
       ylabel('Species Count');
-    end
-    
+    end   
     function plotSteadyStateWithTarget(obj,target)
       hold on 
       obj.plotSteadyState()
@@ -29,8 +27,7 @@ classdef ViewTwoCellFSP
       redX.MarkerEdgeColor=[1 0 0];
       redX.LineWidth=2;
       hold off
-    end
-    
+    end   
     function plotMarginals(obj)
       [xVec,yVec]=obj.solver.generator.getXYV;
       data=obj.solver.getSteadyStateReshape();
@@ -45,8 +42,7 @@ classdef ViewTwoCellFSP
       title('Marginal Distribution');
       xlabel('Species Count');
       ylabel('Species Count');
-    end
-    
+    end   
     function plotSampledSumForces(obj,stepSize)
        hold on
       [xForce,yForce]=obj.getSampleSpaceForces(stepSize);

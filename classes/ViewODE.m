@@ -4,12 +4,10 @@ classdef ViewODE
     axes
   end
   methods
-    
     function obj=ViewODE(data,axes)
       obj.data=data;
       obj.axes=axes;
-    end
-     
+    end     
     function plotTimeSeries(obj,speciesIndex)
       timeSeriesData=obj.data.getTimeSeries(speciesIndex)
       plot(timeSeriesData.time,timeSeriesData.state);

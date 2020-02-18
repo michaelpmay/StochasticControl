@@ -10,14 +10,14 @@ classdef ModelFactory
     ExperimentalInput=@(t,x,u)(u(1)*(t<270)+u(3)*(t>570)+...
       u(2)*((t>=270)&(t<=570)))
     ControlInput=@(t,x,field)field(f(1)+1,x(2)+1);
-    frequencyInput=@(t,x,u)u(2)*(abs(sawtooth(2*pi*u(1).*t)))
+    frequencyInput=@(t,x,u)u(2)*sin(2*pi*u(1).*t)+u(3)
     u=[200.6588    1.3809   60.6751]
     eu=[249.588 1.3809 60.6751]
     time=linspace(0,780)
     stoichMatrix=[1,-1]
     dims=[50 50]
     controlable=true;
-    ssaBoundary=50;
+    ssaBoundary=60;
   end
   methods
     function model=makeModelObject(obj)
@@ -52,11 +52,11 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=unregulatedModelWithFrequencyInput(obj,frequency,amplitude)
+    function model=unregulatedModelWithFrequencyInput(obj,frequency,amplitude,offset)
       model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
-      model.parameters=[obj.ko obj.ga frequency amplitude];
-      model.rxnRate=@(t,x,p)[p(1)+obj.frequencyInput(t,x,p(3:4)) ; p(2)*x(1)];
+      model.parameters=[obj.ko obj.ga frequency amplitude offset];
+      model.rxnRate=@(t,x,p)[p(1)+obj.frequencyInput(t,x,p(3:5)) ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
@@ -67,8 +67,7 @@ classdef ModelFactory
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+p(6);linearDegredation(x,p(5))];
       model.initialState=[0];
       model.time=obj.time;
-    end
-    
+    end  
     function model=unregulatedModelWithoutInput(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=obj.stoichMatrix;
@@ -85,11 +84,11 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=autoregulatedModelWithFrequencyInput(obj,frequency,amplitude)
+    function model=autoregulatedModelWithFrequencyInput(obj,frequency,amplitude,offset)
       model=ModelPlugin();
       model.stoichMatrix=obj.stoichMatrix;
-      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude];
-      model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.frequencyInput(t,x,p(6:7)); p(5)*x(1)];
+      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude,offset];
+      model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.frequencyInput(t,x,p(6:8)); p(5)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
@@ -136,7 +135,6 @@ classdef ModelFactory
         end
       end
     end
-
     function model=infCellAutoregulatedModel(obj,N,input)
       load inFiles/reducedControlInput.mat
       model=obj.nCellAutoregulatedModel(N,input);
@@ -203,7 +201,6 @@ classdef ModelFactory
       model=obj.nCellAutoregulatedModel(N);
       model.time=time;
       model.rxnRate=@(t,x,p)RateEq(t,x,p);
- 
       function R=RateEq(t,x,p)
         tVec=linspace(time(1),time(end),N+1);
         tVec=tVec(1:(end-1));
@@ -216,7 +213,12 @@ classdef ModelFactory
           R(end+1)=linearDegredation(x(k),p(5));
         end
       end
-      
+    end
+    function model=buildAutoregulatedFrequencyResponseModel(...
+            obj,freq,amp,dc,numCells,time)
+          input=@(t,x)obj.frequencyInput(t,x,[freq,amp,dc])
+      model=obj.nCellAutoregulatedModel(numCells,input);
+      model.time=time;
     end
   end
 end

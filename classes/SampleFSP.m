@@ -9,6 +9,9 @@ classdef SampleFSP
     steadyStateProbability
   end
   methods
+    function obj=SampleFSP(controler)
+      obj.feedbackControl=controler;
+    end
     function run(obj)
       obj=obj.updateGeneratorSet(obj.uRange);
       obj=obj.updateSteadyStateProbability();

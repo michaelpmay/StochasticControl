@@ -1,3 +1,0 @@
-classdef FileEntry
-  
-end

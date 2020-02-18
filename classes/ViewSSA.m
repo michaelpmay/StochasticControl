@@ -3,21 +3,18 @@ classdef ViewSSA
     data
     axes
   end
-  methods
-    
+  methods   
     function obj=ViewSSA(data,axes)
       obj.data=data;
       obj.axes=axes;
     end
-    
     function plotAllTimeSeries(obj,speciesIndex)
       for i = 1:obj.data.length()
         hold on
         obj.plotTimeSeries(speciesIndex,i)
         hold off
       end
-    end
-    
+    end  
     function plotTimeSeries(obj,speciesIndex,sampleIndex)
       timeSeriesData=obj.data.getTimeSeries(speciesIndex,sampleIndex)
       stairs(timeSeriesData.time,timeSeriesData.state);
@@ -37,6 +34,13 @@ classdef ViewSSA
     function plotWindowHistogram(obj,speciesIndex,initialTimeIndex,finalTimeIndex)
       [count,binEdge]=obj.data.getWindowHistogram(speciesIndex,initialTimeIndex,finalTimeIndex);
       bar(binEdge,count);
+    end
+    function plotAll(obj)
+      hold on
+      for i=1:obj.data.length
+        data=obj.data.getAllTimeSeries(i);
+        stairs(data.time,data.state');
+      end
     end
   end
 end
