@@ -3,8 +3,8 @@ addpath classes
 dims=[50 50];
 lowerBound=0;
 upperBound=20;
-SS=5
-dt=.1/SS;
+SS=10
+dt=1;
 uRange=linspace(0,2,11);
 score=ProbabilityScore(dims);
 C=score.C;
@@ -23,7 +23,7 @@ scoreTrajectory={}
 scoreTrajectoryNoE={}
 beta=87.67;
 for i=1:V
-  scoreTrajectory{i}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,1,beta,SS);
+  scoreTrajectory{i}=superSimulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,1,beta,SS);
   save
 end
 % for i=1:V
@@ -31,7 +31,7 @@ end
 %   save
 % end
 function score=superSimulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,FB,beta,SS)
-K=5000*SS;
+K=500*SS;
 a=[.3 .2 .1];
 Po=ones(N,1);
 Po=Po./sum(Po);
@@ -82,7 +82,7 @@ for i=1:K
   U(U<lowerBound)=lowerBound;
   U(U>upperBound)=upperBound;
   U=squareify(U,[1,dims(2)]);
-  u=U(:)'*iterFsp.getLastState;
+  u=U(s+1);
   [ u, id ] = min( abs( uRange-u ) );
   inputHistory(i)=u;
 end
