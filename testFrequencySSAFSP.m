@@ -2,7 +2,7 @@ factory=ModelFactory
 amp=.1
 frq=.001
 dco=.25
-time=linspace(0,40000,40000+1);
+time=linspace(0,200000,200000+1);
 model=factory.buildAutoregulatedFrequencyResponseModel(frq,amp,dco,2,time)
 modelSSA=SolverSSA(model);
 u1=factory.frequencyInput(time,0,[frq amp,dco]);
@@ -10,7 +10,7 @@ data1=modelSSA.run();
 data11=data1.node{1};
 X=zeros([80 80]);
 for i=1:length(data11.time)
-  X(data11.state(1,i)+1,data11.state(2,i))=X(data11.state(1,i)+1,data11.state(2,i))+1;
+  X(data11.state(1,i)+1,data11.state(2,i)+1)=X(data11.state(1,i)+1,data11.state(2,i)+1)+1;
 end
 model=factory.buildAutoregulatedFrequencyResponseModel(.000,amp,dco,2,time)
 modelSSA=SolverSSA(model);
@@ -19,7 +19,7 @@ u2=factory.frequencyInput(time,0,[000 amp,dco]);
 Y=zeros([80 80]);
 data22=data2.node{1};
 for i=1:length(data22.time)
-  Y(data22.state(1,i)+1,data22.state(2,i))=Y(data22.state(1,i)+1,data22.state(2,i))+1;
+  Y(data22.state(1,i)+1,data22.state(2,i)+1)=Y(data22.state(1,i)+1,data22.state(2,i)+1)+1;
 end
 figure
 subplot(3,2,1)

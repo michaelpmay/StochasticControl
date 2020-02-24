@@ -1,15 +1,16 @@
 %make Frequency Analysis
 addpath classes
 addpath parallel
+addpath utility
 close all
 clear all
 build=ModelFactory;
-freq=logspace(.01,.001,10);%[0 .001 1]
+freq=linspace( 0.002127283950617, 0.002126950617284,4);%[0 .001 1]
 amp=[.1];%.315
 dc=.2;
 initialState=[0 40];
-time=[0 50000];
-steps=500000;%500000
+time=[0 10000];
+steps=6500000;%500000
 menu=ParallelMenu;
 for i=1:length(freq)
   for j=1:length(amp)
@@ -24,7 +25,8 @@ end
 %       menu=menu.attachTicketItem(@analyzeUnregulatedFrequency,{freq(i),amp(j),dc,initialState(k),linspace(time(1),time(2),steps)});
 %     end
 %   end
-% end
+% endclose all
+
 data=menu.run;
 N=length(data)/2;
 makePlots(data(1:N),menu,build);
