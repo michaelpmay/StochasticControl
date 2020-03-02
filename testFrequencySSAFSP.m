@@ -1,11 +1,16 @@
+figure
+solve(0.002127283950617)
+figure
+solve(0.002126950617284)
+
+function solve(frequency)
 factory=ModelFactory
-amp=.1
-frq=.001
-dco=.25
-time=linspace(0,200000,200000+1);
-model=factory.buildAutoregulatedFrequencyResponseModel(frq,amp,dco,2,time)
+amp=.1;
+dco=.25;
+time=linspace(0,50000,50000+1);
+model=factory.buildAutoregulatedFrequencyResponseModel(frequency,amp,dco,2,time)
 modelSSA=SolverSSA(model);
-u1=factory.frequencyInput(time,0,[frq amp,dco]);
+u1=factory.frequencyInput(time,0,[frequency amp,dco]);
 data1=modelSSA.run();
 data11=data1.node{1};
 X=zeros([80 80]);
@@ -34,3 +39,4 @@ subplot(3,2,5)
 pcolorProbability(X)
 subplot(3,2,6)
 pcolorProbability(Y)
+end

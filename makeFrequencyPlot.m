@@ -5,12 +5,12 @@ addpath utility
 close all
 clear all
 build=ModelFactory;
-freq=linspace( 0.002127283950617, 0.002126950617284,4);%[0 .001 1]
+freq=linspace( .001,.0023,8);%[0 .001 1]    0.002127283950617, 0.002126950617284
 amp=[.1];%.315
-dc=.2;
+dc=.2147;
 initialState=[0 40];
-time=[0 10000];
-steps=6500000;%500000
+time=[0 100000];
+steps=650000;%500000
 menu=ParallelMenu;
 for i=1:length(freq)
   for j=1:length(amp)
