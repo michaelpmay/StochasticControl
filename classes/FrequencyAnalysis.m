@@ -3,6 +3,7 @@ classdef FrequencyAnalysis
     model
     frequency
     intensity
+    dc
   end
   methods
     function obj=FrequencyAnalysis(model)

@@ -1,0 +1,9 @@
+par=Parameter('frequency',123);
+parSet=ParameterSet({Parameter('frequency',123),Parameter('ac',13)});
+parSet.indexValue(1);
+parSet.indexName(1);
+parSet.getAllNames();
+parSet.getAllValues;
+[names,values]=parSet.getAll;
+parSet.get('frequency')
+parSet=parSet.set('freqcy',15);

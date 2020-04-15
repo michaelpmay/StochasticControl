@@ -5,14 +5,17 @@ addpath utility
 close all
 clear all
 build=ModelFactory;
-freq=linspace( .001,.0023,8);%[0 .001 1]    0.002127283950617, 0.002126950617284
-amp=[.1];%.315
-dc=.2147;
+freq=linspace(0.004352715535193,0.004351286963765,8);%[0 .001 1]    0.002127283950617, 0.002126950617284      [amp=0.1,dc=.21,Wcrit=0.001688543281894]
+%freqUnique=[0.004354144106622,0.004354144106622-0.00001]
+T=1./freq;
+amp=[.21];%.315
+dc=.210;
 initialState=[0 40];
 time=[0 100000];
 steps=650000;%500000
 menu=ParallelMenu;
 for i=1:length(freq)
+  time=[0 200*T(i)]
   for j=1:length(amp)
     for k=1:length(initialState)
       menu=menu.attachTicketItem(@analyzeAutoregulatedFrequency,{freq(i),amp(j),dc,initialState(k),linspace(time(1),time(2),steps)});
@@ -29,8 +32,7 @@ end
 
 data=menu.run;
 N=length(data)/2;
-makePlots(data(1:N),menu,build);
-makePlots(data((N+1):end),menu,build);
+makePlots(data,menu,build);
 %save('workspaceFrequencyPlot')
 
 function makePlots(data,menu,factory)

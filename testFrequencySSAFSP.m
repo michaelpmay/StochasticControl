@@ -1,42 +1,26 @@
-figure
-solve(0.002127283950617)
-figure
-solve(0.002126950617284)
+addpath classes/  
+solve(0.001688543281894,.21,.21)
+solve(0.001688543281894-0.0000001,.21,.21)
 
-function solve(frequency)
+function solve(frequency,amp,dco)
 factory=ModelFactory
-amp=.1;
-dco=.25;
-time=linspace(0,50000,50000+1);
+time=linspace(0,100000,100000+1);
+T=1/frequency;
 model=factory.buildAutoregulatedFrequencyResponseModel(frequency,amp,dco,2,time)
 modelSSA=SolverSSA(model);
 u1=factory.frequencyInput(time,0,[frequency amp,dco]);
 data1=modelSSA.run();
 data11=data1.node{1};
+data1.node{1}.time=data1.node{1}.time./T;
 X=zeros([80 80]);
 for i=1:length(data11.time)
   X(data11.state(1,i)+1,data11.state(2,i)+1)=X(data11.state(1,i)+1,data11.state(2,i)+1)+1;
 end
-model=factory.buildAutoregulatedFrequencyResponseModel(.000,amp,dco,2,time)
-modelSSA=SolverSSA(model);
-data2=modelSSA.run();
-u2=factory.frequencyInput(time,0,[000 amp,dco]);
-Y=zeros([80 80]);
-data22=data2.node{1};
-for i=1:length(data22.time)
-  Y(data22.state(1,i)+1,data22.state(2,i)+1)=Y(data22.state(1,i)+1,data22.state(2,i)+1)+1;
-end
 figure
-subplot(3,2,1)
-plot(time,u1)
-subplot(3,2,2)
-plot(time,u2)
-view=ViewSSA(data1,subplot(3,2,3))
+subplot(1,3,1)
+plot(time./T,u1)
+view=ViewSSA(data1,subplot(1,3,2))
 view.plotAll;
-view=ViewSSA(data2,subplot(3,2,4))
-view.plotAll;
-subplot(3,2,5)
+subplot(1,3,3)
 pcolorProbability(X)
-subplot(3,2,6)
-pcolorProbability(Y)
 end
