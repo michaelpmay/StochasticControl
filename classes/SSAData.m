@@ -30,7 +30,7 @@ classdef SSAData
       [count,binEdge]=hist(snapshotArray(:),nbins,'Normalization','probability');
       count=count/sum(count);
     end
-    function data=getTimeSeries(obj,sampleIndex,speciesIndex)
+    function data=getTimeSeries(obj,speciesIndex,sampleIndex)
       data.time=obj.node{sampleIndex}.time;
       data.state=obj.node{sampleIndex}.state(speciesIndex,:);
     end

@@ -15,8 +15,9 @@ classdef SolverODE < GenericCME
     end
     function data=run(obj)
       odeEq=obj.model.getRateEquation();
-      odeData=ode15s(odeEq,obj.model.time,obj.model.initialState,obj.odeOptions);
+      odeData=ode23s(odeEq,obj.model.time,obj.model.initialState,obj.odeOptions);
       [time,state]=obj.formatTimes(odeData);
+      
       data=GenericData(time,state);
     end
     

@@ -9,11 +9,11 @@ classdef ViewSSA
       obj.axes=axes;
     end
     function plotAllTimeSeries(obj,speciesIndex)
+      hold on
       for i = 1:obj.data.length()
-        hold on
         obj.plotTimeSeries(speciesIndex,i)
-        hold off
       end
+      hold off
     end  
     function plotTimeSeries(obj,speciesIndex,sampleIndex)
       timeSeriesData=obj.data.getTimeSeries(speciesIndex,sampleIndex)

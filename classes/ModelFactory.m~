@@ -7,7 +7,7 @@ classdef ModelFactory
     ga=.0203 %0.020
     ka=0.0001
     eko=3.5821;%experimental ko [3.5821]
-    fullKammashModelParameterSet=[40.3453e-003     1.8490e-003     4.8568e+000     9.8732e+006     2.7501e+000   195.7343e-003     1.6808e+003]
+    fullKammashModelParameterSet=[38.6138e-003     1.8490e-003     4.8027e+000     1.6850e+006   471.5881e-003   195.7343e-003     1.6801e+003]
     ExperimentalInput=@(t,x,u)(u(1)*(t<270)+u(3)*(t>570)+...
       u(2)*((t>=270)&(t<=570)))
     ControlInput=@(t,x,field)field(f(1)+1,x(2)+1);
@@ -86,7 +86,7 @@ classdef ModelFactory
     end
     function model=autoregulatedModelWithFrequencyInput(obj,frequency,amplitude,offset)
       model=ModelPlugin();
-      model.stoichMatrix=[1 -1];
+      model.stoichMatrix=[1,-1];
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude,offset];
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.frequencyInput(t,x,p(6:8)); p(5)*x(1)];
       model.initialState=[0];
@@ -122,7 +122,7 @@ classdef ModelFactory
                            0  0  1 -1  0;
                            0  0  0  0  1;
                            0  0  0  0 -1]';
-      model.parameters=obj.fullKammashModelParameterSet;
+      model.parameters=obj.fullParameterSet;
       model.rxnRate=@(t,x,p)[p(1);p(2);p(3)*x(1)*x(2);
         p(4)*x(3);
         p(5)*x(3)*(1-x(4));

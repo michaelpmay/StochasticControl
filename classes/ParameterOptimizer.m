@@ -10,6 +10,7 @@ classdef ParameterOptimizer
     minRate=.001
     numChange=2
     logLowerBound=-10;
+    targetSpecies=1;
   end
   methods
     function obj=ParameterOptimizer()
@@ -21,13 +22,13 @@ classdef ParameterOptimizer
       obj.solver=solver;
       obj=obj.initializeOptimization;
       iter=1;
-      error=obj.getError;
+      error=obj.getError(obj.targetSpecies);
       parameters=obj.solver.model.getParameters();
       rate=obj.initialRate();
       while (obj.isUnTolerant(error) && (iter<obj.maxIter))
         newParameters=obj.mutate(parameters,rate);
         obj=obj.setParameters(newParameters);
-        newError=obj.getError;
+        newError=obj.getError(obj.targetSpecies);
         if newError<error
           parameters=newParameters;
           error=newError;
@@ -51,9 +52,10 @@ classdef ParameterOptimizer
     function bool=isUnTolerant(obj,error)
       bool=(obj.tolerance<error);
     end
-    function error=getError(obj)
+    function error=getError(obj,index)
       data=obj.solver.run;
-      error=sum((obj.realData.state-data.state).^2);
+      modelData=data.state(index,:);
+      error=sum((obj.realData.state-modelData).^2);
     end
     function parameters=mutate(obj,parameters,rate)
       n=length(parameters);

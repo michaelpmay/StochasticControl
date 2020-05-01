@@ -1,4 +1,4 @@
-load workspaceZTrajectories.mat
+load data/workspaceZTrajectories.mat
 zMat=matrify(scoreTrajectory);
 zMat=trim(zMat,2000);
 meanTrajectory=getMean(zMat);

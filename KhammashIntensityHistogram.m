@@ -1,8 +1,8 @@
 addpath classes
 build=ModelFactory;
-lightOnModel=build.unregulatedModelWithConstantLight(2)
+lightOnModel=build.unregulatedModelWithUniformLight(2)
 lightOnModel.time=linspace(0,5000,20000);
-lightOffModel=build.unregulatedModelWithConstantLight(0)
+lightOffModel=build.unregulatedModelWithUniformLight(0)
 ligntOffModel.time=linspace(0,5000,20000);
 
 onSSA=SolverSSA(lightOnModel);

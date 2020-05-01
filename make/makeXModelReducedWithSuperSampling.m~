@@ -3,10 +3,12 @@ addpath classes
 dims=[50 50];
 lowerBound=0;
 upperBound=20;
+SS=5
 dt=.1;
-uRange=linspace(0,2,101);
+uRange=linspace(0,2,11);
 score=ProbabilityScore(dims);
 C=score.C;
+V=10;
 builder=ModelFactory;
 model=builder.autoregulatedModelWithoutInput;
 optimalControler=load('inFiles/autoregulatedReducedControler_110gmres.mat');
@@ -18,9 +20,19 @@ A=modelFsp.generator.getAMatrix;
 B=modelFsp.generator.getBMatrix;
 genSet=makeGeneratorSet(uRange,A,B,dt);
 scoreTrajectory={}
-scoreTrajectory{end+1}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,1);
-function score=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,FB)
-K=1000;
+scoreTrajectoryNoE={}
+beta=87.67;
+for i=1:V
+  scoreTrajectory{i}=superSimulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,1,beta,SS);
+  save
+end
+% for i=1:V
+%   scoreTrajectoryNoE{end+1}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,0);
+%   save
+% end
+function score=superSimulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,FB,beta,SS)
+K=5000*SS;
+a=[.3 .2 .1];
 Po=ones(N,1);
 Po=Po./sum(Po);
 iterFsp=IterableFsp;
@@ -29,8 +41,7 @@ J=eye(N+1);
 J=J(:,1:(end-1));
 Ps=modelFsp.getSteadyState;
 shiftJ=getJacobian(dims);
-l=0*ones(N,N);
-l(:,N+1)=model.controlInput(:);
+L=diag(C)*(a(1)*B-a(2)*eye(size(B))+a(3)*B')./50;
 E=[Po-Ps;1];
 Po=zeros(N,1);
 Po(5)=1;
@@ -42,30 +53,43 @@ E=[Ps-Ps];
 Ep=.5*ones(N,1);
 U=modelFsp.model.controlInput(:);
 id=1;
+score=zeros(K,1);
+J2=ones(1,N);
 for i=1:K
   printLoopIterations(i,K)
   iterFsp=iterFsp.iterateStep(genSet{id},dt);
-  Pxyn=reshape(iterFsp.getLastState,dims);
-  Px=sum(Pxyn,1);
-  Py=sum(Pxyn,2);
-  s=sampleFrom(Py(:),1);
-  Pxy=zeros(dims);
-  Pxy(s+1,:)=Px;
-  iterFsp.state(:,end)=Pxy(:);
+  if mod(i-1,4)==0
+    Pxyn=reshape(iterFsp.getLastState,dims);
+    Px=sum(Pxyn,1);
+    Py=sum(Pxyn,2);
+    s=sampleFrom(Py(:),1);
+    Pxy=zeros(dims);
+    Pxy(s+1,:)=Px;
+    iterFsp.state=Pxy(:);
+    iterFsp.time=iterFsp.time(end);
+  else
+    iterFsp.state=iterFsp.state(:,end);
+    iterFsp.time=iterFsp.time(end);
+  end
   score(i)=C'*iterFsp.getLastState();
+  fprintf("score: %3.3f\n",score(i))
   E=[iterFsp.getLastState-Ps];
   if FB==true
-    l=[-(C'*(B.*iterFsp.getLastState'))'.*E'*5];
+    L=L;
   else
-    l=0*[-(C'*(B.*iterFsp.getLastState'))'.*E'*5];
+    L=0*L;
   end
-  U=shiftJ*l*E+optimalControler;
+  U=shiftJ*L*E+optimalControler;
   U(U<lowerBound)=lowerBound;
   U(U>upperBound)=upperBound;
-  u=U(s+1);
+  U=squareify(U,[1,dims(2)]);
+  P=iterFsp.getLastState();
+  u=(U(:)'*(C(:)))./sum(C);
   [ u, id ] = min( abs( uRange-u ) );
+  inputHistory(i)=u;
 end
 end
+
 function generatorSet=makeGeneratorSet(uRange,A,B,dt)
 N=length(uRange)
 for i=1:N

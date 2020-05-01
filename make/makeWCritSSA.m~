@@ -1,0 +1,17 @@
+addpath classes/
+addpath utility/
+frequency=0.004;
+amplitude=.21;
+offset=.211;
+initialState=[0];
+time=[0 50];
+data=analyzeAutoregulatedFrequency(frequency,amplitude,offset,initialState,time)
+view=vie
+function data=analyzeAutoregulatedFrequency(frequency,amplitude,offset,state,time)
+build=ModelFactory;
+model=build.autoregulatedModelWithFrequencyInput(frequency,amplitude,offset);
+solver=SolverSSA(model);
+solver.model.time=time;
+solver.model.initialState=state;
+data=solver.run(5);
+end
