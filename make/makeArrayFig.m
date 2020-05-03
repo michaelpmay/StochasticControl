@@ -1,7 +1,7 @@
-agModelControl=loadObj('outFiles/target30_10/agModel_98_3445');
-auModelControl=loadObj('outFiles/target30_10/auModel_402_6431');
-ugModelControl=loadObj('outFiles/target30_10/ugModel_237_0000');
-uuModelControl=loadObj('outFiles/target30_10/uuModel_240_0000');
+agModelControl=loadObj('data/target30_10/agModel_98_3445');
+auModelControl=loadObj('data/target30_10/auModel_402_6431');
+ugModelControl=loadObj('data/target30_10/ugModel_237_0000');
+uuModelControl=loadObj('data/target30_10/uuModel_240_0000');
 
 target=[10;30];
 AcademicFigure()

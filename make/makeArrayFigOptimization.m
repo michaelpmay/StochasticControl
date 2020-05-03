@@ -3,6 +3,7 @@ clear all;
 warning('off')
 build=ModelFactory;
 target=[30;10];
+dims =[50 50];
 numGIter=30;
 numUIter=50;
 gmresMaxIter=150;
@@ -10,7 +11,7 @@ model=build.unregulatedModelWithoutInput;
 controler=UniformControlerOptimizer();
 controler.score.target=target;
 controler.numIterations=numUIter;
-[uuModel,uuControler]=optimizeModel(model,controler);
+[uuModel,uuControler]=optimizeModel(model,controler,dims);
 uuControlInput=uuControler.controlInput;
 
 model=build.unregulatedModelWithoutInput;
@@ -41,8 +42,8 @@ save('workspaces/ArrayFigOpt.mat');
 %view.plot
 
 
-function [optimalFSP,optimalControler]=optimizeModel(model,controlOptimizer)
-myFSP=TwoCellFSP(model);
+function [optimalFSP,optimalControler]=optimizeModel(model,controlOptimizer,dims)
+myFSP=TwoCellFSP(model,dims);
 [optimalFSP,optimalControler]=myFSP.accept(controlOptimizer);
 end
 function plotModel(controler,colNum)

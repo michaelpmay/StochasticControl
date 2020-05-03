@@ -4,7 +4,7 @@ classdef UniformControlerOptimizer < SteadyStateControlOptimizer
   end
   methods
     function [model,obj]=optimizeControler(obj)
-        obj.score=ProbabilityScore(obj.model);
+        obj.score=ProbabilityScore(obj.modelFsp.dims);
         levelRange=linspace(obj.range(1),obj.range(2),obj.numIterations);
         scoreRange=preAllocateVector(obj.numIterations);
         for i=1:obj.numIterations
@@ -17,12 +17,11 @@ classdef UniformControlerOptimizer < SteadyStateControlOptimizer
         end
         [score,minIndex]=min(scoreRange);
         obj=obj.initializeControlInput(levelRange(minIndex));
-        model=obj.model;
+        model=obj.modelFsp.model;
     end
     function obj=setControl(obj,controler)
       boundedControler=obj.setBounds(controler);
-      obj.controlInput=boundedControler;
-      obj.model.controlInput=controler;
+      obj.modelFsp.model.controlInput=boundedControler;
     end
     function boundedControler=setBounds(obj,controler)
       controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;

@@ -29,7 +29,7 @@ model=build.autoregulatedModelWithFrequencyInput(frequency,amplitude,offset);
 solver=SolverSSA(model);
 solver.model.time=time;
 solver.model.initialState=state;
-data=solver.run(2);
+data=solver.run(1);
 end
 function data=analyzeODE(frequency,amplitude,offset,state,time)
 build=ModelFactory;
