@@ -1,0 +1,13 @@
+classdef ArrayFigure < Visual
+  properties
+    figsize=[16,10]
+  end
+  methods
+    function obj=ArrayFigure(model)
+      obj.model=model;
+      obj.frame=obj.initializeFrame();
+    end
+    function plot(obj)
+    end
+  end
+end

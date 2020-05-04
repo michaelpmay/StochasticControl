@@ -1,0 +1,46 @@
+classdef ViewSSA
+  properties
+    data
+    axes
+  end
+  methods   
+    function obj=ViewSSA(data,axes)
+      obj.data=data;
+      obj.axes=axes;
+    end
+    function plotAllTimeSeries(obj,speciesIndex)
+      hold on
+      for i = 1:obj.data.length()
+        obj.plotTimeSeries(speciesIndex,i)
+      end
+      hold off
+    end  
+    function plotTimeSeries(obj,speciesIndex,sampleIndex)
+      timeSeriesData=obj.data.getTimeSeries(speciesIndex,sampleIndex)
+      stairs(timeSeriesData.time,timeSeriesData.state);
+    end
+    function plotTimeSeriesScatter(obj,speciesIndex,sampleIndex)
+      timeSeriesData=obj.data.getTimeSeries(speciesIndex,sampleIndex)
+      scatter(timeSeriesData.time,timeSeriesData.state);
+    end
+    function plotTimeSeriesHistogram(obj,speciesIndex,timeIndex,nbins)
+      timeSeriesData=obj.data.getTimeSeries(speciesIndex,timeIndex);
+      hist(timeSeriesData.state,nbins,obj.axes)
+    end
+    function plotSnapshotHistogram(obj,speciesIndex,timeIndex,nbins)
+      snapshot=obj.data.getSnapshot(timeIndex,speciesIndex);
+      hist(snapshot,nbins,obj.axes);
+    end
+    function plotWindowHistogram(obj,speciesIndex,initialTimeIndex,finalTimeIndex)
+      [count,binEdge]=obj.data.getWindowHistogram(speciesIndex,initialTimeIndex,finalTimeIndex);
+      bar(binEdge,count);
+    end
+    function plotAll(obj)
+      hold on
+      for i=1:obj.data.length
+        data=obj.data.getAllTimeSeries(i);
+        stairs(data.time,data.state');
+      end
+    end
+  end
+end
