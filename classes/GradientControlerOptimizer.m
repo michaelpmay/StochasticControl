@@ -2,7 +2,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   properties
     gradCalc
     initialRate=1;
-    minimumStep=.0005;
+    minimumStep=.000005;
     decrement=.99
     saveInject=true;
     plotInject=true;
@@ -18,6 +18,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       stepRate=obj.initialRate;
       for i=1:obj.numIterations
         obj=obj.stepToNewControler(stepRate);
+        obj.modelFsp.model.controlInput()
         stepRate=obj.updateStepRate(stepRate);
         if obj.saveInject
           obj.saveInjector('controlInputInjector');

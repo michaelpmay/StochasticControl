@@ -48,7 +48,8 @@ classdef ViewTwoCellFSP
       [xForce,yForce]=obj.getSampleSpaceForces(stepSize);
       [xVector,yVector]=obj.getSampleSpace(stepSize);
       figHandle=obj.plotControlInput;
-      quiverc(xVector,yVector,xForce,yForce)
+      plotQuiver=quiver(xVector,yVector,xForce,yForce,4/stepSize^2)
+      plotQuiver.Color=[1,1,1];
       xlim([0 obj.solver.dims(1)])
       ylim([0 obj.solver.dims(2)])
       hold off
@@ -75,6 +76,7 @@ classdef ViewTwoCellFSP
       for i=1:length(sampledXVector)
         for j=1:length(sampledYVector)
           Force(i,j,:)=sumF(sampledXVector(i),sampledYVector(j));
+          Force(i,j,:)=Force(i,j,:)./norm(squeeze(Force(i,j,:)),2);
         end
       end
       xForce=squeeze(Force(:,:,1));
