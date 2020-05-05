@@ -2,21 +2,21 @@ addpath classes
 addpath utility/
 clear all
 builder=ModelFactory
-model=builder.unregulatedModelWithUniformLight(.35);
+model=builder.unregulatedModelWithoutInput();
 modelFsp=TwoCellFSP(model,[50 50])
-modelFsp.model.controlInput=0*ones(50)
+modelFsp.model.controlInput=zeros(50)
 optimizer=GradientControlerOptimizer
 optimizer.saveInject=false;
 optimizer.numIterations=20
 optimizer.gradCalc=FullGradientCalculator;
 optimizer.gradCalc.gmresMaxIter=30;
-fGrad=optimizer.visit(modelFsp)
+%afFsp=optimizer.visit(modelFsp)
 
 optimizer.gradCalc=UniformGradientCalculator(modelFsp);
-optimizer.gradCalc.gmresMaxIter=30;
-optimizer.initialRate=.005
+optimizer.gradCalc.gmresMaxIter=10;
+optimizer.initialRate=.001
+uuFsp=optimizer.visit(modelFsp)
 
-fsp=optimizer.visit(modelFsp)
 view=ViewTwoCellFSP(modelFsp,axes)
 subplot(1,2,1)
 view.plotSteadyState

@@ -15,21 +15,19 @@ afModel.controlInput=afControler;
 auModel.controlInput=auControler;
 ufModel.controlInput=ufControler;
 uuModel.controlInput=uuControler;
-target=[30;10];
+target=[10;30];
 AcademicFigure()
-figure()
 plotModel(uuModel,1,target)
 plotModel(ufModel,2,target)
 plotModel(auModel,3,target)
-plotModel(afModel,4,target)
+plotModel(afModel.model,4,target)
 
 function plotModel(model,colNum,target)
 subplotIndex=[0 4 8];
-fsp=TwoCellFSP(model,[50 50])
-view=ViewTwoCellFSP(fsp,subplot(3,4,subplotIndex(1)+colNum))
+view=ViewModelFSP(model,subplot(3,4,subplotIndex(1)+colNum))
 view.plotSampledSumForces(4)
-view=ViewTwoCellFSP(fsp,subplot(3,4,subplotIndex(2)+colNum))
+view=ViewModelFSP(model,subplot(3,4,subplotIndex(2)+colNum))
 view.plotSteadyStateWithTarget(target)
-view=ViewTwoCellFSP(fsp,subplot(3,4,subplotIndex(3)+colNum))
+view=ViewModelFSP(model,subplot(3,4,subplotIndex(3)+colNum))
 view.plotMarginals()
 end

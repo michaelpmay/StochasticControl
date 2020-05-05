@@ -60,14 +60,6 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=autoregulatedModelWithUniformInput(obj,lightInput)
-      model=obj.makeModelObject();
-      model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, lightInput];
-      model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+p(6);linearDegredation(x,p(5))];
-      model.initialState=[0];
-      model.time=obj.time;
-    end  
     function model=unregulatedModelWithoutInput(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
@@ -76,6 +68,22 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
+    function model=unregulatedModelWithUniformLight(obj,lightLevel)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ka obj.ga lightLevel];
+      model.rxnRate=@(t,x,p)[p(1)+p(3) ; p(2)*x(1)];
+      model.initialState=[0];
+      model.time=obj.time;
+    end
+    function model=autoregulatedModelWithUniformInput(obj,lightInput)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, lightInput];
+      model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+p(6);linearDegredation(x,p(5))];
+      model.initialState=[0];
+      model.time=obj.time;
+    end  
     function model=autoregulatedModelWithoutInput(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
@@ -89,14 +97,6 @@ classdef ModelFactory
       model.stoichMatrix=[1 -1];
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude,offset];
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.frequencyInput(t,x,p(6:8)); p(5)*x(1)];
-      model.initialState=[0];
-      model.time=obj.time;
-    end
-    function model=unregulatedModelWithUniformLight(obj,lightLevel)
-      model=obj.makeModelObject();
-      model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga lightLevel];
-      model.rxnRate=@(t,x,p)[p(1)+p(3) ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
