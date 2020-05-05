@@ -2,13 +2,11 @@ addpath classes/
 addpath utility/
 clear all
 data=KhammashTimeSeriesData
-data.time=data.time(6:end)
-data.state=data.state(6:end)
-optimizer=ParameterOptimizer
+optimizer=KhammashParameterOptimizer
 optimizer.realData=data
 optimizer.targetSpecies=5;
 optimizer.maxIter=10;
-optimizer.initialRate=.2;
+optimizer.initialRate=.02;
 build = ModelFactory
 model=build.khammashFullModelWithLightInput()
 model.time=data.time;
