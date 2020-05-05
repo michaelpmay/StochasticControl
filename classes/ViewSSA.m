@@ -27,9 +27,13 @@ classdef ViewSSA
       timeSeriesData=obj.data.getTimeSeries(speciesIndex,timeIndex);
       hist(timeSeriesData.state,nbins,obj.axes)
     end
-    function plotSnapshotHistogram(obj,speciesIndex,timeIndex,nbins)
-      snapshot=obj.data.getSnapshot(timeIndex,speciesIndex);
-      hist(snapshot,nbins,obj.axes);
+    function plotSnapshotHistogram(obj,speciesIndex,timeIndexRange,nbins)
+      snapshotData=[]
+      for i=1:length(timeIndexRange)
+        snapshot=obj.data.getSnapshot(timeIndexRange(i),speciesIndex);
+        snapshotData=[snapshotData,snapshot.state];
+      end
+      histogram(obj.axes,snapshotData,nbins,'Normalization','probability');
     end
     function plotWindowHistogram(obj,speciesIndex,initialTimeIndex,finalTimeIndex)
       [count,binEdge]=obj.data.getWindowHistogram(speciesIndex,initialTimeIndex,finalTimeIndex);

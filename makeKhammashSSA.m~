@@ -1,0 +1,13 @@
+build=ModelFactory
+model=build.khammashFitModel;
+model.parameters(1)=model.parameters(1)/12366*20;
+model.parameters(3:end)=model.parameters(3:end)/12366*20;
+model.time=0:1:780
+
+u=model.parameters(end-2:end)
+ssa=SolverSSA(model)
+data=ssa.run
+close all
+figure 
+hold on
+plot(data.node{1}.time,data.node{1}.state(1,:),'LineWidth',2)
