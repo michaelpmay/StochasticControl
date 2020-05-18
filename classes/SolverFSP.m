@@ -3,6 +3,7 @@ classdef SolverFSP < GenericCME
     model
     generator
     dims
+    eMaxIter=50000;
   end
   methods Public
     function obj=SolverFSP(varargin)
@@ -45,8 +46,9 @@ classdef SolverFSP < GenericCME
       data.meta.infGenerator=obj.infGenerator;
     end
     function P=getSteadyState(obj)
-      [P,d]=eigs(obj.getInfGenerator,1,0);
-      P=real(P)./sum(real(P));
+      opts.maxit = obj.eMaxIter;
+      [P,d]=eigs(obj.getInfGenerator,3,0,opts);
+      P=real(P(:,1))./sum(real(P(:,1)));
     end
     function P=getNullP(obj)
       P=null(obj.getInfGenerator);

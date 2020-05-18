@@ -157,6 +157,21 @@ classdef ModelFactory
         p(10)*x(4);
         obj.ga*x(5)];
     end
+    function model=khammashFullAutoregModelWithControlInput(obj,controlInput)
+      model=obj.khammashFullModel
+      model.rxnRate=@(t,x,p)[
+        p(1);
+        p(2)*x(1);
+        p(3);
+        p(4)*x(1);
+        p(5)+obj.ControlInput(t,x,controlInput)*x(1)*x(2);
+        p(6)*x(3);
+        p(7)*x(3);
+        p(8)*x(3)*(1-x(4));
+        p(9)*x(4);
+        p(10)*x(4);
+        obj.ga*x(5)];
+    end
     function model=optimizedTwoCellModel(obj)
       model=obj.autoregulatedModelWithoutInput;
       load('inFiles/controlInput.mat');
