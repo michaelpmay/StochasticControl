@@ -2,7 +2,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   properties
     gradCalc
     initialRate=1;
-    minimumStep=.000005;
+    minimumStep=.0005;
     decrement=.99
     saveInject=true;
     plotInject=true;

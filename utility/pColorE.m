@@ -1,4 +1,3 @@
 function pColorE(data)
-p=pcolor(data);
-p.EdgeAlpha=0;
+p=imagesc([1,1],size(data),data);
 end

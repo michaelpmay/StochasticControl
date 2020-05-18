@@ -78,14 +78,6 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=unregulatedModelWithControlInput(obj,controlInput)
-      model=obj.makeModelObject();
-      model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga];
-      model.rxnRate=@(t,x,p)[p(1)+obj.ControlInput1D(t,x,controlInput) ; p(2)*x(1)];
-      model.initialState=[0];
-      model.time=obj.time;
-    end
     function model=autoregulatedModelWithUniformLight(obj,lightInput)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
@@ -110,19 +102,11 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=autoregulatedModelWithControlInput(obj,controlInput)
-      model=obj.makeModelObject();
-      model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga];
-      model.rxnRate=@(t,x,p)[p(1)+obj.ControlInput1D(t,x,controlInput) ; p(2)*x(1)];
-      model.initialState=[0];
-      model.time=obj.time;
-    end
     function model=khammashFitModelNoGamma(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
       model.parameters=[obj.ko obj.u];
-      model.rxnRate=@(t,x,p)[p(1)+obj.ExperimentalInput(t,x,p(2:4)) ; .0203*x(1)];
+      model.rxnRate=@(t,x,p)[p(1)+obj.ExperimentalInput(t,x,p(2:4)) ; obj.ga*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
@@ -189,7 +173,7 @@ classdef ModelFactory
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga];
       function R=RateEq(t,x,p)
         for k=1:N
-          R(k)=(hill(x(k),p(1),p(2),p(3),p(4))+input(t,x))*(x(k)<obj.ssaBoundary);
+          R(k)=(hill(x(k),p(1),p(2),p(3),p(4))+input(t,x));
         end
         for k=1:N
           R(end+1)=linearDegredation(x(k),p(5));

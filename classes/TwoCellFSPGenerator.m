@@ -24,15 +24,9 @@ classdef TwoCellFSPGenerator
               if k==(i-1)&&(l==j)
                 hArray(i,j,k,l)=hArray(i,j,k,l)+obj.getProductionRate(xv(k));
                 hArray(k,l,k,l)=hArray(k,l,k,l)-obj.getProductionRate(xv(k));
-              elseif k==(i+1)&&(l==j)
-                hArray(k,l,i,j)=hArray(k,l,i,j)+obj.getProductionRate(xv(i));
-                hArray(i,j,i,j)=hArray(i,j,i,j)-obj.getProductionRate(xv(i));
               elseif l==(j-1)&&(k==i)
                 hArray(i,j,k,l)=hArray(i,j,k,l)+obj.getProductionRate(yv(l));
                 hArray(k,l,k,l)=hArray(k,l,k,l)-obj.getProductionRate(yv(l));
-              elseif l==(j+1)&&(k==i)
-                hArray(k,l,i,j)=hArray(k,l,i,j)+obj.getProductionRate(yv(j));
-                hArray(i,j,i,j)=hArray(i,j,i,j)-obj.getProductionRate(yv(j));
               end
             end
           end
@@ -65,16 +59,10 @@ classdef TwoCellFSPGenerator
         for j=1:length(yv)
           for k=1:length(xv)
             for l=1:length(yv)
-              if k==(i-1)&&(l==j)
-                gArray(k,l,i,j)=gArray(k,l,i,j)+obj.getDegredationRate(xv(i));
-                gArray(i,j,i,j)=gArray(i,j,i,j)-obj.getDegredationRate(xv(i));
-              elseif k==(i+1)&&(l==j)
+              if (k==(i+1))&&(l==j)
                 gArray(i,j,k,l)=gArray(i,j,k,l)+obj.getDegredationRate(xv(k));
                 gArray(k,l,k,l)=gArray(k,l,k,l)-obj.getDegredationRate(xv(k));
-              elseif l==(j-1)&&(k==i)
-                gArray(k,l,i,j)=gArray(k,l,i,j)+obj.getDegredationRate(yv(j));
-                gArray(i,j,i,j)=gArray(i,j,i,j)-obj.getDegredationRate(yv(j));
-              elseif l==(j+1)&&(k==i)
+              elseif (l==(j+1))&&(k==i)
                 gArray(i,j,k,l)=gArray(i,j,k,l)+obj.getDegredationRate(yv(l));
                 gArray(k,l,k,l)=gArray(k,l,k,l)-obj.getDegredationRate(yv(l));
               end

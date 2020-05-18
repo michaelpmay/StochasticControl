@@ -1,18 +1,16 @@
 addpath classes /
 addpath utility/
 clear all
+close all
 builder=ModelFactory;
-initialState=0;
-lightlevel=.2
-model{1}=builder.autoregulatedModelWithoutInput();
+initialState=40;
+lightlevel=.1
+model{1}=builder.unregulatedModelWithoutInput();
 model{1}.controlInput=lightlevel*ones([50 50]);
 model{1}.initialState=initialState;
-model{2}=builder.autoregulatedModelWithUniformLight(lightlevel);
+model{2}=builder.unregulatedModelWithUniformLight(lightlevel);
 model{2}.controlInput=.0*ones([50 50]);
 model{2}.initialState=initialState;
-model{3}=builder.autoregulatedModelWithControlInput(lightlevel*ones([100 100]));
-model{3}.controlInput=.0*ones([50 50]);
-model{3}.initialState=initialState;
 
 for i=1:2
   ode{i}=SolverODE(model{i});
@@ -20,10 +18,9 @@ for i=1:2
   fsp{i}=TwoCellFSP(model{i},[50,50]);
   Pxy{i}=fsp{i}.getSteadyStateReshape();
   Mx{i}=sum(Pxy{i},2)'*[0:49]'
+  My{i}=sum(Pxy{i},1)*[0:49]'
 end
-fsp{3}=TwoCellFSP(model{3},[50,50]);
-  Pxy{3}=fsp{3}.getSteadyStateReshape();
-  Mx{3}=sum(Pxy{3},1)*[0:49]'
+
 figure
 subplot(1,3,1)
 plot(data{1}.time,data{1}.state)
