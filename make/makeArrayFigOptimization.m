@@ -6,15 +6,16 @@ model=builder.unregulatedModelWithoutInput();
 modelFsp=TwoCellFSP(model,[50 50])
 modelFsp.model.controlInput=zeros(50)
 optimizer=GradientControlerOptimizer
+optimizer.initialInputLevel=.7
 optimizer.saveInject=false;
 optimizer.numIterations=20
 optimizer.gradCalc=FullGradientCalculator;
 optimizer.gradCalc.gmresMaxIter=30;
-%afFsp=optimizer.visit(modelFsp)
+afFsp=optimizer.visit(modelFsp)
 
 optimizer.gradCalc=UniformGradientCalculator(modelFsp);
 optimizer.gradCalc.gmresMaxIter=10;
-optimizer.initialRate=.001
+optimizer.initialRate=1
 uuFsp=optimizer.visit(modelFsp)
 
 view=ViewTwoCellFSP(modelFsp,axes)

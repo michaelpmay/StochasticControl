@@ -4,6 +4,22 @@ classdef SolverFSP < GenericCME
     generator
     dims
   end
+  methods Public
+    function obj=SolverFSP(varargin)
+      if nargin==2
+        model=varargin{1}
+        dims=varargin{2}
+      elseif nargin==0
+        model=[]
+        dims=[]
+      else
+        error('accepts 2 or 0 arguements')
+      end
+      obj.model=model
+      obj.dims=dims
+      obj.generator=FSPGenerator
+    end
+  end
   methods Private
     function outData=run(obj)
       infGen=sparse(obj.getInfGenerator());

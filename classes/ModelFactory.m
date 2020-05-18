@@ -10,7 +10,8 @@ classdef ModelFactory
     fullKammashModelParameterSet=[.10 .02 .1 .02 20 180 .002 .001 3 75000]
     ExperimentalInput=@(t,x,u)(u(1)*(t<270)+u(3)*(t>570)+...
       u(2)*((t>=270)&(t<=570)))
-    ControlInput=@(t,x,field)field(f(1)+1,x(2)+1);
+    ControlInput2D=@(t,x,field)field(x(1)+1,x(2)+1);
+    ControlInput1D=@(t,x,field)field(x(1)+1);
     frequencyInput=@(t,x,u)u(2)*sin(2*pi*u(1).*t)+u(3)
     u=[200.6588    1.3809   60.6751]
     eu=[249.588 1.3809 60.6751]
@@ -22,7 +23,7 @@ classdef ModelFactory
   end
   methods
     function model=makeModelObject(obj)
-      if obj.controlable==true;
+      if obj.controlable==true
         model=ControlModel;
       else
         model=ModelPlugin;
@@ -77,7 +78,15 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
-    function model=autoregulatedModelWithUniformInput(obj,lightInput)
+    function model=unregulatedModelWithControlInput(obj,controlInput)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ka obj.ga];
+      model.rxnRate=@(t,x,p)[p(1)+obj.ControlInput1D(t,x,controlInput) ; p(2)*x(1)];
+      model.initialState=[0];
+      model.time=obj.time;
+    end
+    function model=autoregulatedModelWithUniformLight(obj,lightInput)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, lightInput];
@@ -98,6 +107,14 @@ classdef ModelFactory
       model.stoichMatrix=[1 -1];
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, frequency, amplitude,offset];
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.frequencyInput(t,x,p(6:8)); p(5)*x(1)];
+      model.initialState=[0];
+      model.time=obj.time;
+    end
+    function model=autoregulatedModelWithControlInput(obj,controlInput)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ka obj.ga];
+      model.rxnRate=@(t,x,p)[p(1)+obj.ControlInput1D(t,x,controlInput) ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end

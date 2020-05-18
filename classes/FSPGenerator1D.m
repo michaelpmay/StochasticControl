@@ -1,4 +1,4 @@
-classdef FSPGenerator1D < FSPGenerator
+classdef FSPGenerator1D < FSPGeneratorCore
   methods
     function stateSpaceStoich=makeSingleRxnInfGen(obj,rxnIndex)
       xMap=0:(obj.dims(1)-1);

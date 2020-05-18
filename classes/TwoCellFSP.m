@@ -3,7 +3,16 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
     maxU=10
   end
   methods
-    function obj=TwoCellFSP(model,dims)
+    function obj=TwoCellFSP(varargin)
+      if nargin==2
+        model=varargin{1}
+        dims=varargin{2}
+      elseif nargin==0
+        model=[]
+        dims=[]
+      else
+        error('accepts 2 or 0 arguements')
+      end
       obj.model=model;
       obj.dims=dims;
       obj.generator=TwoCellFSPGenerator(model,dims);
