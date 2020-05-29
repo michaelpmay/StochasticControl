@@ -3,7 +3,7 @@ classdef SolverODE < GenericCME
     model
   end
   properties(Hidden)
-    odeOptions=odeset('RelTol',1e-10)
+    odeOptions=odeset('RelTol',1e-18)
   end
   methods
     function obj=SolverODE(modelPlugin)
@@ -15,7 +15,7 @@ classdef SolverODE < GenericCME
     end
     function data=run(obj)
       odeEq=obj.model.getRateEquation();
-      odeData=ode23s(odeEq,obj.model.time,obj.model.initialState,obj.odeOptions);
+      odeData=ode15s(odeEq,obj.model.time,obj.model.initialState,obj.odeOptions);
       [time,state]=obj.formatTimes(odeData);
       
       data=GenericData(time,state);

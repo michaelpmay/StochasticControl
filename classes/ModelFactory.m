@@ -7,7 +7,8 @@ classdef ModelFactory
     ga=.0203 %0.020
     ka=0.0001
     eko=3.5821;%experimental ko [3.5821]
-    fullKammashModelParameterSet=[.10 .02 .1 .02 20 180 .002 .001 3 75000]
+    fullKammashModelParameterSet=[2.8044 1.4173 0.9053 2.4205 0.0029 0.0356 7.675 0.0078]
+    ThreeGeneKhammashParameters=[4.0808 0.9180 0.0515 3.0613 0.0020 0.0014 24.7011 5.3972]
     ExperimentalInput=@(t,x,u)(u(1)*(t<270)+u(3)*(t>570)+...
       u(2)*((t>=270)&(t<=570)))
     ControlInput2D=@(t,x,field)field(x(1)+1,x(2)+1);
@@ -20,6 +21,7 @@ classdef ModelFactory
     dims=[50 50]
     controlable=true;
     ssaBoundary=60;
+    maxGenes=100
   end
   methods
     function model=makeModelObject(obj)
@@ -33,7 +35,7 @@ classdef ModelFactory
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
       model.time=linspace(0,100,500);
-      model.rxnRate=@(t,x,p)[p(1),p(2)*x(1)]
+      model.rxnRate=@(t,x,p)[p(1);p(2)*x(1)]
       model.parameters=[1,1];
       model.initialState=[0];
     end
@@ -85,7 +87,7 @@ classdef ModelFactory
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+p(6);linearDegredation(x,p(5))];
       model.initialState=[0];
       model.time=obj.time;
-    end  
+    end
     function model=autoregulatedModelWithoutInput(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
@@ -119,7 +121,7 @@ classdef ModelFactory
       model.stoichMatrix=[ 1  0  0  0  0;
                           -1  0  0  0  0;
                            0  1  0  0  0;
-                           0 -1  0  0  0;
+                           0 -1  0  0  0;                          
                           -1 -1  1  0  0;
                            1  1 -1  0  0;
                            0  0 -1  0  0
@@ -130,47 +132,146 @@ classdef ModelFactory
       model.parameters=obj.fullKammashModelParameterSet;
       model.rxnRate=@(t,x,p)[p(1);
         p(2)*x(1);
-        p(3);
-        p(4)*x(1);
-        p(5)*x(1)*x(2);
-        p(6)*x(3);
-        p(7)*x(3);
-        p(8)*x(3)*(1-x(4));
-        p(9)*x(4);
-        p(10)*x(4);
+        p(1);
+        p(2)*x(2);
+        p(3)*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        p(8)*x(4);
         obj.ga*x(5)];
       model.initialState=[1;1;0;0;0]
       model.time=obj.time;
     end
     function model=khammashFullModelWithLightInput(obj)
       model=obj.khammashFullModel
-      model.rxnRate=@(t,x,p)[
-        p(1);
+      model.rxnRate=@(t,x,p)[p(1);
         p(2)*x(1);
-        p(3);
-        p(4)*x(1);
-        p(5)+obj.ExperimentalInput(t,x,obj.fullKhammashU)*x(1)*x(2);
-        p(6)*x(3);
-        p(7)*x(3);
-        p(8)*x(3)*(1-x(4));
-        p(9)*x(4);
-        p(10)*x(4);
+        p(1);
+        p(2)*x(2);
+        (p(3)+obj.ExperimentalInput(t,x,obj.fullKhammashU))*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        p(8)*x(4);
         obj.ga*x(5)];
     end
-    function model=khammashFullAutoregModelWithControlInput(obj,controlInput)
+        function model=khammash3GeneFullModelWithLightInput(obj)
+      model=obj.khammashFullModel
+      model.rxnRate=@(t,x,p)[p(1);
+        p(2)*x(1);
+        p(1);
+        p(2)*x(2);
+        (p(3)+obj.ExperimentalInput(t,x,obj.fullKhammashU))*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        p(8)*x(4);
+        obj.ga*x(5)];
+    end
+    function model=khammash3GeneFullModelWithControlInput(obj,controlInput)
+      ControlInput2D=@(t,x)controlInput(x(5)+1,x(10)+1)
       model=obj.khammashFullModel
       model.rxnRate=@(t,x,p)[
         p(1);
         p(2)*x(1);
-        p(3);
-        p(4)*x(1);
-        p(5)+obj.ControlInput(t,x,controlInput)*x(1)*x(2);
+        p(1);
+        p(2)*x(2);
+        (p(3)+ControlInput2D(t,x))*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        p(8)*x(4);
+        obj.ga*x(5);];
+      model.stoichMatrix=[model.stoichMatrix,             zeros(size(model.stoichMatrix));
+                          zeros(size(model.stoichMatrix)), model.stoichMatrix];
+      model.initialState=[1;1;0;0;0;1;1;0;0;0];
+      model.time=obj.time;
+    end
+    function khammashAutoregulatedFullModel(obj)
+      model=obj.khammashFullModel;
+      model.parameters=[model.parameters obj.ko obj.be obj.mu obj.ka];
+      model.rxnRate=[p(1);
+        p(2)*x(1);
+        p(1);
+        p(2)*x(2);
+        (p(3))*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        hill(x(5),p(9),p(10),p(11),p(12))+p(8)*x(4);
+        obj.ga*x(5)];
+    end
+    function model=khammashAutoregulatedFullModelWithControlInput(obj,controlInput)
+      model=obj.khammashFullModel;
+      model.parameters=[model.parameters obj.ko obj.be obj.mu obj.ka];
+      model.rxnRate=@(t,x,p)[p(1);
+        p(2)*x(1);
+        p(1);
+        p(2)*x(2);
+        (p(3)+controlInput)*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        hill(x(5),p(9),p(10),p(11),p(12))+p(8)*x(4);
+        obj.ga*x(5)];
+    end
+    function model=khammashAutoregModel2WithControlInput(obj,controlInput)
+      ControlInput2D=@(t,x)controlInput(x(5)+1,x(10)+1)
+      model=obj.khammashFullModel
+      model.parameters=[model.parameters obj.ko obj.be obj.mu obj.ka]
+      model.rxnRate=@(t,x,p)[
+        p(1);
+        p(2)*x(1);
+        p(1);
+        p(2)*x(2);
+        (p(3)+ControlInput2D(t,x))*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
+        hill(x(5),p(9),p(10),p(11),p(12))+p(8)*x(4);
+        obj.ga*x(5);
+        p(1);
+        p(2)*x(6);
+        p(1);
+        p(2)*x(7);
+        (p(3)+ControlInput2D(t,x))*x(6)*x(7);
+        p(4)*x(8);
+        p(5)*x(8);
+        p(6)*x(8)*(obj.maxGenes-x(9));
+        p(7)*x(9);
+        hill(x(10),p(9),p(10),p(11),p(12))+p(8)*x(9);
+        obj.ga*x(10)];
+      model.stoichMatrix=[model.stoichMatrix,             zeros(size(model.stoichMatrix));
+                          zeros(size(model.stoichMatrix)), model.stoichMatrix];
+      model.initialState=[1;1;0;0;0;1;1;0;0;0];
+      model.time=obj.time;
+    end
+    function model=simplifiedKhammashModel(obj)
+      model=obj.khammashFullModelWithLightInput;
+      model.stoichMatrix=[-1 -1  1  0  0;
+                           1  1 -1  0  0;
+                           0  0 -1  0  0
+                           0  0 -1  1  0;
+                           0  0  1 -1  0;
+                           0  0  0  0  1;
+                           0  0  0  0 -1]';
+                         
+      model.rxnRate=@(t,x,p)[
+        (p(5)+obj.ExperimentalInput(t,x,obj.fullKhammashU))*(p(1)/p(2))*(p(3)/p(4));
         p(6)*x(3);
         p(7)*x(3);
         p(8)*x(3)*(1-x(4));
         p(9)*x(4);
         p(10)*x(4);
-        obj.ga*x(5)];
+        obj.ga*x(5)]
     end
     function model=optimizedTwoCellModel(obj)
       model=obj.autoregulatedModelWithoutInput;
@@ -237,7 +338,7 @@ classdef ModelFactory
       model.rxnRate=@(t,x,p)[p(1)+exp(-p(5)*t);p(2)*x(1);p(3)+exp(-p(6)*t);p(4)*x(2)]
       model.time=linspace(0,100,100);
       model.stoichMatrix=[-1  1  0  0;
-                           0  0  1 -1];
+        0  0  1 -1];
       model.parameters=[1 1 1 1 0 0];
       model.initialState=[0 0];
     end
@@ -275,8 +376,8 @@ classdef ModelFactory
       end
     end
     function model=buildAutoregulatedFrequencyResponseModel(...
-            obj,freq,amp,dc,numCells,time)
-          input=@(t,x)obj.frequencyInput(t,x,[freq,amp,dc])
+        obj,freq,amp,dc,numCells,time)
+      input=@(t,x)obj.frequencyInput(t,x,[freq,amp,dc])
       model=obj.nCellAutoregulatedModel(numCells,input);
       model.time=time;
     end

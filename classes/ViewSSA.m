@@ -18,14 +18,19 @@ classdef ViewSSA
     function plotTimeSeries(obj,speciesIndex,sampleIndex)
       timeSeriesData=obj.data.getTimeSeries(speciesIndex,sampleIndex)
       stairs(timeSeriesData.time,timeSeriesData.state);
+      xlabel('time')
+      ylabel('species count')
     end
     function plotTimeSeriesScatter(obj,speciesIndex,sampleIndex)
       timeSeriesData=obj.data.getTimeSeries(speciesIndex,sampleIndex)
       scatter(timeSeriesData.time,timeSeriesData.state);
+      xlabel('time')
+      ylabel('speciescount ')
     end
     function plotTimeSeriesHistogram(obj,speciesIndex,timeIndex,nbins)
       timeSeriesData=obj.data.getTimeSeries(speciesIndex,timeIndex);
       hist(timeSeriesData.state,nbins,obj.axes)
+      ylabel('species count')
     end
     function plotSnapshotHistogram(obj,speciesIndex,timeIndexRange,nbins)
       snapshotData=[]

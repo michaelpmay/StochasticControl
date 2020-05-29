@@ -18,15 +18,19 @@ classdef GenericCMEData < PrintObjects
         obj.meta=varargin{3};
       end
     end
-    function plotState(obj)
-      stairs(obj.time,obj.state');
-      xlim([obj.time(1) obj.time(end)])
+    function save(obj,fileName)
+      saveObject=obj.getSaveState();
+      save(filename,saveObject);
     end
-    function plotHistogram(obj,bins)
-      [h,b]=hist(obj.state,bins);
-      barPlot=bar(b-.5,h);%center indivitual bars on the axis
-      barPlot.BarWidth=.9;
-      barPlot.EdgeAlpha=0;
+    function object=getSaveState(obj)
+      object.time=obj.time;
+      object.state=obj.state;
+      object.meta=meta;
+    end
+    function obj=loadSaveState(obj,object)
+      obj.time=object.time;
+      obj.state=object.state;
+      obj.meta=object.meta;
     end
   end
 end

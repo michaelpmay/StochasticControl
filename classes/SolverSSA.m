@@ -30,14 +30,14 @@ classdef SolverSSA < GenericCME
     end
     
     function [time,state]=integrateSSA(obj,time,state)
-      %waitBar=waitbar(0,'Running SSA');
+      waitBar=waitbar(0,'Running SSA');
       while time.getLast<obj.model.time(end)
         rate=obj.getCumulativeRate(time.getLast,state.getLast);
         time.add(obj.stepToNewTime(time.getLast,rate));
         state.add(obj.stepToNewState(state.getLast,rate));
-       % waitbar(time.getLast/obj.model.time(end),waitBar);
+        waitbar(time.getLast/obj.model.time(end),waitBar);
       end
-      %delete(waitBar)
+      delete(waitBar)
     end
     
     function [x,t]=getInitialLL(obj)
@@ -47,6 +47,7 @@ classdef SolverSSA < GenericCME
     
     function x=stepToNewState(obj,x,rate)
       event=find(rate>(rate(end)*rand()),1);
+      temp=x+obj.model.stoichMatrix(:,event);
       x=x+obj.model.stoichMatrix(:,event);
     end
     
