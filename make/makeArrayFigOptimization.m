@@ -8,10 +8,9 @@ for i=1:2
   for j=1:2
     modelFsp=TwoCellFSP(model{i},[50 50]);
     modelFsp.model.controlInput=zeros(50);
-    modelFsp.model.controlInput=zeros(50);
     if j==1
       optimizer=GradientControlerOptimizer;
-      optimizer.initialInputLevel=.3;
+      optimizer.initialInputLevel=.6;
       optimizer.initialRate=.5;
       optimizer.saveInject=false;
       optimizer.numIterations=50;
@@ -19,7 +18,7 @@ for i=1:2
       optimizer.gradCalc.gmresMaxIter=100;
     else
       optimizer=GradientControlerOptimizer;
-      optimizer.initialInputLevel=.3;
+      optimizer.initialInputLevel=.6;
       optimizer.initialRate=.5/2000;
       optimizer.saveInject=false;
       optimizer.numIterations=50;
