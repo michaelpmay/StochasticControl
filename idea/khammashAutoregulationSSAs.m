@@ -7,7 +7,7 @@ build = ModelFactory;
 N=16;
 M=1;
 maxNumCompThreads(16);
-range=logspace(2,4,N)
+range=logspace(2,4,N);
 parfor i =1:N
   scaleFactor = range(i);
   controlInput=controlerInput{2,1}*scaleFactor;
