@@ -3,7 +3,7 @@ classdef SolverFSP < GenericCME
     model
     generator
     dims
-    eMaxIter=50000;
+    eMaxIter=30;
   end
   methods Public
     function obj=SolverFSP(varargin)
