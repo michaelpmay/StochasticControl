@@ -1,12 +1,14 @@
 clear all
 
-makeFullControlerAutoregulatedModelOptimization(3,2)
+makeFullControlerAutoregulatedModelOptimization(30,70)
 
-makeUniformControlerAutoregulatedModelOptimization(3,2)
+makeUniformControlerAutoregulatedModelOptimization(30,20)
 
-makeFullControlerUnregulatedModelOptimization(3,2)
+makeFullControlerUnregulatedModelOptimization(30,70)
 
-makeUniformControlerUnregulatedModelOptimization(3,2)
+makeUniformControlerUnregulatedModelOptimization(30,20)
+
+makeReducedControlerAutoregulatedModelOptimization(30,20)
 
 function makeFullControlerAutoregulatedModelOptimization(numIterations,gNumIterations)
 builder=ModelFactory;
@@ -68,4 +70,19 @@ optimizer.gradCalc.gmresMaxIter=gNumIterations;
 modelFsp=optimizer.visit(modelFsp)
 controlInput=modelFsp.model.controlInput;
 save('data/UniformControlerUnegulatedModelControler','controlInput')
+end
+function makeReducedControlerAutoregulatedModelOptimization(numIterations,gNumIterations)
+builder=ModelFactory;
+model=builder.unregulatedModelWithoutInput();
+modelFsp=TwoCellFSP(model,[50 50]);
+optimizer=GradientControlerOptimizer;
+optimizer.initialInputLevel=1;
+optimizer.initialRate=.5/2000;
+optimizer.saveInject=false;
+optimizer.numIterations=numIterations;
+optimizer.gradCalc=ReducedGradientCalculator(modelFsp);
+optimizer.gradCalc.gmresMaxIter=gNumIterations;
+modelFsp=optimizer.visit(modelFsp)
+controlInput=modelFsp.model.controlInput;
+save('data/ReducedControlerAutoregulatedModelControler','controlInput')
 end
