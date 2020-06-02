@@ -16,6 +16,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       obj.score=ProbabilityScore(obj.modelFsp.dims);
       obj=obj.initializeControlInput(obj.initialInputLevel);
       stepRate=obj.initialRate;
+      pb=ProgressBar('Progress: ');
       for i=1:obj.numIterations
         obj=obj.stepToNewControler(stepRate);
         obj.modelFsp.model.controlInput()
@@ -26,6 +27,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
         if obj.plotInject()
           obj.plotInjector();
         end
+        pb.print(i,obj.numIterations);
       end
       optimizedModel=obj.modelFsp;
     end

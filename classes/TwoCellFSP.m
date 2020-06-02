@@ -5,11 +5,11 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
   methods
     function obj=TwoCellFSP(varargin)
       if nargin==2
-        model=varargin{1}
-        dims=varargin{2}
+        model=varargin{1};
+        dims=varargin{2};
       elseif nargin==0
-        model=[]
-        dims=[]
+        model=[];
+        dims=[];
       else
         error('accepts 2 or 0 arguements')
       end
