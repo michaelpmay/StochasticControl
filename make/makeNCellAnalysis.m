@@ -1,6 +1,6 @@
 addpath classes
 analyzer=NCellAnalysis();
-load inFiles/autoregulatedReducedControler_110gmres.mat
+load data/FullControlerAutoregulatedModel
 reducedControlInput(200)=0;
 analyzer.input{2}=@(t,x)reducedControlInput(x(1)+1);
 analyzer.time=linspace(0,200000,round(200000/500));

@@ -47,8 +47,10 @@ classdef SolverFSP < GenericCME
     end
     function P=getSteadyState(obj)
       opts.maxit = obj.eMaxIter;
-      [P,d]=eigs(obj.getInfGenerator,1,0,opts);
-      P=real(P(:,1))./sum(real(P(:,1)));
+      [P,d]=eig(obj.getInfGenerator);
+      [minVal,minIndex]=min(abs(diag(d)));
+      P=P(:,minIndex);
+      P=real(P)./sum(real(P));
     end
     function P=getNullP(obj)
       P=null(obj.getInfGenerator);
