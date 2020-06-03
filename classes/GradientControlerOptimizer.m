@@ -2,7 +2,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
   properties
     gradCalc
     initialRate=1;
-    minimumStep=.0005;
+    minimumStep=.02;
     decrement=.99
     saveInject=true;
     plotInject=true;
@@ -14,7 +14,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     function [optimizedModel,obj]=optimizeControler(obj)
       warning('MATLAB:eigs:IllConditionedA','off');
       obj.score=ProbabilityScore(obj.modelFsp.dims);
-      obj=obj.initializeControlInput(obj.initialInputLevel);
+      obj=obj.initializeControlInput(obj.initialControler);
       stepRate=obj.initialRate;
       pb=ProgressBar('Progress: ');
       for i=1:obj.numIterations

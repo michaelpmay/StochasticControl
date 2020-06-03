@@ -1,4 +1,4 @@
-classdef FullGradientCalculator < GradientCalculator
+classdef FullGradientCalculator 
   properties
     gradCutoffIndex=2500
     gmresTolerance=1e-14

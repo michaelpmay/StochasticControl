@@ -48,7 +48,7 @@ classdef ViewTwoCellFSP
       [xForce,yForce]=obj.getSampleSpaceForces(stepSize);
       [xVector,yVector]=obj.getSampleSpace(stepSize);
       figHandle=obj.plotControlInput;
-      plotQuiver=quiver(xVector,yVector,xForce,yForce,4/stepSize^2)
+      plotQuiver=quiver(xVector,yVector,xForce,yForce,4/stepSize^2,'LineWidth',1)
       plotQuiver.Color=[1,1,1];
       xlim([0 obj.solver.dims(1)])
       ylim([0 obj.solver.dims(2)])

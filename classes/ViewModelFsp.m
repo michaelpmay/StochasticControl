@@ -2,6 +2,7 @@ classdef ViewModelFsp
   properties
     modelFsp
     score
+    axes
   end
   methods
     function obj=ViewModelFsp(modelFsp)

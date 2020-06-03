@@ -3,7 +3,7 @@ classdef NCellAnalysis
     model
     input={@(t,x)0,@(t,x)0,@(t,x)0,@(t,x)0}
     nRange=[1 2 4 8 16 32 64]
-    time=linspace(0,50000,50000);
+    time=linspace(0,5000,5000);
     trim=500;
   end
   methods
@@ -18,7 +18,6 @@ classdef NCellAnalysis
       for i=1:length(obj.nRange)
         for j=1:length(obj.input)
           score(j,i)=obj.analyzeSingleN(obj.nRange(i),obj.input{j});
-          save(['score/score_',num2str(i),num2str(j)],'score')
           fprintf('Completed %i \n',obj.nRange(i));
         end
       end

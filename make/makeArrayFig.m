@@ -1,21 +1,44 @@
-agModelControl=loadObj('data/target30_10/agModel_98_3445');
-auModelControl=loadObj('data/target30_10/auModel_402_6431');
-ugModelControl=loadObj('data/target30_10/ugModel_237_0000');
-uuModelControl=loadObj('data/target30_10/uuModel_240_0000');
+factory=ModelFactory
+aModel=factory.autoregulatedModelWithoutInput()
+uModel=factory.unregulatedModelWithoutInput()
 
-target=[10;30];
+uuControler=load('data/controlers/UniformControlerUnegulatedModelControler.mat')
+ufControler=load('data/controlers/FullControlerUnregulatedModelControler.mat')
+auControler=load('data/controlers/UniformControlerAutoregulatedModelControler.mat')
+afControler=load('data/controlers/FullControlerAutoregulatedModelControler.mat')
+
+uuModel=uModel;
+uuModel.controlInput=uuControler.controlInput;
+ufModel=uModel;
+ufModel.controlInput=ufControler.controlInput;
+auModel=aModel;
+auModel.controlInput=auControler.controlInput;
+afModel=aModel;
+afModel.controlInput=afControler.controlInput;
+
+dims=[50 50]
+uuFsp=TwoCellFSP(uuModel,dims);
+ufFsp=TwoCellFSP(ufModel,dims);
+auFsp=TwoCellFSP(auModel,dims);
+afFsp=TwoCellFSP(afModel,dims);
+
+target=[30 10];
 AcademicFigure()
-plotModel(uuModelControl.model,1,target)
-plotModel(ugModelControl.model,2,target)
-plotModel(auModelControl.model,3,target)
-plotModel(agModelControl.model,4,target)
+plotModel(uuFsp,1,target)
+plotModel(ufFsp,2,target)
+plotModel(auFsp,3,target)
+plotModel(afFsp,4,target)
 
 function plotModel(model,colNum,target)
 subplotIndex=[0 4 8];
-view=ViewModelFSP(model,subplot(3,4,subplotIndex(1)+colNum))
+
+view=ViewTwoCellFSP(model,subplot(3,4,subplotIndex(1)+colNum))
 view.plotSampledSumForces(4)
-view=ViewModelFSP(model,subplot(3,4,subplotIndex(2)+colNum))
+caxis([0 2]);
+
+view=ViewTwoCellFSP(model,subplot(3,4,subplotIndex(2)+colNum))
 view.plotSteadyStateWithTarget(target)
-view=ViewModelFSP(model,subplot(3,4,subplotIndex(3)+colNum))
+
+view=ViewTwoCellFSP(model,subplot(3,4,subplotIndex(3)+colNum))
 view.plotMarginals()
 end

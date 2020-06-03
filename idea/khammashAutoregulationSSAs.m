@@ -2,17 +2,17 @@ addpath classes/
 addpath utility/
 clear all
 close all
-load data/workspaces/workspaceMakeArrayFigOptimization.mat
+load data/controlers/FullControlerAutoregulatedModelControler.mat
 build = ModelFactory;
 N=16;
 M=1;
-maxNumCompThreads(16);
+maxNumCompThreads(16*4);
 range=logspace(2,4,N);
 parfor i =1:N
   scaleFactor = range(i);
-  controlInput=controlerInput{2,1}*scaleFactor;
-  controlInput(500,500)=0;
-  model=build.khammashAutoregModel2WithControlInput(controlInput);
+  controlerInput=controlInput*scaleFactor;
+  controlerInput(500,500)=0;
+  model=build.khammashAutoregModel2WithControlInput(controlerInput);
   ssa=SolverSSA(model);
   ssa.model.time=linspace(0,2000,4000);
   dataSSA{i}=ssa.run(M);
