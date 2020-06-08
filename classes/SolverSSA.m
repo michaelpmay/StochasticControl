@@ -34,6 +34,7 @@ classdef SolverSSA < GenericCME
       while time.getLast<obj.model.time(end)
         rate=obj.getCumulativeRate(time.getLast,state.getLast);
         time.add(obj.stepToNewTime(time.getLast,rate));
+        disp(time.getLast);
         state.add(obj.stepToNewState(state.getLast,rate));
         waitbar(time.getLast/obj.model.time(end),waitBar);
       end
