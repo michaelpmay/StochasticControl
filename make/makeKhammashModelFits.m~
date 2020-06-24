@@ -9,7 +9,7 @@ optimizer.data=realdata;
 optimizer.strategy.numBees=16;
 optimizer.strategy.numSteps=2;  
 optimizer.strategy=optimizer.strategy.setLogBounds([-5 -5 -5 -5 -5 -5 -5 -5 -0 -5 -0;
-                                                     3 3  3  3  3  3  3  3  3  1  3]);
+                                                     3 3  3  3  3  1  1  1  3  1  3]);
 optimizer.strategy.subOptimizer.maxIter=20;
 optimizer.strategy.subOptimizer.initialRate=.1;
 build = ModelFactoryTestModels;
@@ -19,7 +19,7 @@ ode1=SolverODE(model1);
 ode2=SolverODE(model2);
 ode1.model.parameters=.1*ones(size(ode1.model.parameters));
 %%
-for i=1:100
+for i=1:10
 [ode1,error1]=optimizer.visit(ode1)
 parameters=ode1.model.parameters
 ode1.model.save('data/models/khammashModelPooledT7FixedU.m')

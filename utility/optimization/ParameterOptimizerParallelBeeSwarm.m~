@@ -1,0 +1,33 @@
+classdef ParameterOptimizerParallelBeeSwarm
+  properties
+    subOptimizer=ParameterOptimizerPseudoRandom
+    numBees=16;
+    numSteps=4;
+    mutationRate=1;
+    logUpperBound=10
+    lodLowerBound=10
+  end
+  methods
+    function [solver,error]=optimize(obj,solver,data,index)
+      for j=1:obj.numSteps
+        parfor i=1:obj.numBees
+          [optimizedSolver{i},error(i)]=obj.optimizeBee(solver,data,index);
+        end
+        [minError,minIndex]=min(error);
+        solver=optimizedSolver{minIndex};
+        error=minError;
+      end
+    end
+    function [solver,error]=optimizeBee(obj,solver,data,index)
+      mutations=exp(obj.mutationRate*(rand(1,length(solver.model.parameters))-.5));
+      solver.model.parameters=solver.model.parameters.*mutations;
+      [solver,error]=obj.subOptimizer.optimize(solver,data,index);
+    end
+    function setLogLowerBound(obj,bound)
+      
+    end
+    function setLogUpperbound(obj,bound)
+      
+    end
+  end
+end
