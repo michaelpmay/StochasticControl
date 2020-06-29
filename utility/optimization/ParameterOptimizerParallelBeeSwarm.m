@@ -3,7 +3,7 @@ classdef ParameterOptimizerParallelBeeSwarm
     subOptimizer=ParameterOptimizerPseudoRandom
     numBees=16;
     numSteps=1;
-    mutationRate=1;
+    mutationRate=3;
   end
   methods
     function [solver,error]=optimize(obj,solver,data,index)

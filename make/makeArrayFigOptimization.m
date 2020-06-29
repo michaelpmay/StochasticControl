@@ -1,9 +1,9 @@
-  clear all
+clear all
 
-  %makeFullControlerAutoregulatedModelOptimization(60,70)
+%makeFullControlerAutoregulatedModelOptimization(60,70)
 
-  %makeUniformControlerAutoregulatedModelOptimization(60,20)
-  ;
+%makeUniformControlerAutoregulatedModelOptimization(60,20)
+
 %makeFullControlerUnregulatedModelOptimization(60,70)
 
 %makeUniformControlerUnregulatedModelOptimization(60,20)

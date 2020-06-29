@@ -7,6 +7,8 @@ classdef ParameterOptimizerPseudoRandom
     minRate=.001
     numChange=2
     logBounds
+    modelErrorCalc=ErrorCalcSSE
+    parameterErrorCalc=ErrorCalcSSE
   end
   methods
     function [solver,error]=optimize(obj,solver,data,index)

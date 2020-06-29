@@ -118,17 +118,17 @@ classdef ModelFactory
     end
     function model=khammashFullModel(obj)
       model=obj.makeModelObject();
-      model.stoichMatrix=[ 1  0  0  0  0;%p(1)
-                          -1  0  0  0  0;%p(2)*x(1);
-                           0  1  0  0  0;%3*p(1);
-                           0 -1  0  0  0;%p(2)*x(2);
-                          -1 -1  1  0  0;%p(3)*x(1)*x(2); 
-                           1  1 -1  0  0;%p(4)*x(3);
-                           0  0 -1  0  0;%p(5)*x(3);
-                           0  0 -1  1  0;
-                           0  0  1 -1  0;
-                           0  0  0  0  1;
-                           0  0  0  0 -1]';
+      model.stoichMatrix=[ 1  0  0  0  0;  %p(1)
+                          -1  0  0  0  0;  %p(2)*x(1);
+                           0  1  0  0  0;  %3*p(1);
+                           0 -1  0  0  0;  %p(2)*x(2);
+                          -1 -1  1  0  0;  %p(3)*x(1)*x(2); 
+                           1  1 -1  0  0;  %p(4)*x(3);
+                           0  0 -1  0  0;  %p(5)*x(3);
+                           0  0 -1  1  0;  %p(6)*x(3)*(obj.maxGenes-x(4));
+                           0  0  1 -1  0;  %p(7)*x(4);
+                           0  0  0  0  1;  %p(8)*x(4);
+                           0  0  0  0 -1]';  %obj.ga*x(5)
       model.parameters=obj.fullKammashModelParameterSet;
       model.rxnRate=@(t,x,p)[p(1);
         p(2)*x(1);
@@ -369,7 +369,7 @@ classdef ModelFactory
     end
     function model=buildAutoregulatedFrequencyResponseModel(...
         obj,freq,amp,dc,numCells,time)
-      input=@(t,x)obj.frequencyInput(t,x,[freq,amp,dc])
+      input=@(t,x)obj.frequencyInput(t,x,[freq,amp,dc]);
       model=obj.nCellAutoregulatedModel(numCells,input);
       model.time=time;
     end

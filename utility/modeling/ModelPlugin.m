@@ -32,9 +32,9 @@ classdef ModelPlugin
       mSaver=ModelSaver;
       mSaver.save(obj,filename);
     end
-    function model=load(obj)
-      mFormater=ModelMatFormater;
-      model=mFormater.load(obj);
+    function model=load(obj,filename)
+      mLoader=ModelLoader;
+      model=mLoader.load(filename);
     end
   end
 end

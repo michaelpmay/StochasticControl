@@ -1,10 +1,9 @@
 function data=databaseSim()
-addpath classes/
-addpath utility/
+addpath(genpath('utility/'))
 conn=localConnectTicketsTable;
 table=select(conn,"SELECT * FROM requests");
 query=strcat("INSERT INTO response WHERE (rid,response)=(",num2str(table.rid(1)),',',num2str(table.rid(1)),")");
-  response=fetch(conn,query);
+response=fetch(conn,query);
 try
   model=makeModel(conn);
   type=table.solvertype{1};
