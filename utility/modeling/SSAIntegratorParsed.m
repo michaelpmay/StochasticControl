@@ -32,7 +32,7 @@ classdef SSAIntegratorParsed
             stateRecord(:,ind)=state;
             if ind<=n-1
               ind=ind+1;
-              timeStep=timeRecord(ind);              
+              timeStep=timeRecord(ind)           
             else
               return
             end

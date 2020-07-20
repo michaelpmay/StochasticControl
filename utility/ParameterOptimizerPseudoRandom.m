@@ -3,7 +3,7 @@ classdef ParameterOptimizerPseudoRandom
     decrement=.99
     tolerance=1e-10
     maxIter=20
-    initialRate=.1
+    initialRate=.05
     minRate=.001
     numChange=2
     logBounds

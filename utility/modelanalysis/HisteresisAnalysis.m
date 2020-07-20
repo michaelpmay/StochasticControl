@@ -1,32 +1,36 @@
 classdef HisteresisAnalysis
   properties
-    modelOde
-    uRange=linspace(0,.5,100)
+    ode
+    uRange=0:.01:5
+    time
+    speciesIndex
   end
   methods
-    function obj=HisteresisAnalysis(modelOde)
-      obj.modelOde=modelOde;
+    function obj=HisteresisAnalysis(ode)
+      obj.ode=ode;
     end
     function [upAnalysis,downAnalysis]=analyze(obj,parameterIndex)
-      obj.modelOde.model.initialState=0;
-      obj.modelOde.model.time=linspace(0,5000,500);
+      obj.ode.model.initialState=zeros(size(obj.ode.model.initialState));
+      obj.ode.model.time=obj.time;
       N=length(obj.uRange);
       upAnalysis=[];
       for i=1:N
-        obj.modelOde.model.parameters(parameterIndex)=obj.uRange(i);
-        data{i}=obj.modelOde.run;
-        obj.modelOde.model.initialState=data{i}.state(end);
-        upAnalysis(end+1)=data{i}.state(end);
+        obj.ode.model.parameters(parameterIndex)=obj.uRange(i);
+        data{i}=obj.ode.run;
+        obj.ode.model.initialState=data{i}.state(:,end);
+        upAnalysis(end+1)=data{i}.state(obj.speciesIndex,end);
       end
       downAnalysis=[];
-      flipRange=fliplr(obj.uRange)
+      flipRange=fliplr(obj.uRange);
       for i=1:N
-        obj.modelOde.model.parameters(parameterIndex)=flipRange(i);
-        data{i}=obj.modelOde.run;
-        obj.modelOde.model.initialState=data{i}.state(end);
-        downAnalysis(end+1)=data{i}.state(end);
+        obj.ode.model.parameters(parameterIndex)=flipRange(i);
+        data{i}=obj.ode.run;
+        obj.ode.model.initialState=data{i}.state(:,end);
+        downAnalysis(end+1)=data{i}.state(obj.speciesIndex,end);
       end
       downAnalysis=fliplr(downAnalysis);
+      analysis=[upAnalysis,downAnalysis]
+      range=[obj.uRange,flipRange]
     end
   end
 end

@@ -1,6 +1,7 @@
 classdef SolverODE 
   properties
     model
+    integrator=@ode23s
   end
   properties(Hidden)
     odeOptions=odeset('RelTol',1e-18)
@@ -15,7 +16,7 @@ classdef SolverODE
     end
     function data=run(obj)
       odeEq=obj.model.getRateEquation();
-      odeData=ode15s(odeEq,obj.model.time,obj.model.initialState,obj.odeOptions);
+      odeData=obj.integrator(odeEq,obj.model.time,obj.model.initialState,obj.odeOptions);
       [time,state]=obj.formatTimes(odeData);
       
       data=ModelData(time,state);
@@ -34,8 +35,12 @@ classdef SolverODE
       time=preAllocateVector(maxTimeIter);
       state=preAllocateArray(length(obj.model.initialState),maxTimeIter);
       for i=1:maxTimeIter
+        try
         time(i)=obj.model.time(i);
         state(:,i)=deval(odeData,obj.model.time(i));
+        catch
+          return
+        end
       end
     end
     function data=appendMetaData(obj,data)

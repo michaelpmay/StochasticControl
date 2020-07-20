@@ -1,11 +1,10 @@
-addpath classes/
-addpath classes/parallel/
-addpath utility/
+addpath(genpath('utility/'))
 analyzer=NCellAnalysis();
 load data/controlers/ReducedControlerAutoregulatedModelControler
-reducedControlInput(200)=0;
+reducedControlInput=controlInput;
+reducedControlInput(200,200)=0;
 analyzer.input{2}=@(t,x)reducedControlInput(x(1)+1);
-analyzer.time=linspace(0,200,100);
+analyzer.time=linspace(0,40000,20000);
 load data/controlers/FullControlerAutoregulatedModelControler
 controlInput(1000,1000)=0;
 uEx=getUEx;
@@ -16,10 +15,10 @@ analyzer.input{5}=@(t,x)mean(controlInput(x(1)+1,x(2:end)+1));
 analyzer.input{6}=@(t,x)uEx(x(1)+1);
 analyzer.input{7}=@(t,x)uMx(x(1)+1);
 analyzer.nRange=[32 16 8 4 2 1]
-for i=1:10
+parfor i=1:10
 score{i}=analyzer.analyze();
 end
-
+save data/workspaces/workspaceScoreMat
 
 function u=getUEx()
 load data/controlers/FullControlerAutoregulatedModelControler

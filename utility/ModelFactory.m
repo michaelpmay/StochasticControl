@@ -141,7 +141,7 @@ classdef ModelFactory
         p(7)*x(4);
         p(8)*x(4);
         obj.ga*x(5)];
-      model.initialState=[1;1;0;0;0]
+      model.initialState=[0;0;0;0;0]
       model.time=obj.time;
     end
     function model=khammashFullModelWithLightInput(obj)

@@ -1,5 +1,5 @@
-load scoreMat_20000_500_30.mat
-score=score.score
+load data/workspaces/workspaceScoreMat
+%score=score.score
 scoreArray=[]
 for i=1:length(score)
   scoreArray(:,:,i)=score{i}
@@ -17,5 +17,12 @@ meanVarReps=sqrt(varReps)/sqrt(length(score))
 figure 
 hold on
 for i=1:7
-  errorbar([1 2 4 8 16 32],fliplr(scoreMatrix(i,:)),fliplr(2*meanVarReps(i,:)))
+  errorbar([0 1 2 3 4 5],fliplr(scoreMatrix(i,:)),fliplr(2*meanVarReps(i,:)))
 end
+xt = get(gca, 'XTick');
+yl = get(gca, 'YLim');
+str = cellstr( num2str(xt(:),'2^{%d}') );      %# format x-ticks as 2^{xx}
+hTxt = text(xt, yl(ones(size(xt))), str, ...   %# create text at same locations
+    'Interpreter','tex', ...                   %# specify tex interpreter
+    'VerticalAlignment','top', ...             %# v-align to be underneath
+    'HorizontalAlignment','center'); 
