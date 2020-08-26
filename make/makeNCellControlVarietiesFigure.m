@@ -1,4 +1,4 @@
-load data/workspaces/workspaceScoreMat
+load data/workspaces/workspaceScoreMat2
 %score=score.score
 scoreArray=[]
 for i=1:length(score)

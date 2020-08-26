@@ -2,7 +2,7 @@ classdef ModelFactoryTestModels < ModelFactory
   properties
     fullModelParameters=[1.1164,1.1164/20,1.0000,579.5275,0.0004,0.0024,2.0309,0.0257,1.2718]
   end
-  methods    
+  methods
     function model=khammashFullAutoModelWithControlInput(obj,controlInput,scale)
       load data/parameters/khammashFullModelWithLightInputFixedU
       controlInput2D=@(t,x)controlInput(x(5)+1,x(10)+1);
@@ -50,10 +50,10 @@ classdef ModelFactoryTestModels < ModelFactory
         p(8)*x(4);
         obj.ga*x(5)];
     end
-        function model=fullModelWithExperimentalInput(obj)
+    function model=fullModelWithExperimentalInput(obj)
       model=obj.khammashFullModel;
       model.parameters=obj.fullModelParameters;
-      model.rxnRate=@(t,x,p)[
+      model.rxnRate=@(t,x,p)[load fullAutoregulatedModel3CellSwapAnalysis_16.mat
         p(1);
         (p(2))*x(1);
         3*p(1);
@@ -65,7 +65,7 @@ classdef ModelFactoryTestModels < ModelFactory
         (p(7))*x(4);
         p(8)*x(4);
         obj.ga*x(5)];
-        end
+    end
     function model=fullModelFrequencyInput(obj,frequency,amplitude,dc)
       model=obj.fullModelWithExperimentalInput
       input=@(t,x)amplitude*sin(2*pi*frequency*t)+dc
@@ -191,6 +191,22 @@ classdef ModelFactoryTestModels < ModelFactory
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5)];
     end
+    function model=fullAutoModelWithInput(obj)
+      model=obj.fullAutoModel;
+      model.parameters(13)=[1];
+      model.rxnRate=@(t,x,p)[
+        p(1);
+        (p(2))*x(1);
+        3*p(1);
+        (p(2))*x(2);
+        (p(3)*p(13))*x(1)*x(2);
+        p(4)*x(3);
+        (p(5))*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        (p(7))*x(4);
+        p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
+        obj.ga*x(5)];
+    end
     function model=calibratedFullAutoModelWithFrequencyInput(obj,freq,amp,dc)
       
       load('data/file/makeAutoModelCalibration/calibration')
@@ -222,7 +238,7 @@ classdef ModelFactoryTestModels < ModelFactory
       model=obj.fullAutoModel;
       model.initialState=[model.initialState;model.initialState]
       model.stoichMatrix=[model.stoichMatrix,zeros(size(model.stoichMatrix));
-                          zeros(size(model.stoichMatrix)),model.stoichMatrix];
+        zeros(size(model.stoichMatrix)),model.stoichMatrix];
       load('data/file/makeAutoModelCalibration/calibration')
       calibrationFS=calibrationFS;
       model.rxnRate=@(t,x,p)[
@@ -237,7 +253,7 @@ classdef ModelFactoryTestModels < ModelFactory
         (p(7))*x(4);
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5);
-         p(1);
+        p(1);
         (p(1)/20)*x(6);
         3*p(1);
         (p(1)/20)*x(7);
@@ -253,6 +269,94 @@ classdef ModelFactoryTestModels < ModelFactory
         output=interp1(calibrationFS(1,:),calibrationFS(2,:),controlInput(x(5)+1,x(10)+1));
         if isnan(output)
           output=calibrationFS(2,end);
+        end
+      end
+    end
+    function model=fullAutoregulatedModelNCellSwap(obj,controlInput,numSwaps,numCells,timeChange,relaxationTime)
+      model=obj.fullAutoModelWithInput();
+      model.parameters(13)=1;
+      inputsBlkDiag=cell(1,numCells);
+      for i=1:length(inputsBlkDiag)
+        inputsBlkDiag{i}=model.stoichMatrix;
+      end
+      model.stoichMatrix=blkdiag(inputsBlkDiag{:});
+      m=length(model.initialState);
+      model.initialState=repmat(model.initialState,numCells,1);
+      individualRate=@model.rxnRate;
+      model.rxnRate=@reactionRate;
+      model.time=-relaxationTime:.5:(timeChange*numSwaps);
+      function rate=reactionRate(t,x,p)
+        targetCellSpeciesIndex=5*(floor(t/timeChange)+1);
+        if targetCellSpeciesIndex<5
+          targetCellSpeciesIndex=5;
+        end
+        input=controlInput(x(targetCellSpeciesIndex)+1);
+        rate=zeros(11*numCells,1);
+        for i=1:numCells
+          p(end)=input;
+          rates=individualRate(t,x((1:5)+5*(i-1)),p);
+          rate((1:11)+(i-1)*11)=[rates];
+        end
+      end
+    end
+    function model=twoCellSwapInitialCondition(obj,controlInput,condition)
+      model=obj.fullAutoModelWithInput();
+      model.parameters(13)=1;
+      numCells=2;
+      numSwaps=4;
+      timeChange=1000;
+      relaxationTime=500;
+      
+      inputsBlkDiag=cell(1,numCells);
+      for i=1:length(inputsBlkDiag)
+        inputsBlkDiag{i}=model.stoichMatrix;
+      end
+      model.stoichMatrix=blkdiag(inputsBlkDiag{:});
+      m=length(model.initialState);
+      model.initialState=repmat(model.initialState,numCells,1);
+      individualRate=@model.rxnRate;
+      model.rxnRate=@reactionRate;
+      model.time=-relaxationTime:.5:(timeChange*numSwaps);
+      model.parameters={model.parameters,controlInput,timeChange,numCells,condition,individualRate}
+      function rate=reactionRate(t,x,v)
+        p=v{1};
+        controlerInput=v{2};
+        swapTimeChange=v{3};
+        numCell=v{4};
+        conditions=v{5};
+        individualRates=v{6};
+        targetCellSpeciesIndex=5*(max(floor(t/swapTimeChange)+1,1));
+        input=controlerInput(x(targetCellSpeciesIndex)+1);
+        rate=zeros(11*numCell,1);
+        for k=1:numCell
+          if t<0
+            p(end)=conditions(k);
+          else
+            p(end)=input;
+          end
+          rate=[p(1);
+        (p(2))*x(1);
+        3*p(1);
+        (p(2))*x(2);
+        (p(3)*p(13))*x(1)*x(2);
+        p(4)*x(3);
+        (p(5))*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        (p(7))*x(4);
+        p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
+        obj.ga*x(5)
+        p(1);
+        (p(2))*x(6);
+        3*p(1);
+        (p(2))*x(7);
+        (p(3)*p(13))*x(6)*x(7);
+        p(4)*x(8);
+        (p(5))*x(8);
+        p(6)*x(8)*(obj.maxGenes-x(9));
+        (p(7))*x(9);
+        p(8)*x(9)+hill(x(10),p(9),p(10),p(11),p(12));
+        obj.ga*x(10)];
+          %rates=individualRates(t,x((1:5)+5*(k-1)),p);
         end
       end
     end

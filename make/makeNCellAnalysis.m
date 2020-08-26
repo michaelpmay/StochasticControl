@@ -15,10 +15,12 @@ analyzer.input{5}=@(t,x)mean(controlInput(x(1)+1,x(2:end)+1));
 analyzer.input{6}=@(t,x)uEx(x(1)+1);
 analyzer.input{7}=@(t,x)uMx(x(1)+1);
 analyzer.nRange=[32 16 8 4 2 1]
-parfor i=1:10
+N=8;
+maxNumCompThreads(N)
+parfor i=1:128
 score{i}=analyzer.analyze();
 end
-save data/workspaces/workspaceScoreMat
+save data/workspaces/workspaceScoreMat2
 
 function u=getUEx()
 load data/controlers/FullControlerAutoregulatedModelControler

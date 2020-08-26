@@ -9,8 +9,8 @@ AcademicFigure;
 hold on
 [upAnalysisAS,downAnalysisAS,rangeAS]=performAnalysis(autoModel,6,1,0:.01:2,'bx-','bo-');%parameter on model to tweak is 6
 [upAnalysisAF,downAnalysisAF,rangeAF]=performAnalysis(fullAutoModel,13,5,0:1:1000,'kx-','ko-');%parameter on model to tweak is 3
-%[upAnalysisUS,downAnalysisUS,rangeUS]=performAnalysis(unregModel,3,1,'gx-','go-');%parameter on model to tweak is 6
-%[upAnalysisUF,downAnalysisUF,rangeUF]=performAnalysis(fullModel,9,5,'rx-','ro-');%parameter on model to tweak is 3
+[upAnalysisUS,downAnalysisUS,rangeUS]=performAnalysis(unregModel,3,1,'gx-','go-');%parameter on model to tweak is 6
+[upAnalysisUF,downAnalysisUF,rangeUF]=performAnalysis(fullModel,9,5,'rx-','ro-');%parameter on model to tweak is 3
 save data/file/ideaFullModelHisteresis
 function [upAnalysis,downAnalysis,range]=performAnalysis(model,lightIndex,speciesIndex,uRange,spec1,spec2)
 modelOde=SolverODE(model);

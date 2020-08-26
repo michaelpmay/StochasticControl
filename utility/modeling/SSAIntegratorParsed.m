@@ -1,4 +1,7 @@
 classdef SSAIntegratorParsed
+  properties
+    verbose=false
+  end
   methods
     function data=integrate(obj,model,varargin)
       [numSamples]=sanitizeVararginInputs(varargin);
@@ -23,6 +26,8 @@ classdef SSAIntegratorParsed
       state=stateRecord(:,1);
       timeStep=timeRecord(1);
       n=length(timeRecord);
+      printTimes=linspace(model.time(1),model.time(end),101);
+      printIndex=1;
       ind=1;
       while time<timeEnd
         rate=obj.getCumulativeRate(time,state,model);
@@ -32,7 +37,7 @@ classdef SSAIntegratorParsed
             stateRecord(:,ind)=state;
             if ind<=n-1
               ind=ind+1;
-              timeStep=timeRecord(ind)           
+              timeStep=timeRecord(ind);
             else
               return
             end
@@ -40,6 +45,12 @@ classdef SSAIntegratorParsed
         end
         state=obj.stepToNewState(state,rate,model);
         %waitbar(time.getLast/obj.model.time(end),waitBar);
+        if obj.verbose & time>printTimes(printIndex)
+          printIndex=printIndex+1;
+          fprintf('percent:%f\n',(time-model.time(1))/(model.time(end)-model.time(1)))
+          time
+          state
+        end
       end
       %delete(waitBar)
     end

@@ -13,10 +13,10 @@ N=numThreads*repeats;
 M=1;
 maxNumCompThreads(16);
 bestRange=1.3928e5;
-range=logspace(-1,2,N);
+range=logspace(0,0,N);
 
 %parameters=load('data/parameters/UnrestricedFullModelParameters.mat');
-for i =1:N
+parfor i =1:N
   scaleFactor = range(i);
   controlerInput=controlInput*scaleFactor;
   controlerInput(1000,1000)=0;
@@ -37,18 +37,23 @@ scorer=ProbabilityScore([100 100]);
 ind=1;
 for i=1:N
   probability{i}=zeros(100);
-  position=[dataSSA{i}.node{1}.state(5,200:end);dataSSA{i}.node{1}.state(10,200:end)];
+  position=[dataSSA{i}.node{1}.state(5,1000:end);dataSSA{i}.node{1}.state(10,1000:end)];
   for j=1:length(position)
-  probability{i}(position(:,j)+1)=probability{i}(position(:,j)+1)+1;
+  probability{i}(position(1,j)+1,position(2,j)+1)=probability{i}(position(1,j)+1,position(2,j)+1)+1;
   end
   probability{i}=probability{i}./sum(sum(probability{i}));
   score(i)=scorer.getScore(probability{i});
 end
-[minScore,minInd]=min(score);
-lRange=range(minInd-2);
-uRange=range(minInd+2);
-range=logspace(log10(lRange),log10(uRange),N);
 
+score 
+
+
+totalProbability=zeros(size(probability{1}));
+for i=1:length(probability)
+  totalProbability=totalProbability+probability{i}
+end
+totalProbability=totalProbability/sum(sum(totalProbability));
+totalScore=scorer.getScore(totalProbability)
 
 for k=1:5
 figure
@@ -57,8 +62,8 @@ for i =1:N
   for j=1
     subplot(4,N/4,ind);
     hold on
-    plot(dataSSA{ind}.node{1}.time,[dataSSA{ind}.node{1}.state(k,:)],'b-');
-    plot(dataSSA{ind}.node{1}.time,[dataSSA{ind}.node{1}.state(k+5,:)],'r--');
+    plot(dataSSA{ind}.node{1}.time(1000:end),[dataSSA{ind}.node{1}.state(k,1000:end)],'b-');
+    plot(dataSSA{ind}.node{1}.time(1000:end),[dataSSA{ind}.node{1}.state(k+5,1000:end)],'r--');
     title(["Scale Factor: ", num2str(range(ind))])
     ind=ind+1;
   end
@@ -66,23 +71,26 @@ end
 end
 
 
-figure
-ind=1;    
+
+ind=1;      
 tempX=[];
-tempY=[];
+tempY=[];  
 for i =1:N
   for j=1:M
-    tempX=[tempX,dataSSA{ind}.node{1}.state(5,200:end)];
-    tempY=[tempY,dataSSA{ind}.node{1}.state(10,200:end)];
-    maxState=max([tempX tempY])+1;
-    subplot(4,4,ind)
-    hold on
-    histogram(tempX,0:2:maxState,'Normalization','probability')
-    histogram(tempY,0:2:maxState,'Normalization','probability')
-    title(["Score: ",num2str(score(i))])
-    ind=ind+1;
+    tempX=[tempX,dataSSA{ind}.node{1}.state(5,1300:end)];
+    tempY=[tempY,dataSSA{ind}.node{1}.state(10,1300:end)]; 
+    ind=ind+1
   end
 end
+maxState=max([tempX tempY])+1;
+concatData=SSAData()
+concatData=concatData.appendNode(ModelData(tempX,tempY))
+fullScore=scorer.getSSATrajectoryScore(concatData)
+figure
+hold on
+histogram(tempX,0:2:maxState,'Normalization','probability')
+histogram(tempY,0:2:maxState,'Normalization','probability')
+title(["Score: ",num2str(score(i))])
 
 figure 
 plot(range,score);

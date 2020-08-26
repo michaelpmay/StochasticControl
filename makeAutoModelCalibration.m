@@ -1,7 +1,7 @@
 clear all
 load data/file/ideaFullModelHisteresis
 
-rangeProtein=[0:.01:39.5];
+rangeProtein=[0:.01:60];
 calibrationAF=interp1(upAnalysisAF,rangeAF,rangeProtein);
 calibrationAS=interp1(upAnalysisAS,rangeAS,rangeProtein);
 
@@ -17,6 +17,7 @@ plot(range,upAnalysis,range,downAnalysis,'r-')
 save data/file/makeAutoModelCalibration/workspace
 save('data/file/makeAutoModelCalibration/calibration','calibrationFS')
 calibModel.save('data/file/makeAutoModelCalibration/calibModel.m')
+
 function [upAnalysis,downAnalysis,range]=performAnalysis(model,lightIndex,speciesIndex,uRange,spec1,spec2)
 modelOde=SolverODE(model);
 analyzer=HisteresisAnalysis(modelOde);
