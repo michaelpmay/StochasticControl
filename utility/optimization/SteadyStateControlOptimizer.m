@@ -3,23 +3,21 @@ classdef SteadyStateControlOptimizer
     maxControlerBounds=10
     minControlerBounds=.000001
     numIterations=50
-    initialControler=[]
     modelFsp
     score
+    target=[30 10];
   end
   methods
     function [modelFsp,obj]=visit(obj,modelFsp)
       obj.modelFsp=modelFsp;
       obj.score=ProbabilityScore(modelFsp.dims);
+      obj.score.target=obj.target;
       [modelFsp,obj]=obj.optimizeControler();
     end
     function obj=setControl(obj,controler)
       controler=obj.setBounds(controler);
       obj.modelFsp.model.controlInput=controler;
       obj.modelFsp.model.controlInput=controler;
-    end
-    function obj=initializeControlInput(obj,level)
-      obj=obj.setControl(obj.initialControler);
     end
     function boundedControler=setBounds(obj,controler)
       controler(controler>obj.maxControlerBounds)=obj.maxControlerBounds;

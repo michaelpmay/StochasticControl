@@ -19,6 +19,9 @@ methods
       output{i}=obj.ticketItems{i}.run;
     end
   end
+  function output=srun(obj)
+    output=obj.nonParallelRun();
+  end
   function len=length(obj)
     len=length(obj.ticketItems);
   end

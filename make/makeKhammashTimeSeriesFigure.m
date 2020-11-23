@@ -6,9 +6,6 @@ del=500;
 bkg=100;
 build=ModelFactory;
 model=build.khammashFitModel;
-% optimizer=ParameterOptimizer;
-% optimizer.realData=KhammashTimeSeriesData;
-% optimizer.maxIter=500;
 solver=Strategy(SolverODE,model);
 %%
 AcademicFigure()
@@ -18,7 +15,7 @@ fig1=KhammashTimeSeriesView(solver,axes(1));
 fig1.plotTimeSeries();
 
 axes(2)=subplot(1,2,2);
-fig2=KhammashProteinModelView(axes(2))
+fig2=KhammashProteinModelView(axes(2));
 fig2.plotProteinHistogram();
 
 % axes(3)=subplot(2,2,3)

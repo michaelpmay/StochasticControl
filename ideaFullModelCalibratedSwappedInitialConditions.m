@@ -2,19 +2,29 @@ clear all
 addpath(genpath('utility'))
 load data/controlers/ReducedControlerAutoregulatedModelControler.mat
 controlInput=controlInput(1:end,:)
+controlInput2=controlInput;
+[maxValue,maxIndex]=max(max(controlInput2));
+controlInput2(1:maxIndex)=maxValue;
 calibratedControlInput=calibration(controlInput);
 calibratedControlInput(500)=0;
+calibratedControlInput2=calibration(controlInput2);
+calibratedControlInput2(500)=0;
 build=ModelFactoryTestModels;
 shortTime=-10:.5:10;
-model{1}=build.twoCellSwapInitialCondition(calibratedControlInput,[000 000]);
-model{1}.time=shortTime;
-%model{2}=build.twoCellSwapInitialCondition(calibratedControlInput,[000 250]);
-% model{2}.time=shortTime;
-%model{3}=build.twoCellSwapInitialCondition(calibratedControlInput,[250 000]);
-% model{3}.time=shortTime;
-%model{4}=build.twoCellSwapInitialCondition(calibratedControlInput,[250 250]);
-% model{4}.time=shortTime;
-for i=1:length(model)
+initialInput={[000 000],[000 250],[250 000],[250 250]};
+controlInputs={controlInput,controlInput2}
+
+ind=1
+for k=1:2
+  for i=1:2   
+    for j=1:4
+      model{ind}=build.twoCellSwapInitialCondition(controlInputs{k} ,initialInput{j});
+      ind=ind+1;
+    end
+  end
+end
+
+parfor i=1:length(model)
 ssa=SolverSSA(model{i});
 ssa.integrator.verbose=true;
 data{i}=ssa.run();

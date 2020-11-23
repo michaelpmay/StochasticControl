@@ -5,6 +5,7 @@ classdef ModelFactory
     be=20
     mu=8
     ga=.0203 %0.020
+    alpha=.0203*20/320
     ka=0.0001
     eko=3.5821;%experimental ko [3.5821]
     fullKammashModelParameterSet=[0.8087 0.2591 1.1903 8.8673 0.0028    0.0558  10 0.0148]
@@ -67,7 +68,7 @@ classdef ModelFactory
     function model=unregulatedModelWithoutInput(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga];
+      model.parameters=[obj.ko obj.ga];
       model.rxnRate=@(t,x,p)[p(1);p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
@@ -75,8 +76,8 @@ classdef ModelFactory
     function model=unregulatedModelWithUniformLight(obj,lightLevel)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga lightLevel];
-      model.rxnRate=@(t,x,p)[p(1)+p(3) ; p(2)*x(1)];
+      model.parameters=[obj.ko obj.ga lightLevel];
+      model.rxnRate=@(t,x,p)[(p(1)+p(3))   ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
@@ -325,6 +326,7 @@ classdef ModelFactory
         end
       end
     end
+    
     function model=simple2by2Model(obj)
       model=obj.makeModelObject();
       model.rxnRate=@(t,x,p)[p(1)+exp(-p(5)*t);p(2)*x(1);p(3)+exp(-p(6)*t);p(4)*x(2)]
@@ -361,6 +363,29 @@ classdef ModelFactory
         ind=ind(end);
         for k=1:N
           R(k)=(hill(x(k),p(1),p(2),p(3),p(4))+input(x(ind)));
+        end
+        for k=1:N
+          R(end+1)=linearDegredation(x(k),p(5));
+        end
+      end
+    end
+        function model=twoCellAutoregulatedSwapModel(obj,N,input,time)
+      model=obj.nCellAutoregulatedModel(N);
+      model.time=time;
+      model.rxnRate=@(t,x,p)RateEq(t,x,p);
+      function R=RateEq(t,x,p)
+        tVec=linspace(time(1),time(end),N+1);
+        tVec=tVec(1:(end-1));
+        ind=find(tVec<=t,N,'last');
+        ind=mod(ind,2);
+        ind=ind(end);
+        if ind==0
+          indVec=[2,1];
+        else
+          indVec=[1,2];
+        end
+        for k=1:N
+          R(k)=(hill(x(k),p(1),p(2),p(3),p(4))+input(x(indVec(1))+1,x(indVec(2))+1));
         end
         for k=1:N
           R(end+1)=linearDegredation(x(k),p(5));

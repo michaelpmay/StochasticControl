@@ -1,6 +1,5 @@
-
-build=ModelFactory
-model=build.khammashFullModelWithLightInput
+build=ModelFactoryTestModels
+model=build.fullModelWithExperimentalInput
 ode=SolverODE(model)
 data=ode.run
 close all

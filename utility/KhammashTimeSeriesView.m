@@ -12,10 +12,10 @@ classdef KhammashTimeSeriesView
       obj.modelView=obj.getModelODEView(solver,axes);
     end
     function realView=getRealODEView(obj,axes)
-      realView=ViewODE(TrimKhammashTimeSeriesData(),axes);
+      realView=ViewODE(KhammashTimeSeriesData(),axes);
     end
     function view=getScaledView(obj,axes)
-      data=TrimKhammashTimeSeriesData();
+      data=KhammashTimeSeriesData();
       data.state=data.state/data.state(1)*obj.scale;
       view=ViewODE(data,obj.axes);
     end

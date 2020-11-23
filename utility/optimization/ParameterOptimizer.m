@@ -1,6 +1,5 @@
 classdef ParameterOptimizer
   properties
-    solver %CME solver
     data % data object must have state and time
     strategy = ParameterOptimizerPseudoRandom %optimization strategy
     index

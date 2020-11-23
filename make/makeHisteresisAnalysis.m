@@ -1,7 +1,7 @@
 %makeHisteresisFigure
 addpath classes
 build=ModelFactory;
-autoModel=build.autoregulatedModelWithUniformInput(0);
+autoModel=build.autoregulatedModelWithUniformLight(0);
 unregModel=build.unregulatedModelWithUniformLight(0);
 AcademicFigure;
 hold on

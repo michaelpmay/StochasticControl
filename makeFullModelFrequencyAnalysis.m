@@ -10,7 +10,7 @@ minTime=4000
 
 numCycles=100
 pBucket=ParallelMenu
-func={}
+func={};
 for j=1:3
   for i=1:length(wRange)
     tEnd=20./wRange(i);

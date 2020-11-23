@@ -39,7 +39,7 @@ classdef ProbabilityScore
       end
       X=X./sum(sum(X));
     end
-    function C=makeC(obj,dims)
+    function C=makeCMatrix(obj,dims)
       xv=0:(dims(1)-1);
       yv=0:(dims(2)-1);
       C=preAllocateArray(length(xv),length(yv));
@@ -49,6 +49,9 @@ classdef ProbabilityScore
             obj.sigma*([xv(i),yv(j)]'-obj.target);
         end
       end
+    end
+    function C=makeC(obj,dims)
+      C=obj.makeCMatrix(dims);
       C=C(:);
     end
     function obj=setTarget(obj,target,model)

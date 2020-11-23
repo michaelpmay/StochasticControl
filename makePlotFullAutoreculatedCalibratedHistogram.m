@@ -1,5 +1,5 @@
 clear all
-close all 
+%close all 
 addpath(genpath('utility/'))
 load fullAutoregulatedModel3CellSwapAnalysis_16.mat
 load data/file/makeFullAutoregulatedModel3CellSwap/workspace_16.mat
@@ -38,7 +38,7 @@ end
 
 probability=zeros(60);
 for i=1:length(stateT)
-  probability(stateT(i)+1,stateR(j,i)+1)=probability(stateT(i)+1,stateR(j,i)+1)+1;
+  probability(stateT(i)+1,stateR(:,i)+1)=probability(stateT(i)+1,stateR(:,i)+1)+1;
 end
 probability=probability./sum(sum(probability));
 

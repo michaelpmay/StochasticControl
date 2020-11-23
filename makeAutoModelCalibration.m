@@ -8,7 +8,7 @@ calibrationAS=interp1(upAnalysisAS,rangeAS,rangeProtein);
 figure
 plot(calibrationAS,calibrationAF)
 calibrationFS=[calibrationAS;calibrationAF]
-calibrationFS(isnan(calibrationFS))=0
+calibrationFS(isnan(calibrationFS))=0;
 builder=ModelFactoryTestModels;
 calibModel=builder.calibratedFullAutoModel(calibrationFS)
 [upAnalysis,downAnalysis,range]=performAnalysis(calibModel,13,5,0:.01:.38,'bx-','bo-');%parameter on model to tweak is 6

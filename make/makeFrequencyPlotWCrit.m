@@ -1,7 +1,5 @@
 %make Frequency Analysis
-addpath classes
-addpath parallel
-addpath utility
+addpath(genpath('utility/'))
 close all
 clear all
 build=ModelFactory;

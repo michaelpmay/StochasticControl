@@ -34,7 +34,7 @@ classdef ModelFactoryTestModels < ModelFactory
       model.initialState=[model.initialState;model.initialState];
       model.stoichMatrix=[model.stoichMatrix,zeros(size(model.stoichMatrix));zeros(size(model.stoichMatrix)),model.stoichMatrix]
     end
-    function model=fullModelWithLightInput(obj)
+    function model=fullModelWithLightInput(obj,input)
       model=obj.khammashFullModel;
       model.parameters=obj.fullModelParameters;
       model.rxnRate=@(t,x,p)[
@@ -42,7 +42,7 @@ classdef ModelFactoryTestModels < ModelFactory
         (p(2))*x(1);
         3*p(1);
         (p(2))*x(2);
-        (p(3)*obj.ExperimentalInput(t,x,[320 0 20]))*x(1)*x(2);
+        (p(3)*input)*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
         p(6)*x(3)*(obj.maxGenes-x(4));
@@ -53,8 +53,7 @@ classdef ModelFactoryTestModels < ModelFactory
     function model=fullModelWithExperimentalInput(obj)
       model=obj.khammashFullModel;
       model.parameters=obj.fullModelParameters;
-      model.rxnRate=@(t,x,p)[load fullAutoregulatedModel3CellSwapAnalysis_16.mat
-        p(1);
+      model.rxnRate=@(t,x,p)[p(1);
         (p(2))*x(1);
         3*p(1);
         (p(2))*x(2);
@@ -84,14 +83,13 @@ classdef ModelFactoryTestModels < ModelFactory
     end
     function model=fullAutoModelWithFrequencyInput(obj,frequency,amplitude,dc)
       model=obj.fullModelWithExperimentalInput;
-      input=@(t,x)amplitude*sin(2*pi*frequency*t)+dc;
       model.parameters(9:12)=[obj.ko obj.be obj.mu obj.ka];
       model.rxnRate=@(t,x,p)[
         p(1);
         (p(1)/20)*x(1);
         3*p(1);
         (p(1)/20)*x(2);
-        (p(3)*input(t,x))*x(1)*x(2);
+        (p(3)*(amplitude*sin(2*pi*frequency*t)+dc))*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
         p(6)*x(3)*(obj.maxGenes-x(4));
@@ -234,6 +232,64 @@ classdef ModelFactoryTestModels < ModelFactory
         end
       end
     end
+    function model=fullAutoModelWith2dControl(obj,controlInput)
+      model=obj.fullAutoModel;
+      model.initialState=[model.initialState;model.initialState]
+      model.stoichMatrix=[model.stoichMatrix,zeros(size(model.stoichMatrix));
+        zeros(size(model.stoichMatrix)),model.stoichMatrix];
+      model.rxnRate=@(t,x,p)[
+        p(1);
+        (p(1)/20)*x(1);
+        3*p(1);
+        (p(1)/20)*x(2);
+        (p(3)*controlInput(x(5)+1,x(10)+1))*x(1)*x(2);
+        p(4)*x(3);
+        (p(5))*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        (p(7))*x(4);
+        p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
+        obj.ga*x(5);
+        p(1);
+        (p(1)/20)*x(6);
+        3*p(1);
+        (p(1)/20)*x(7);
+        (p(3)*controlInput(x(5)+1,x(10)+1))*x(6)*x(7);
+        p(4)*x(8);
+        (p(5))*x(8);
+        p(6)*x(8)*(obj.maxGenes-x(4));
+        (p(7))*x(9);
+        p(8)*x(9)+hill(x(10),p(9),p(10),p(11),p(12));
+        obj.ga*x(10)];
+    end
+        function model=fullUnregModelWith2dControl(obj,controlInput)
+      model=obj.fullAutoModel;
+      model.initialState=[model.initialState;model.initialState]
+      model.stoichMatrix=[model.stoichMatrix,zeros(size(model.stoichMatrix));
+        zeros(size(model.stoichMatrix)),model.stoichMatrix];
+      model.rxnRate=@(t,x,p)[
+        p(1);
+        (p(1)/20)*x(1);
+        3*p(1);
+        (p(1)/20)*x(2);
+        (p(3)*controlInput(x(5)+1,x(10)+1))*x(1)*x(2);
+        p(4)*x(3);
+        (p(5))*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        (p(7))*x(4);
+        p(8)*x(4);
+        obj.ga*x(5);
+        p(1);
+        (p(1)/20)*x(6);
+        3*p(1);
+        (p(1)/20)*x(7);
+        (p(3)*controlInput(x(5)+1,x(10)+1))*x(6)*x(7);
+        p(4)*x(8);
+        (p(5))*x(8);
+        p(6)*x(8)*(obj.maxGenes-x(4));
+        (p(7))*x(9);
+        p(8)*x(9);
+        obj.ga*x(10)];
+    end
     function model=calibratedFullAutoModelWith2dControl(obj,controlInput)
       model=obj.fullAutoModel;
       model.initialState=[model.initialState;model.initialState]
@@ -246,7 +302,7 @@ classdef ModelFactoryTestModels < ModelFactory
         (p(1)/20)*x(1);
         3*p(1);
         (p(1)/20)*x(2);
-        (p(3)*cinput(x))*x(1)*x(2);
+        (p(3)*cinput(x+1))*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
         p(6)*x(3)*(obj.maxGenes-x(4));
@@ -257,7 +313,7 @@ classdef ModelFactoryTestModels < ModelFactory
         (p(1)/20)*x(6);
         3*p(1);
         (p(1)/20)*x(7);
-        (p(3)*cinput(x))*x(6)*x(7);
+        (p(3)*cinput(x+1))*x(6)*x(7);
         p(4)*x(8);
         (p(5))*x(8);
         p(6)*x(8)*(obj.maxGenes-x(4));
@@ -304,7 +360,7 @@ classdef ModelFactoryTestModels < ModelFactory
       model.parameters(13)=1;
       numCells=2;
       numSwaps=4;
-      timeChange=1000;
+      timeEnd=2000;
       relaxationTime=500;
       
       inputsBlkDiag=cell(1,numCells);
@@ -316,8 +372,8 @@ classdef ModelFactoryTestModels < ModelFactory
       model.initialState=repmat(model.initialState,numCells,1);
       individualRate=@model.rxnRate;
       model.rxnRate=@reactionRate;
-      model.time=-relaxationTime:.5:(timeChange*numSwaps);
-      model.parameters={model.parameters,controlInput,timeChange,numCells,condition,individualRate}
+      model.time=-relaxationTime:.5:timeEnd;
+      model.parameters={model.parameters,controlInput,timeEnd,numCells,condition,individualRate};
       function rate=reactionRate(t,x,v)
         p=v{1};
         controlerInput=v{2};
@@ -325,14 +381,13 @@ classdef ModelFactoryTestModels < ModelFactory
         numCell=v{4};
         conditions=v{5};
         individualRates=v{6};
-        targetCellSpeciesIndex=5*(max(floor(t/swapTimeChange)+1,1));
+        targetCellSpeciesIndex=5;
         input=controlerInput(x(targetCellSpeciesIndex)+1);
         rate=zeros(11*numCell,1);
-        for k=1:numCell
           if t<0
-            p(end)=conditions(k);
+            p(13:14)=conditions;
           else
-            p(end)=input;
+            p(13:14)=input;
           end
           rate=[p(1);
         (p(2))*x(1);
@@ -349,7 +404,7 @@ classdef ModelFactoryTestModels < ModelFactory
         (p(2))*x(6);
         3*p(1);
         (p(2))*x(7);
-        (p(3)*p(13))*x(6)*x(7);
+        (p(3)*p(14))*x(6)*x(7);
         p(4)*x(8);
         (p(5))*x(8);
         p(6)*x(8)*(obj.maxGenes-x(9));
@@ -357,7 +412,6 @@ classdef ModelFactoryTestModels < ModelFactory
         p(8)*x(9)+hill(x(10),p(9),p(10),p(11),p(12));
         obj.ga*x(10)];
           %rates=individualRates(t,x((1:5)+5*(k-1)),p);
-        end
       end
     end
   end

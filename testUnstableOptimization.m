@@ -1,0 +1,16 @@
+builder=ModelFactory;
+model=builder.autoregulatedModelWithoutInput();
+modelFsp=TwoCellFSP(model,[50 50]);
+optimizer=GradientControlerOptimizer;
+optimizer.initialControler=.3*ones(50);
+optimizer.initialControler(1:20,:)=1;
+optimizer.initialControler(:,1:10)=1;
+optimizer.initialControler(21:end,10:end)=0
+optimizer.initialRate=.5;
+optimizer.saveInject=false;
+optimizer.numIterations=30;
+optimizer.gradCalc=FullGradientCalculator();
+optimizer.gradCalc.gmresMaxIter=90;
+optimizer.target=[20 10];
+modelFsp=optimizer.visit(modelFsp)
+controlInput=modelFsp.model.controlInput;

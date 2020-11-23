@@ -9,41 +9,40 @@ classdef ViewTwoCellFSP
       obj.axes=axes;
       obj.solver=solver;
     end
-    function plotSteadyState(obj,target)
+    function ax=plotSteadyState(obj,target)
       data=obj.solver.getSteadyStateReshape;
       [xVec,yVec]=obj.solver.generator.getXYV;
       [X,Y]=meshgrid(xVec,yVec);
       pFig=pcolor(X,Y,data);
       pFig.EdgeAlpha=0;
       axis([0,obj.solver.dims(1),0,obj.solver.dims(2)])
-      title('Steady State Joint Distribution');
-      xlabel('Species Count');
-      ylabel('Species Count');
+      cmap=hot;
+      colormap(gca,cmap(20:end,:))
+      ax=gca;
     end   
-    function plotSteadyStateWithTarget(obj,target)
+    function ax=plotSteadyStateWithTarget(obj,target)
       hold on 
       obj.plotSteadyState()
-      redX=scatter(target(2),target(1),30);
-      redX.MarkerEdgeColor=[1 0 0];
-      redX.LineWidth=2;
+      blueX=scatter(target(2),target(1),30,'wo');
+      blueX.MarkerEdgeColor=[1 1 1];
+      blueX.LineWidth=2;
       hold off
+      ax=gca;
     end   
-    function plotMarginals(obj)
+    function ax=plotMarginals(obj)
       [xVec,yVec]=obj.solver.generator.getXYV;
       data=obj.solver.getSteadyStateReshape();
-      xMarginal=sum(data,1);
-      yMarginal=sum(data,2);
+      xMarginal=sum(data,2);
+      yMarginal=sum(data,1);
       hold on
       lineP1ot1=plot(obj.axes,xVec,xMarginal,'b-');
-      lineP1ot1.LineWidth=2;
-      linePlot2=plot(obj.axes,yVec,yMarginal,'r--');
-      linePlot2.LineWidth=2;
+      lineP1ot1.LineWidth=3;
+      linePlot2=plot(obj.axes,yVec,yMarginal,'r-.');
+      linePlot2.LineWidth=3;
       hold off
-      title('Marginal Distribution');
-      xlabel('Species Count');
-      ylabel('Species Count');
+      ax=gca;
     end   
-    function plotSampledSumForces(obj,stepSize)
+    function ax=plotSampledSumForces(obj,stepSize)
        hold on
       [xForce,yForce]=obj.getSampleSpaceForces(stepSize);
       [xVector,yVector]=obj.getSampleSpace(stepSize);
@@ -53,6 +52,7 @@ classdef ViewTwoCellFSP
       xlim([0 obj.solver.dims(1)])
       ylim([0 obj.solver.dims(2)])
       hold off
+      ax=gca;
     end
     
     function [xVector,yVector]=getSampleSpace(obj,stepSize)
@@ -64,8 +64,6 @@ classdef ViewTwoCellFSP
       [xv,yv]=obj.solver.generator.getXYV();
       figHandle=imagesc(xv,yv,obj.solver.model.controlInput);
       set(gca,'YDir','normal');
-      caxis(obj.caxis);
-      colorbar()
       axis([0,obj.solver.dims(1)-1,0,obj.solver.dims(2)-1])
     end
     

@@ -14,7 +14,7 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     function [optimizedModel,obj]=optimizeControler(obj)
       warning('MATLAB:eigs:IllConditionedA','off');
       obj.score=ProbabilityScore(obj.modelFsp.dims);
-      obj=obj.initializeControlInput(obj.initialControler);
+      obj=obj.setControl(obj.modelFsp.model.controlInput);
       stepRate=obj.initialRate;
       pb=ProgressBar('Progress: ');
       for i=1:obj.numIterations
@@ -44,7 +44,6 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
     function obj=setControl(obj,controler)
       controler=obj.setBounds(controler);
       obj.modelFsp.model.controlInput=controler;
-      obj.modelFsp.model.controlInput=controler;
     end
     function saveInjector(obj,filename)
       if obj.saveInject
@@ -53,11 +52,22 @@ classdef GradientControlerOptimizer < SteadyStateControlOptimizer & PrintObjects
       end
     end
     function plotInjector(obj)
-      if obj.plotInject()
+      if obj.plotInject
         subplot(1,2,1)
         pcolorProbability(obj.modelFsp.model.controlInput);
+        title('Control Input')
+        xlabel('Species Count')
+        ylabel('Species Count')
+        colorbar
+        colormap(gca,parula)
         subplot(1,2,2);
         pcolorProbability(obj.modelFsp.getSteadyStateReshape);
+        title('Steady State Distribution')
+        xlabel('Species Count')
+        ylabel('Species Count')
+        colorbar
+        cmap=hot;
+        colormap(gca,cmap(20:end,:))
         drawnow();
       end
     end
