@@ -11,7 +11,7 @@ classdef SolverSSA
       end
     end
     function data=run(obj,varargin)
-      data=obj.integrator.integrate(obj.model)
+      data=obj.integrator.integrate(obj.model);
     end
   end
 end

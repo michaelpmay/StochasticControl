@@ -1,7 +1,7 @@
 classdef HisteresisAnalysis
   properties
     ode
-    uRange=0:.01:5
+    uRange=0:1:600
     time
     speciesIndex
   end

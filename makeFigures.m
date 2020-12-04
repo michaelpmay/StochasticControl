@@ -1,0 +1,13 @@
+addpath(genpath('utility'))
+datalayer=DataLayer
+%datalayer.update('AnalysisODEFrequencySeparation_ReducedModels')
+%datalayer.update('AnalysisODEHysteresis_ReducedModelUnregulated')
+%datalayer.update('AnalysisODEHysteresis_ReducedModelAutoregulated')
+datalayer.update('AnalysisODESSAFrequency_ReducedModel')
+figlayer=FigureLayer;
+fig2=figlayer.Figure2;
+fig3=figlayer.Figure3;
+fig4=figlayer.Figure4;
+fig5=figlayer.Figure5;
+fig6=figlayer.Figure6;
+fig7=figlayer.Figure7;

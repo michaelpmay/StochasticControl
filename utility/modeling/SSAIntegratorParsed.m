@@ -20,7 +20,6 @@ classdef SSAIntegratorParsed
     
     function [timeRecord,stateRecord]=integrateSSA(obj,model)
       [stateRecord,timeRecord]=obj.getInitialRecord(model);
-      %waitBar=waitbar(0,'Running SSA');
       timeEnd=model.time(end);
       time=timeRecord(1);
       state=stateRecord(:,1);
@@ -44,7 +43,6 @@ classdef SSAIntegratorParsed
           end
         end
         state=obj.stepToNewState(state,rate,model);
-        %waitbar(time.getLast/obj.model.time(end),waitBar);
         if obj.verbose & time>printTimes(printIndex)
           printIndex=printIndex+1;
           fprintf('percent:%f\n',(time-model.time(1))/(model.time(end)-model.time(1)))
@@ -52,7 +50,6 @@ classdef SSAIntegratorParsed
           state
         end
       end
-      %delete(waitBar)
     end
     
     function [x,t]=getInitialRecord(obj,model)

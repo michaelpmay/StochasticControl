@@ -15,7 +15,7 @@ classdef TwoCellFSP < SolverFSP & PrintObjects
       end
       obj.model=model;
       obj.dims=dims;
-      obj.generator=TwoCellFSPGenerator(model,dims);
+      obj.generator=TwoCellFSPGeneratorAlpha(model,dims);
     end
     function data=formatTrajectory(obj,data)
       newState=zeros([obj.dims(1),obj.dims(2),length(obj.time)]);
