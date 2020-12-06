@@ -26,7 +26,14 @@ classdef AnalysisLayer
       data.trajectory_HIC_w0p01=trajectory{1,2};
       data.trajectory_HIC_w0p0001=trajectory{2,2};
       data.wRange=wRange;
-      
+      freq=wRange(1);
+      input=@(t,x,p)build.frequencyInput(t,x,p);
+      timeRange=linspace(0,2/freq,100)
+      data.input=input(timeRange,0,[freq amp dc]);
+      data.time=2*timeRange/max(timeRange);
+      data.upperbound=145*ones(size(timeRange));
+      data.lowerbound=90*ones(size(timeRange));
+      data.input=input;
     end
     function data=AnalysisODEFrequencySeparation_FullModels()
       builder=ModelFactoryTestModels;
@@ -114,69 +121,99 @@ classdef AnalysisLayer
       initialState=[0 40];
       time=[0 5000];
       steps=6500;%500000
-      data.ODE_HIC=analyzeODE_AutoregulatedReducedModel(freq,amp,dc,initialState(2),linspace(time(1),time(2),steps))
-      data.ODE_LIC=analyzeODE_AutoregulatedReducedModel(freq,amp,dc,initialState(1),linspace(time(1),time(2),steps))
-      data.SSA=analyzeSSA_AutoregulatedReducedModel(freq,amp,dc,initialState(1),linspace(time(1),time(2),steps))
+      data.ODE_HIC=analyzeODE_AutoregulatedReducedModel(freq,amp,dc,initialState(2),linspace(time(1),time(2),steps));
+      data.ODE_LIC=analyzeODE_AutoregulatedReducedModel(freq,amp,dc,initialState(1),linspace(time(1),time(2),steps));
+      data.SSA=analyzeSSA_AutoregulatedReducedModel(freq,amp,dc,initialState(1),linspace(time(1),time(2),steps));
       data.frequency=freq;
       data.amp=amp;
       data.dc=dc;
       data.initialState=initialState;
       data.time=time;
-      function data=analyzeODE_AutoregulatedReducedModel(frequency,intensity,offset,state,time)
+      function data=analyzeODE_AutoregulatedReducedModel(frequency,intensity,offset,state,time);
         build=ModelFactory;
         model=build.autoregulatedModelWithFrequencyInput(frequency,intensity,offset);
-        model.time=time
+        model.time=time;
         model.initialState=state;
         ode=SolverODE(model);
         data=ode.run();
       end
-      function data=analyzeSSA_AutoregulatedReducedModel(frequency,intensity,offset,state,time)
+      function data=analyzeSSA_AutoregulatedReducedModel(frequency,intensity,offset,state,time);
         build=ModelFactory;
         model=build.autoregulatedModelWithFrequencyInput(frequency,intensity,offset);
-        model.time=time
+        model.time=time;
         model.initialState=state;
         ode=SolverSSA(model);
         data=ode.run();
       end
     end
-    function data=AnalysisFSPReducedModelControlPairs()
-      factory=ModelFactory;
-      aModel=factory.autoregulatedModelWithoutInput();
-      uModel=factory.unregulatedModelWithoutInput();
-      uuControler=load('data/controlers/UniformControlerUnegulatedModelControler.mat');
-      ufControler=load('data/controlers/FullControlerUnregulatedModelControler.mat');
-      auControler=load('data/controlers/UniformControlerAutoregulatedModelControler.mat');
-      afControler=load('data/controlers/FullControlerAutoregulatedModelControler.mat');
-      arControler=load('data/controlers/ReducedControlerAutoregulatedModelControler.mat');
-      uuModel=uModel;
-      uuModel.controlInput=uuControler.controlInput;
-      ufModel=uModel;
-      ufModel.controlInput=ufControler.controlInput;
-      auModel=aModel;
-      auModel.controlInput=auControler.controlInput;
-      afModel=aModel;
-      afModel.controlInput=afControler.controlInput;
-      arModel=aModel;
-      arModel.controlInput=arControler.controlInput;
+    function data=AnalysisFSPReducedModelControlPairs
+      layer=DataLayer();
+      layer.forceAnalysis=true;
+      data.UU=layer.get('AnalysisFSPReducedModelControlPairs_UnregulatedUniform');
+      data.UF=layer.get('AnalysisFSPReducedModelControlPairs_UnregulatedFull');
+      data.AU=layer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedUniform');
+      data.AF=layer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedFull');
+      data.AR=layer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedReduced');
+    end
+    function data=AnalysisFSPReduced_Flow_Joint_Marginal(model)
+      flow=FlowField;
       dims=[50 50];
-      uuFsp=TwoCellFSP(uuModel,dims);
-      ufFsp=TwoCellFSP(ufModel,dims);
-      auFsp=TwoCellFSP(auModel,dims);
-      afFsp=TwoCellFSP(afModel,dims);
-      arFsp=TwoCellFSP(arModel,dims);
-      target=[30 10];
-      data.UnregulatedModelUniformControlerFSP=uuFsp;
-      data.UnregulatedModelFullControlerFSP=ufFsp;
-      data.AutoregulatedModelUniformControlerFSP=auFsp;
-      data.AutoregulatedModelFullControlerFSP=afFsp;
-      data.AutoregulatedModelReducedControlerFSP=arFsp;
-      data.target=[30,10];
+      fsp=TwoCellFSP(model,dims);
+      data.target=[30 10];
+      data.steadystate=fsp.getSteadyStateReshape();
+      data.controlInput=model.controlInput;
+      stepSize=4;
+      [data.forcesX,data.forcesY]=flow.getSampleSpaceForces(fsp,stepSize);
+      [data.sampleX,data.sampleY]=flow.getSampleSpace(fsp,stepSize);
+      scorer=ProbabilityScore([50 50]);
+      data.score=scorer.getScore(data.steadystate);
+      data.stepSize=4;
+    end
+    function data=AnalysisFSPReducedModelControlPairs_UnregulatedUniform()
+      factory=ModelFactory;
+      layer=DataLayer();
+      controls=layer.get('ControlInputs_ReducedModels');
+      model=factory.unregulatedModelWithoutInput();
+      model.controlInput=controls.UniformControlUnregulatedModelControler;
+      data=AnalysisLayer.AnalysisFSPReduced_Flow_Joint_Marginal(model);
+    end
+    function data=AnalysisFSPReducedModelControlPairs_UnregulatedFull()
+      factory=ModelFactory;
+      layer=DataLayer();
+      controls=layer.get('ControlInputs_ReducedModels');
+      model=factory.unregulatedModelWithoutInput();
+      model.controlInput=controls.FullControlUnregulatedModelControler;
+      data=AnalysisLayer.AnalysisFSPReduced_Flow_Joint_Marginal(model);
+    end
+    function data=AnalysisFSPReducedModelControlPairs_AutoregulatedUniform()
+      factory=ModelFactory;
+      layer=DataLayer();
+      controls=layer.get('ControlInputs_ReducedModels');
+      model=factory.autoregulatedModelWithoutInput();
+      model.controlInput=controls.UniformControlAutoregulatedModelControler;
+      data=AnalysisLayer.AnalysisFSPReduced_Flow_Joint_Marginal(model);
+    end
+    function data=AnalysisFSPReducedModelControlPairs_AutoregulatedFull()
+      factory=ModelFactory;
+      layer=DataLayer();
+      controls=layer.get('ControlInputs_ReducedModels');
+      model=factory.autoregulatedModelWithoutInput();
+      model.controlInput=controls.FullControlAutoregulatedModelControler;
+      data=AnalysisLayer.AnalysisFSPReduced_Flow_Joint_Marginal(model);
+    end
+    function data=AnalysisFSPReducedModelControlPairs_AutoregulatedReduced()
+      factory=ModelFactory;
+      layer=DataLayer();
+      controls=layer.get('ControlInputs_ReducedModels');
+      model=factory.autoregulatedModelWithoutInput();
+      model.controlInput=controls.ReducedControlAutoregulatedModelControler;
+      data=AnalysisLayer.AnalysisFSPReduced_Flow_Joint_Marginal(model);
     end
     function data=AnalysisSSAFullModelControlPairs()
       clear all
       addpath(genpath('utility'))
       build=ModelFactoryTestModels;
-      dataLayer=DataLayer()
+      dataLayer=DataLayer();
       controllers=dataLayer.ControlInputs_FullModels;
       controlInput=controllers.FullControlAutoregulatedModelControler_FMCalibration;
       controlInput(300,300)=0;
@@ -213,7 +250,6 @@ classdef AnalysisLayer
       data.ReducedControlAutoregulatedModelControler.state=state;
       function [time,state]=simulate(controlInput,model)
         controlInput(300,300)=0;
-        %model=build.fullUnregModelWith2dControl(calibratedControlInput);
         model.controlInput=controlInput;
         ssa=SolverSSA(model);
         ssa.integrator=SSAIntegratorParsed;
@@ -254,7 +290,7 @@ classdef AnalysisLayer
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=FullGradientCalculator();
         optimizer.gradCalc.gmresMaxIter=gNumIterations;
-        modelFsp=optimizer.visit(modelFsp)
+        modelFsp=optimizer.visit(modelFsp);
         controlInput=modelFsp.model.controlInput;
       end
       function controlInput=makeUniformControlerAutoregulatedModelOptimization(numIterations,gNumIterations)
@@ -269,7 +305,7 @@ classdef AnalysisLayer
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=UniformGradientCalculator(modelFsp);
         optimizer.gradCalc.gmresMaxIter=gNumIterations;
-        modelFsp=optimizer.visit(modelFsp)
+        modelFsp=optimizer.visit(modelFsp);
         controlInput=modelFsp.model.controlInput;
       end
       function controlInput=makeFullControlerUnregulatedModelOptimization(numIterations,gNumIterations)
@@ -368,7 +404,7 @@ classdef AnalysisLayer
       end
     end
     function data=ModelFit_UnregulatedReducedModel()
-      parameters=[.406 .0203];
+      parameters=[1.0401e-05 0.0203 0.001753157638061];
       for i=1:5
         [ode{i},error(i)]=fit(parameters);
       end
@@ -382,15 +418,17 @@ classdef AnalysisLayer
         realdata.state=realdata.state./max(realdata.state).*20;
         optimizer=ParameterOptimizer;
         optimizer.index=1;
-        optimizer.strategy=ParameterOptimizerParallelBeeSwarm;
+        optimizer.strategy=ParameterOptimizerBeeSwarm;
+        indVec=[6,7,8 9 11 13 15 16 17 18 19];
+        optimizer.strategy.subOptimizer.errorFunction=@(y,x)sum(((y(indVec)-x(indVec))./y(indVec)).^2)
         optimizer.data=realdata;
         optimizer.strategy.numBees=16;
         optimizer.strategy.numSteps=1;
-        optimizer.strategy=optimizer.strategy.setLogBounds([-0 -5 ;
-          4  4 ]);
+        optimizer.strategy=optimizer.strategy.setLogBounds([-5 log10(.0203) -5;
+                                                            4  log10(.0203)        5]);
         optimizer.strategy.subOptimizer.maxIter=5;
-        optimizer.strategy.subOptimizer.initialRate=.2;
-        optimizer.strategy.subOptimizer.minRate=.01;
+        optimizer.strategy.subOptimizer.initialRate=.05;
+        optimizer.strategy.subOptimizer.minRate=.0001;
         build = ModelFactory;
         model=build.unregulatedModelWithExperimentalInput;
         model.parameters=parameters;
@@ -432,142 +470,122 @@ classdef AnalysisLayer
       data.upperbound=upperBound*ones(size(timeRange));
       data.lowerbound=lowerBound*ones(size(timeRange));
     end
-    function data=AnalysisSSATwoCellSwap_ReducedModel()
-      data=getData()
-      function data=getData()
+    function data=AnalysisSSATwoCellSwapReducedModel()
+      build=ModelFactory;
+      datalayer=DataLayer();
+      numSwaps=256;
+      numCells=2;
+      controllers=datalayer.get('ControlInputs_ReducedModels');
+      controlInput=controllers.FullControlAutoregulatedModelControler;
+      controlInput(200,200)=0;
+      time=0:1000*numSwaps;
+      model=build.twoCellAutoregulatedSwapModel(numSwaps,controlInput,time);
+      modelSSA=SolverSSA(model);
+      trajectory=modelSSA.run;
+      parsedData=trajectory.parse(1);
+      stateMax=max(max(trajectory.node{1}.state));
+      bins=0:2:stateMax;
+      L=1:1000;
+      X=[]
+      for i=1:3
+        index=mod(i-1,2)+1;
+        X=[X,trajectory.node{1}.state(index,L)];
+        Y=[X,trajectory.node{1}.state(index,L)];
+        L=L+1000;
+      end
+      for i=1:length(X)
+        U(i)=controlInput(X(i)+1,Y(i)+1);
+      end
+      initialWindow=1:100;
+      finalWindow=900:1000;
+      initialNonTargetData=[];
+      finalNonTargetData=[];
+      initialTargetData=[];
+      finalTargetData=[];
+      for i =1:numSwaps
+        initialFrame=initialWindow+1000*(i-1);
+        finalFrame=finalWindow+1000*(i-1);
+        targetCellIndex=mod(i-1,numCells)+1;
+        nonTargetCellsIndex=1:numCells;
+        nonTargetCellsIndex(nonTargetCellsIndex==targetCellIndex)=[];
+        initialNonTargetData=[initialNonTargetData,parsedData.node{1}.state(nonTargetCellsIndex,initialFrame)];
+        finalNonTargetData= [finalNonTargetData,parsedData.node{1}.state(nonTargetCellsIndex,finalFrame)];
+        initialTargetData= [initialTargetData,parsedData.node{1}.state(targetCellIndex,initialFrame)];
+        finalTargetData  = [finalTargetData,parsedData.node{1}.state(targetCellIndex,finalFrame)];
+      end
         build=ModelFactory;
-        datalayer=DataLayer();
-        numSwaps=256;
-        numCells=2;
-        controllers=datalayer.ControlInputs_ReducedModels
-        controlInput=controllers.FullControlAutoregulatedModelControler;
-        controlInput(200,200)=0;
-        time=0:1000*numSwaps;
-        model=build.twoCellAutoregulatedSwapModel(numSwaps,controlInput,time);
-        modelSSA=SolverSSA(model);
-        trajectory=modelSSA.run;
-        parsedData=trajectory.parse(1);
-        stateMax=max(max(trajectory.node{1}.state));
-        bins=0:2:stateMax;
-        L=1:1000;
-        X=[]
-        for i=1:3
-          index=mod(i-1,2)+1;
-          X=[X,trajectory.node{1}.state(index,L)];
-          Y=[X,trajectory.node{1}.state(index,L)];
-          L=L+1000;
-        end
-        for i=1:length(X)
-          U(i)=controlInput(X(i)+1,Y(i)+1);
-        end
-        initialWindow=1:100;
-        finalWindow=900:1000;
-        initialNonTargetData=[];
-        finalNonTargetData=[];
-        initialTargetData=[];
-        finalTargetData=[];
-        for i =1:numSwaps
-          initialFrame=initialWindow+1000*(i-1);
-          finalFrame=finalWindow+1000*(i-1);
-          targetCellIndex=mod(i-1,numCells)+1;
-          nonTargetCellsIndex=1:numCells;
-          nonTargetCellsIndex(nonTargetCellsIndex==targetCellIndex)=[];
-          initialNonTargetData=[initialNonTargetData,parsedData.node{1}.state(nonTargetCellsIndex,initialFrame)];
-          finalNonTargetData= [finalNonTargetData,parsedData.node{1}.state(nonTargetCellsIndex,finalFrame)];
-          initialTargetData= [initialTargetData,parsedData.node{1}.state(targetCellIndex,initialFrame)];
-          finalTargetData  = [finalTargetData,parsedData.node{1}.state(targetCellIndex,finalFrame)];
-          build=ModelFactory;
-          model=build.autoregulatedModelWithoutInput;
-          load data/controlers/FullControlerAutoregulatedModelControler.mat
-          model.controlInput=controlInput
-          fsp=TwoCellFSP(model,[50 50])
-          probability=fsp.getSteadyStateReshape()
-          Px=sum(probability,1)
-          Py=sum(probability,2)
-          data.trajectory=trajectory;
-          data.U=U;
-          data.iinitialNonTargetData=initialNonTargetData;
-          data.finalNonTargetData=finalNonTargetData;
-          data.initialTargetData=initialTargetData;
-          data.finalTargetData =finalTargetData;
-        end
-      end
-      function plotModel(data)
-        AcademicFigure
-        subplot(2,3,[1 2])
-        axis1=area(data.trajectory.node{1}.time(1:L),U,'FaceColor','m');
-        axis1.EdgeAlpha=0;
-        tightLayout
-        set(gca, 'YGrid', 'off', 'XGrid', 'on')
-        xlabel('time(minutes)')
-        ylabel('Control Input')
-        LabelPlot('A')
-        
-        subplot(2,3,[4,5])
-        hold on
-        v = [0 0; 1000,0; 1000,60; 0,60];
-        f = [1 2 3 4];
-        patch('Faces',f,'Vertices',v,'FaceColor','blue','FaceAlpha',.1)
-        v = [1000 0; 2000,0; 2000,60; 1000,60];
-        f = [1 2 3 4];
-        patch('Faces',f,'Vertices',v,'FaceColor','red','FaceAlpha',.1)
-        v = [2000 0; 3000,0; 3000,60; 2000,60];
-        f = [1 2 3 4];
-        patch('Faces',f,'Vertices',v,'FaceColor','blue','FaceAlpha',.1)
-        plot(data.trajectory.node{1}.time,30*ones(size(data.trajectory.node{1}.time)),'k-','LineWidth',1);
-        plot(data.trajectory.node{1}.time,10*ones(size(data.trajectory.node{1}.time)),'k-','LineWidth',1);
-        s1=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(1,:)','LineWidth',2);
-        s1.Color=[0 0 1]*.8;
-        s2=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(2,:)','LineWidth',2);
-        s2.Color=[1 0 0]*.8;
-        plot([1000,1000],[0 80],'k-');
-        plot([2000,2000],[0 80],'k-');
-        axis([0 3000 0 60])
-        hold off
-        tightLayout
-        set(gca, 'YGrid', 'on', 'XGrid', 'on')
-        xlabel('time(minutes)')
-        ylabel('Species Count')
-        LabelPlot('B')
-        
-        subplot(2,3,3)
-        hold on
-        makeHist(data.initialTargetData(:),0:60-.5,[1 .75 0],.6)
-        makeHist(data.finalTargetData(:),0:60-.5,'red',.4)
-        plot((1:50),Py,'g-.','color',[0 0 0]+.1,'linewidth',2)
-        tightLayout
-        box on
-        ylabel('Probability')
-        xlabel('Species Count')
-        legend('Initial','Final','Steady State')
-        LabelPlot('C')
-        ax=gca;
-        ax.Position=[0.6916    0.5804    0.2767    0.3626];
-        subplot(2,3,6)
-        hold on
-        makeHist(data.initialNonTargetData(:),0:60-.5,'cyan',.6)
-        makeHist(data.finalNonTargetData(:),0:60-.5,'blue',.4)
-        plot((1:50),Px,'g-.','color',[0 0 0]+.1,'linewidth',2)
-        tightLayout
-        box on
-        ylabel('Probability')
-        xlabel('Species Count')
-        legend('Initial','Final','Steady State')
-        LabelPlot('D')
-        ax=gca;
-        ax.Position=[0.6916    0.0967    0.2767    0.3626];
-      end
-      function histogramFig=makeHist(data,bins,color,alpha)
-        histogramFig=histogram(data,bins,'Normalization','probability');
-        histogramFig.EdgeAlpha=0;
-        histogramFig.FaceAlpha=alpha;
-        histogramFig.FaceColor=color;
-        histogramFig.LineWidth=2;
-      end
-      
+        model=build.autoregulatedModelWithoutInput;
+        load data/controlers/FullControlerAutoregulatedModelControler.mat
+        model.controlInput=controlInput;
+        fsp=TwoCellFSP(model,[50 50]);
+        probability=fsp.getSteadyStateReshape();
+        Px=sum(probability,1);
+        Py=sum(probability,2);
+        data.trajectory=trajectory;
+        data.U=U;
+        data.initialNonTargetData=initialNonTargetData;
+        data.finalNonTargetData=finalNonTargetData;
+        data.initialTargetData=initialTargetData;
+        data.finalTargetData =finalTargetData;
+        data.targetMarginal=Py;
+        data.nonTargetMarginal=Px;
     end
-    function data=AnalysisSSAFourCellSwap_FullModel()
-      
+    function data=AnalysisSSAFourCellSwapReducedModel()
+      build=ModelFactory;
+      datalayer=DataLayer();
+      numSwaps=256;
+      numCells=4;
+      controllers=datalayer.get('ControlInputs_ReducedModels');
+      controlInput=controllers.ReducedControlAutoregulatedModelControler;
+      controlInput(200,200)=0;
+      time=0:1000*numSwaps;
+      model=build.nCellAutoregulatedSwapModel(numCells,numSwaps,controlInput,time);
+      modelSSA=SolverSSA(model);
+      trajectory=modelSSA.run;
+      parsedData=trajectory.parse(1);
+      stateMax=max(max(trajectory.node{1}.state));
+      L=1:1000;
+      X=[];
+      for i=1:3
+        X=[X,trajectory.node{1}.state(i,L)];
+        Y=[X,trajectory.node{1}.state(i,L)];
+        L=L+1000;
+      end
+      for i=1:length(X)
+        U(i)=controlInput(X(i)+1,Y(i)+1);
+      end
+      initialWindow=1:100;
+      finalWindow=900:1000;
+      initialNonTargetData=[];
+      finalNonTargetData=[];
+      initialTargetData=[];
+      finalTargetData=[];
+      for i =1:numSwaps
+        initialFrame=initialWindow+1000*(i-1);
+        finalFrame=finalWindow+1000*(i-1);
+        targetCellIndex=mod(i-1,numCells)+1;
+        nonTargetCellsIndex=1:numCells;
+        nonTargetCellsIndex(nonTargetCellsIndex==targetCellIndex)=[];
+        initialNonTargetData=[initialNonTargetData,parsedData.node{1}.state(nonTargetCellsIndex,initialFrame)];
+        finalNonTargetData= [finalNonTargetData,parsedData.node{1}.state(nonTargetCellsIndex,finalFrame)];
+        initialTargetData= [initialTargetData,parsedData.node{1}.state(targetCellIndex,initialFrame)];
+        finalTargetData  = [finalTargetData,parsedData.node{1}.state(targetCellIndex,finalFrame)];
+      end
+      build=ModelFactory;
+      model=build.autoregulatedModelWithoutInput;
+      model.controlInput=controllers.ReducedControlAutoregulatedModelControler;
+      fsp=TwoCellFSP(model,[50 50]);
+      probability=fsp.getSteadyStateReshape();
+      Px=sum(probability,1);
+      Py=sum(probability,2);
+      data.trajectory=trajectory;
+      data.U=U;
+      data.initialNonTargetData=initialNonTargetData;
+      data.finalNonTargetData=finalNonTargetData;
+      data.initialTargetData=initialTargetData;
+      data.finalTargetData =finalTargetData;
+      data.targetMarginal=Py;
+      data.nonTargetMarginal=Px;
     end
     function data=ControlInputs_FullModels()
       load data/controlers/FullControlerAutoregulatedModelControler_FullModelCalibration.mat
@@ -601,24 +619,18 @@ classdef AnalysisLayer
       load data/controlers/ReducedControlerAutoregulatedModelControler.mat
       data.ReducedControlAutoregulatedModelControler=controlInput;
     end
-    function data=AnalysisFitFullModel()
-      
-    end
-    function data=AnalysisFitReducedModel()
-      
-    end
     function data=CalibrationCurve_UnregulatedFullReduced()
       build=ModelFactoryTestModels;
-      fullModel=build.fullModelWithUniformLight(0)
-      unregModel=build.unregulatedModelWithUniformLight(0)
+      fullModel=build.fullModelWithUniformLight(0);
+      unregModel=build.unregulatedModelWithUniformLight(0);
       uRange=0:5:1000;
       [upAnalysisR,~]=performAnalysis(unregModel,3,1,uRange);
       [upAnalysisF,~]=performAnalysis(fullModel,9,5,uRange);
       rangeProtein=[0:.01:80];
       trajectoryAF=interp1(upAnalysisF,uRange,rangeProtein);
       trajectoryAS=interp1(upAnalysisR,uRange,rangeProtein);
-      calibration=[trajectoryAS;trajectoryAF]
-      calibration(1,:)=0
+      calibration=[trajectoryAS;trajectoryAF];
+      calibration(1,:)=0;
       for i=2:length(calibration)
         if isnan(calibration(:,i))
           calibration(:,i)=[];
@@ -691,13 +703,13 @@ classdef AnalysisLayer
       data.state=realData.state;
     end
     function data=AnalysisSSAFSPPredictiveModelControl()
-      quartiles=[.85];
+      quartiles=[.80];
       data=getData(quartiles);
       function data=getData(quart)
         build=ModelFactory;
         load data/controlers/FullControlerAutoregulatedModelControler.mat
         controlInput(200,200)=0;
-        time=0:.5:20000;
+        time=0:.5:40000;
         dT=time(2)-time(1);
         model=build.autoregulatedModelWithUniformLight(0);
         model.time=[0 dT];
@@ -706,12 +718,16 @@ classdef AnalysisLayer
         fsp=SolverFSP(model,[50]);
         currentX=30;
         currentY=10;
-        currentYPrediction=zeros(50,1);
-        currentYPrediction(currentY+1)=1;
+        ssaX.model.initialState=currentX;
+        ssaY.model.initialState=currentY;
+        currentYPrediction=ones(50,1);
+        currentYPrediction=currentYPrediction/sum(currentYPrediction);
         fsp.model.initialState=currentYPrediction;
         historyYPrediction=zeros(1,length(time));
         historyX=zeros(1,length(time));
         historyY=zeros(1,length(time));
+        historyU=zeros(1,length(time));
+        historyP=zeros(50,length(time));
         for i =1:length(time)
           prediction=quartile(currentYPrediction,quart);
           state=[currentX,prediction];
@@ -730,7 +746,9 @@ classdef AnalysisLayer
           fsp.model.initialState=currentYPrediction;
           historyX(i)=currentX;
           historyY(i)=currentY;
+          historyU(i)=input;
           historyYPrediction(i)=prediction;
+          historyP(:,i)=currentYPrediction;
         end
         Pxy=zeros(80,80);
         for i=1:length(historyX)
@@ -740,12 +758,15 @@ classdef AnalysisLayer
         end
         Pxy=Pxy./sum(sum(Pxy));
         score=ProbabilityScore([80 80]);
-        data.Pxy=Pxy;
+        data.U=historyU;
+        data.steadystate=Pxy;
         data.time=time;
         data.X=historyX;
         data.Y=historyY;
+        data.P=historyP;
         data.predictionY=historyYPrediction;
         data.score=score.getScore(Pxy);
+        data.target=[30 10];
       end
       function prediction=quartile(probability,ratio)
         cprobability=cumsum(probability);
@@ -759,16 +780,16 @@ classdef AnalysisLayer
       
     end
     function data=HysteresisAnalysis(model,lightIndex,speciesIndex)
-        uRange=0:5:1000;
-        modelOde=SolverODE(model);
-        analyzer=HisteresisAnalysis(modelOde);
-        analyzer.time=linspace(0,1500,1500);
-        analyzer.speciesIndex=speciesIndex;
-        analyzer.uRange=uRange;
-        [upAnalysis,downAnalysis]=analyzer.analyze(lightIndex);
-        data.upTrajectory=upAnalysis;
-        data.downTrajectory=downAnalysis;
-        data.range=uRange;
+      uRange=0:5:1000;
+      modelOde=SolverODE(model);
+      analyzer=HisteresisAnalysis(modelOde);
+      analyzer.time=linspace(0,1500,1500);
+      analyzer.speciesIndex=speciesIndex;
+      analyzer.uRange=uRange;
+      [upAnalysis,downAnalysis]=analyzer.analyze(lightIndex);
+      data.upTrajectory=upAnalysis;
+      data.downTrajectory=downAnalysis;
+      data.range=uRange;
     end
   end
 end

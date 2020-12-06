@@ -8,163 +8,185 @@ classdef FigureLayer
     end
     function fig=Figure2(obj)
       fig=AcademicFigure;
+      fig.Position(3:4)=[1050,450];
       subplot(1,2,1)
       hold on
       obj.axes.ModelFitODE_Panel
+      xlabel('time')
+      ylabel('Species Count')
+      legend({'$\mathcal{M}_U$','$\mathcal{M}_A$','$\mathcal{M}_U$','$\mathcal{M}_A$','Experimental Data'},'Interpreter','latex')
       hold on
-      
       obj.axes.ModelFitODE_UnregulatedReducedModel_Trajectory
       obj.axes.ModelFitODE_UnregulatedFullModel_Trajectory
       obj.axes.ModelFitODE_ExperimentalData_Trajectory
+      box(gca)
+      LabelPlot('A')
       subplot(1,2,2)
       hold on
       obj.axes.ModelFitSSA_UnregulatedReducedModel_Low_Histogram
       obj.axes.ModelFitSSA_UnregulatedReducedModel_Med_Histogram
       obj.axes.ModelFitSSA_UnregulatedReducedModel_Hig_Histogram
+      box(gca)
+      ylabel('Probability')
+      xlabel('Species Count')
+      LabelPlot('B')
       %obj.axes.ModelFit_UnregulatedFullModel_Histograms
     end
     function fig=Figure3(obj)
       fig=AcademicFigure;
-      fig.Position(3:4)=[800 800];
+      fig.Position(3:4)=[1050 450];
       subplot(1,2,1)
       hold on
       obj.axes.AnalysisODEHysteresis_Regions
       obj.axes.AnalysisODEHysteresis_ReducedModelUnregulated
       obj.axes.AnalysisODEHysteresis_ReducedModelAutoregulated
+      box(gca)
+      ylim([0 50])
+      xlim([0 500])
+      xlabel('Input (Watts per cm^2)')
+      ylabel('Species Count')
+      LabelPlot('A')
       subplot(3,2,2)
       hold on
       obj.axes.AnalysisODEFrequency_ReducedModels_Input
       obj.axes.AnalysisODEFrequency_ReducedModels_Bound
+      box(gca)
+      xlabel('Period (AU)')
+      ylabel('Input (Watts per cm^2)')
+      tightLayout
+      LabelPlot('B')
       subplot(3,2,4)
       obj.axes.AnalysisODEFrequencySeparation_ReducedModel
+      box(gca)
+      xlabel('Period (AU)')
+      ylabel('Species Count')
+      tightLayout
+      LabelPlot('C')
       subplot(3,2,6)
       obj.axes.AnalysisODEFrequencyOmegaCrit_ReducedModel
-      obj.axes.AnalysisODEFrequencyOmegaCrit_ReducedModel
+      box(gca)
+      xlabel('Period (AU)')
+      ylabel('Species Count')
+      tightLayout
+      LabelPlot('D')
     end
     function fig=Figure4(obj)
-      fig=AcademicFigure
-      fig.Position(3:4)=[800 800];
-      titleFontSize=14;
-      factory=ModelFactory
-      aModel=factory.autoregulatedModelWithoutInput()
-      uModel=factory.unregulatedModelWithoutInput()
-      
-      uuControler=load('data/controlers/UniformControlerUnegulatedModelControler.mat');
-      ufControler=load('data/controlers/FullControlerUnregulatedModelControler.mat')
-      auControler=load('data/controlers/UniformControlerAutoregulatedModelControler.mat')
-      afControler=load('data/controlers/FullControlerAutoregulatedModelControler.mat')
-      arControler=load('data/controlers/ReducedControlerAutoregulatedModelControler.mat')
-      
-      uuModel=uModel;
-      uuModel.controlInput=uuControler.controlInput;
-      ufModel=uModel;
-      ufModel.controlInput=ufControler.controlInput;
-      auModel=aModel;
-      auModel.controlInput=auControler.controlInput;
-      afModel=aModel;
-      afModel.controlInput=afControler.controlInput;
-      arModel=aModel;
-      arModel.controlInput=arControler.controlInput;
-      
-      dims=[50 50];
-      uuFsp=TwoCellFSP(uuModel,dims);
-      ufFsp=TwoCellFSP(ufModel,dims);
-      auFsp=TwoCellFSP(auModel,dims);
-      afFsp=TwoCellFSP(afModel,dims);
-      arFsp=TwoCellFSP(arModel,dims);
-      
-      target=[30 10];
-      ax{1}=plotModel(uuFsp,1,target);
-      
-      ax{2}=plotModel(ufFsp,2,target);
-      
-      ax{3}=plotModel(auFsp,3,target);
-      
-      ax{4}=plotModel(afFsp,4,target);
-      
-      ax{5}=plotModel(arFsp,5,target);
-      
-      axes(ax{1}(1))
-      title({'RUM-UC'},'Fontsize',titleFontSize)
-      axes(ax{2}(1))
-      title({'RUM-FC'},'Fontsize',titleFontSize)
-      axes(ax{3}(1))
-      title({'RAM-UC'},'Fontsize',titleFontSize)
-      axes(ax{4}(1))
-      title({'RAM-FC'},'Fontsize',titleFontSize)
-      axes(ax{5}(1))
-      title({'RAM-RC'},'Fontsize',titleFontSize)
-      
-      axes(ax{1}(1))
-      xlabel('Species Count')
+      fig=AcademicFigure;
+      obj.axes.AnalysisODESSAFrequency_ReducedModel_Trajectory
+      LabelPlot('A')
+      xlabel('time (minutes)')
       ylabel('Species Count')
-      axes(ax{1}(2))
-      xlabel('Species Count')
-      ylabel('Species Count')
-      axes(ax{1}(3))
-      xlabel('Species Count')
-      ylabel('Probability')
-      axes(ax{4}(3))
-      lgnd=legend('Target','Non-Target')
-      lgnd.Position=[0.8673    0.1555    0.1109    0.0537]
-      function ax=plotModel(model,colNum,target)
-        subplotIndex=[0 5 10];
-        gap=[.07 .015];
-        width=[.06 .08];
-        height=[.06 .08];
-        view=ViewTwoCellFSP(model,subtightplot(3,5,subplotIndex(1)+colNum,gap,width,height));
-        ax(1)=view.plotSampledSumForces(4);
-        caxis([0 1000]);
-        if colNum~=1
-          set(gca,'xticklabel',[])
-          set(gca,'yticklabel',[])
-        end
-        if colNum==4
-          cbar1=colorbar;
-          cbar1.Position=[0.9246   0.6800    0.0152    0.2400];
-        end
-        view=ViewTwoCellFSP(model,subtightplot(3,5,subplotIndex(2)+colNum,gap,width,height));
-        ax(2)=view.plotSteadyStateWithTarget(target);
-        if colNum~=1
-          set(gca,'xticklabel',[]);
-          set(gca,'yticklabel',[]);
-        end
-        if colNum==5
-          cbar2=colorbar;
-          cbar2.Position=[0.9246    0.3700    0.0152    0.2400];
-        end
-        caxis([0 .04])
-        view=ViewTwoCellFSP(model,subtightplot(3,5,subplotIndex(3)+colNum,gap,width,height));
-        ax(3)=view.plotMarginals();
-        if colNum~=1
-          set(gca,'xticklabel',[]);
-          set(gca,'yticklabel',[]);
-        end
-        scorer=ProbabilityScore([50 50])
-        probability=ax(2).Children(2).CData;
-        score=scorer.getScore(probability);
-        text(31,.16,sprintf('J= %.0f',score),'FontSize',11,'FontWeight','bold');
-        ylim([0,.2])
-        xlim([0 50])
-        ax(3).YGrid='on';
-        hold on
-        plot([30 30],[0 1],'b--')
-        plot(30,0,'rp','Markersize',10,'MarkerFaceColor' ,'blue')
-        plot([10 10],[0 1],'r--')
-        plot(10,0,'bp','Markersize',10,'MarkerFaceColor','red')
-        box on
-      end
     end
-    function Figure5(obj)
+    function fig=Figure5(obj)
+      fig=AcademicFigure;
+      titleFontSize=16;
+      gap=[.07 .015];
+      width=[.06 .08];
+      height=[.06 .08];
+      subtightplot(3,5,1,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_UnregulatedUniform_Force;
+      xlabel('Species Count');
+      ylabel('Species Count');
+      set(gca, 'XTickMode', 'auto', 'XTickLabelMode', 'auto')
+      set(gca, 'YTickMode', 'auto', 'YTickLabelMode', 'auto')
+      title('$\mathcal{M}_U$-UC','Interpreter','latex','Fontsize',titleFontSize)
+      subtightplot(3,5,6,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_UnregulatedUniform_JD;
+      xlabel('Species Count');
+      ylabel('Species Count');
+      set(gca, 'XTickMode', 'auto', 'XTickLabelMode', 'auto')
+      set(gca, 'YTickMode', 'auto', 'YTickLabelMode', 'auto')
+      subtightplot(3,5,11,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_UnregulatedUniform_MD;
+      xlabel('Species Count');
+      ylabel('Probability');
+      set(gca, 'XTickMode', 'auto', 'XTickLabelMode', 'auto')
+      set(gca, 'YTickMode', 'auto', 'YTickLabelMode', 'auto')
+      subtightplot(3,5,2,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_UnregulatedFull_Force;
+      title('$\mathcal{M}_U$-FC','Interpreter','latex','Fontsize',titleFontSize)
+      subtightplot(3,5,7,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_UnregulatedFull_JD;
+      subtightplot(3,5,12,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_UnregulatedFull_MD;
       
-    end
-    function Figure6(obj)
+      subtightplot(3,5,3,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedUniform_Force;
+      title('$\mathcal{M}_A$-UC','Interpreter','latex','Fontsize',titleFontSize);
+      subtightplot(3,5,8,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedUniform_JD;
+      subtightplot(3,5,13,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedUniform_MD;
       
-    end
-    function Figure7(obj)
+      subtightplot(3,5,4,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedFull_Force;
+      title('$\mathcal{M}_A$-FC','Interpreter','latex','Fontsize',titleFontSize)
+      subtightplot(3,5,9,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedFull_JD
+      subtightplot(3,5,14,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedFull_MD
       
+      subtightplot(3,5,5,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedReduced_Force;
+      title('$\mathcal{M}_A$-RC','Interpreter','latex','Fontsize',titleFontSize)
+      cbar1=colorbar;
+      cbar1.Position=[0.9246    0.6800    0.0152    0.2400];
+      subtightplot(3,5,10,gap,width,height)
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedReduced_JD;
+      cbar2=colorbar;
+      cbar2.Position=[0.9246   0.3700    0.0152    0.2400];
+      subtightplot(3,5,15,gap,width,height)
+      
+      obj.axes.AnalysisFSPReducedModelControlPairs_AutoregulatedReduced_MD;
+      lgnd=legend('Target','Non-Target');
+      lgnd.Position=[0.8673    0.1555    0.1109    0.0537];
     end
-    function Figure8(obj)
+    function fig=Figure6(obj)
+      fig=AcademicFigure;
+      fig.Position(3:4)=[1000 600];
+      subplot(2,3,[1,2]);
+      obj.axes.AnalysisSSATwoCellSwapReducedModel_ControlInput;
+      subplot(2,3,[4,5]);
+      obj.axes.AnalysisSSATwoCellSwapReducedModel_Trajectory;
+      subplot(2,3,3);
+      obj.axes.AnalysisSSATwoCellSwapReducedModel_HistogramTarget;
+      subtightplot(2,3,6);
+      obj.axes.AnalysisSSATwoCellSwapReducedModel_HistogramNonTarget;
+    end
+    function fig=Figure7(obj)
+      fig=AcademicFigure;
+      fig.Position(3:4)=[1000 600];
+      subplot(2,3,[1,2])
+      obj.axes.AnalysisSSAFourCellSwapReducedModel_ControlInput;
+      subplot(2,3,[4,5])
+      obj.axes.AnalysisSSAFourCellSwapReducedModel_Trajectory;
+      subplot(2,3,3)
+      obj.axes.AnalysisSSAFourCellSwapReducedModel_HistogramTarget;
+      subplot(2,3,6)
+      obj.axes.AnalysisSSAFourCellSwapReducedModel_HistogramNonTarget;
+    end
+    function fig=Figure8(obj)
+      fig=AcademicFigure;
+      fig.Position(3:4)=[1000 600];
+      subplot(2,3,[1,2]);
+      obj.axes.AnalysisSSAFSPPredictiveModelControl_ControlInput;
+      tightLayout
+      LabelPlot('A')
+      subplot(2,3,[4,5]);
+      obj.axes.AnalysisSSAFSPPredictiveModelControl_Trajectory;
+      tightLayout
+      LabelPlot('B')
+      subplot(2,3,[3]);
+      obj.axes.AnalysisSSAFSPPredictiveModelControl_JD;
+      tightLayout
+      label=LabelPlot('C');
+      label.Color='white';
+      subplot(2,3,6);
+      obj.axes.AnalysisSSAFSPPredictiveModelControl_MD;
+      tightLayout
+      LabelPlot('D')
+    end
+    function fig=Figure9(obj)
       
     end
   end

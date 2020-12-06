@@ -5,7 +5,8 @@ classdef ModelFactory
     be=20
     mu=8
     ga=.0203 %0.020
-    alpha=.0203*20/320*1.62
+    %alpha=.0203*20/320*1.437
+    alpha=0.001823813123176
     ka=0.0001
     eko=3.5821;%experimental ko [3.5821]
     fullModelParameters=[1.1164,1.1164/20,1.0000,579.5275,0.0004,0.0024,2.0309,0.025,1.2718]
@@ -50,8 +51,8 @@ classdef ModelFactory
     function model=unregulatedModelWithExperimentalInput(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga];
-      model.rxnRate=@(t,x,p)[p(1)+obj.alpha*obj.ExperimentalInput(t,x,obj.u) ; p(2)*x(1)];
+      model.parameters=[obj.ka obj.ga obj.alpha];
+      model.rxnRate=@(t,x,p)[p(1)+p(3)*obj.ExperimentalInput(t,x,obj.u) ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end

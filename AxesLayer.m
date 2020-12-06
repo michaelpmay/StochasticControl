@@ -7,118 +7,84 @@ classdef AxesLayer
     function axes=TestFile(obj)
       data=obj.datalayer.TestFile;
     end
-    function axes=AnalysisODEFrequency_ReducedModels(obj)
-      data=obj.datalayer.AnalysisODEFrequency_ReducedModels();
-    end
-    function axes=AnalysisODEFrequency_FullModels(obj)
-      data=obj.datalayer.AnalysisODEFrequency_FullModels();
-    end
     function axes=AnalysisODEFrequencyOmegaCrit_ReducedModel(obj)
-      data=obj.datalayer.get('AnalysisODEFrequencyOmegaCrit_ReducedModel')
-      hold on 
-      plot(data.wHigh_LIC.state((end-50):end))
-      plot(data.wHigh_HIC.state((end-50):end))
-      plot(data.wLow_LIC.state((end-50):end))
-      plot(data.wLow_HIC.state((end-50):end))
+      data=obj.datalayer.get('AnalysisODEFrequencyOmegaCrit_ReducedModel');
+      hold on
+      line1=plot(data.wHigh_LIC.state((end-50):end),'b-','LineWidth',2)
+      line1.Color=[0 0 1];
+      line2=plot(data.wHigh_HIC.state((end-50):end),'b--','LineWidth',2)
+      line2.Color=[0 0 1]*.7;
+      line3=plot(data.wLow_LIC.state((end-50):end),'r-','LineWidth',2)
+      line3.Color=[1 0 0];
+      line4=plot(data.wLow_HIC.state((end-50):end),'r--','LineWidth',2)
+      line4.Color=[1 0 0]*.7;
     end
-    function axes=AnalysisODESSAFrequency_ReducedModel(obj)
+    function axes=AnalysisODESSAFrequency_ReducedModel_Trajectory(obj)
       data=obj.datalayer.get('AnalysisODESSAFrequency_ReducedModel');
       hold on
-      plot(data.ODE_HIC.state((end-1500):end))
-      plot(data.ODE_LIC.state((end-1500):end))
-      plot(data.SSA.node{1}.state((end-1500):end))
+      plot(data.ODE_HIC.state((end-1500):end),'LineWidth',2)
+      plot(data.ODE_LIC.state((end-1500):end),'LineWidth',2)
+      plot(data.SSA.node{1}.state((end-1500):end),'LineWidth',2)
     end
-    function axes=AnalysisFSPReducedModelControlPairs(obj)
-      data=obj.datalayer.AnalysisFSPReducedModelControlPairs();
-      titleFontSize=16;
-      Academicaxesure();
-      ax{1}=plotModel(data.UnregulatedModelUniformControlerFSP,1,data.target);
-      
-      ax{2}=plotModel(data.UnregulatedModelFullControlerFSP,2,data.target);
-      
-      ax{3}=plotModel(data.AutoregulatedModelUniformControlerFSP,3,data.target);
-      
-      ax{4}=plotModel(data.AutoregulatedModelFullControlerFSP,4,data.target);
-      
-      ax{5}=plotModel(data.AutoregulatedModelReducedControlerFSP,5,data.target);
-      
-      axes(ax{1}(1));
-      
-      title({'$\mathcal{M}_U-UC$'},'Interpreter','latex','Fontsize',titleFontSize);
-      axes(ax{2}(1))
-      title({"$\mathcal{M}_U-FC$"},'Interpreter','latex','Fontsize',titleFontSize);
-      axes(ax{3}(1))
-      title({"$\mathcal{M}_A-UC$"},'Interpreter','latex','Fontsize',titleFontSize);
-      axes(ax{4}(1))
-      title({"$\mathcal{M}_A-FC$"},'Interpreter','latex','Fontsize',titleFontSize);
-      axes(ax{5}(1))
-      title({"$\mathcal{M}_A-RC$"},'Interpreter','latex','Fontsize',titleFontSize);
-      
-      axes(ax{1}(1));
-      xlabel('Species Count');
-      ylabel('Species Count');
-      axes(ax{1}(2));
-      xlabel('Species Count');
-      ylabel('Species Count');
-      axes(ax{1}(3));
-      xlabel('Species Count');
-      ylabel('Probability');
-      axes(ax{4}(3));
-      lgnd=legend('Target','Non-Target');
-      lgnd.Position=[0.8673    0.1555    0.1109    0.0537];
-      
-      function ax=plotModel(model,colNum,target)
-        subplotIndex=[0 5 10];
-        gap=[.07 .015];
-        width=[.06 .08];
-        height=[.06 .08];
-        view=ViewTwoCellFSP(model,subtightplot(3,5,subplotIndex(1)+colNum,gap,width,height));
-        ax(1)=view.plotSampledSumForces(4);
-        caxis([0 1000]);
-        if colNum~=1
-          set(gca,'xticklabel',[])
-          set(gca,'yticklabel',[])
-        end
-        if colNum==4
-          cbar1=colorbar
-          cbar1.Position=[0.9246   0.6800    0.0152    0.2400]
-        end
-        view=ViewTwoCellFSP(model,subtightplot(3,5,subplotIndex(2)+colNum,gap,width,height));
-        ax(2)=view.plotSteadyStateWithTarget(target);
-        if colNum~=1
-          set(gca,'xticklabel',[])
-          set(gca,'yticklabel',[])
-        end
-        if colNum==5
-          cbar2=colorbar
-          cbar2.Position=[0.9246    0.3700    0.0152    0.2400];
-        end
-        caxis([0 .04])
-        view=ViewTwoCellFSP(model,subtightplot(3,5,subplotIndex(3)+colNum,gap,width,height));
-        ax(3)=view.plotMarginals();
-        if colNum~=1
-          set(gca,'xticklabel',[]);
-          set(gca,'yticklabel',[]);
-        end
-        scorer=ProbabilityScore([50 50]);
-        probability=ax(2).Children(2).CData;
-        score=scorer.getScore(probability);
-        text(31,.16,sprintf('J= %.0f',score),'FontSize',11,'FontWeight','bold');
-        ylim([0,.2]);
-        xlim([0 50]);
-        ax(3).YGrid='on';
-        hold on
-        plot([30 30],[0 1],'b--');
-        plot(30,0,'rp','Markersize',10,'MarkerFaceColor' ,'blue');
-        plot([10 10],[0 1],'r--');
-        plot(10,0,'bp','Markersize',10,'MarkerFaceColor','red');
-        box on
-      end
+    function axes=AnalysisFSPReducedModelControlPairs_UnregulatedUniform_Force(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedUniform');
+      axes=obj.makePlotForce(data);
     end
-    function axes=AnalsysisFSPFullModelControlPairs(obj)
+    function axes=AnalysisFSPReducedModelControlPairs_UnregulatedUniform_JD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedUniform');
+      axes=obj.makePlotJointDistrbution(data);
     end
-    function axes=AnalysisFSPReducedModels(obj)
-      
+    function axes=AnalysisFSPReducedModelControlPairs_UnregulatedUniform_MD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedUniform');
+      axes=obj.makePlotMarginalDistribution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_UnregulatedFull_Force(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedFull');
+      obj.makePlotForce(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_UnregulatedFull_JD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedFull');
+      axes=obj.makePlotJointDistrbution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_UnregulatedFull_MD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedFull');
+      axes=obj.makePlotMarginalDistribution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedUniform_Force(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedUniform');
+      obj.makePlotForce(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedUniform_JD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedUniform');
+      axes=obj.makePlotJointDistrbution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedUniform_MD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedUniform');
+      axes=obj.makePlotMarginalDistribution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedFull_Force(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedFull');
+      obj.makePlotForce(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedFull_JD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedFull');
+      axes=obj.makePlotJointDistrbution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedFull_MD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedFull');
+      axes=obj.makePlotMarginalDistribution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedReduced_Force(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedReduced');
+      obj.makePlotForce(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedReduced_JD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedReduced');
+      axes=obj.makePlotJointDistrbution(data);
+    end
+    function axes=AnalysisFSPReducedModelControlPairs_AutoregulatedReduced_MD(obj)
+      data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_AutoregulatedReduced');
+      axes=obj.makePlotMarginalDistribution(data);
     end
     function axes=AnalysisSSAFullModels(obj)
       
@@ -131,17 +97,19 @@ classdef AxesLayer
     end
     function axes=ModelFitODE_Panel(obj)
       xBox = [0, 0, 270, 270, 0];
-      yBox = [0, 30, 30, 0, 0];
-      patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
-      set(gco, 'HandleVisibility', 'off');
+      yBox = [0, 25, 25, 0, 0];
+      p1=patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+      set(p1, 'HandleVisibility', 'off');
       xBox = [270, 270, 570, 570, 0];
-      yBox = [0, 30, 30, 0, 0];
-      set(gco, 'HandleVisibility', 'off');
-      patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
+      yBox = [0, 25, 25, 0, 0];
+      
+      p2=patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
+      set(p2, 'HandleVisibility', 'off');
       xBox = [570, 570, 780, 780, 0];
-      yBox = [0, 30, 30, 0, 0];
-      patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.1, 'EdgeAlpha', 0);
-      set(gco, 'HandleVisibility', 'off');
+      yBox = [0, 25, 25, 0, 0];
+      p3=patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.1, 'EdgeAlpha', 0);
+      set(p3, 'HandleVisibility', 'off');
+      ylim([0 22])
     end
     function axes=ModelFitODE_UnregulatedFullModel_Trajectory(obj)
       data=obj.datalayer.get('ModelFitODE_UnregulatedFullModel');
@@ -149,7 +117,7 @@ classdef AxesLayer
     end
     function axes=ModelFitODE_UnregulatedReducedModel_Trajectory(obj)
       data=obj.datalayer.get('ModelFitODE_UnregulatedReducedModel')
-      axes=plot(data.time,data.state,'b-','Linewidth',3)
+      line=plot(data.time,data.state,'b-','Linewidth',3);
       
     end
     function axes=ModelFitODE_ExperimentalData_Trajectory(obj)
@@ -169,59 +137,61 @@ classdef AxesLayer
       axes=histogram(data.state,[0:60],'normalization','Probability', 'EdgeAlpha', 0);
     end
     function axes=AnalysisODEHysteresis_Regions(obj)
-      X=[80 130]
+      X=[90 145];
       xBox = [0, 0, X(1), X(1), 0];
-      yBox = [0, 30, 30, 0, 0];
-      patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.25, 'EdgeAlpha', 0);
+      yBox = [0, 120, 120, 0, 0];
+      patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
       set(gco, 'HandleVisibility', 'off');
       xBox = [X(1), X(1), X(2), X(2), 0];
-      yBox = [0, 30, 30, 0, 0];
+      yBox = [0, 120, 120, 0, 0];
       set(gco, 'HandleVisibility', 'off');
-      patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
+      patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.2, 'EdgeAlpha', 0);
       xBox = [X(2), X(2), 1000, 1000, 0];
-      yBox = [0, 30, 30, 0, 0];
-      patch(xBox, yBox, 'black', 'FaceColor', 'blue', 'FaceAlpha', 0.1, 'EdgeAlpha', 0);
+      yBox = [0, 120, 120, 0, 0];
+      patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
       set(gco, 'HandleVisibility', 'off');
-    end
-    function axes=ModelFit_UnregulatedFullModel_Histogram(obj)
-      
-    end
-    function axes=ModelFit_UnregulatedReducedModel_Trajectorys(obj)
-      
-    end
-    function axes=ModelFit_UnregulatedReducedModel_Histogram(obj)
-      
     end
     function axes=AnalysisODEHysteresis_ReducedModelAutoregulated(obj)
       data=obj.datalayer.get('AnalysisODEHysteresis_ReducedModelAutoregulated');
       hold on
-      plot(data.range,data.upTrajectory);
-      plot(data.range,data.downTrajectory);
+      line2=plot(data.range,data.upTrajectory,'b-','LineWidth',3);
+      line2.Color=[0 0 1];
+      %line2.MarkerSize=10;
+      line1=plot(data.range,data.downTrajectory,'b--','LineWidth',3);
+      line1.Color=[0 .5 1];
+      %line1.MarkerSize=3;
     end
     function axes=AnalysisODEHysteresis_ReducedModelUnregulated(obj)
       data=obj.datalayer.get('AnalysisODEHysteresis_ReducedModelUnregulated');
       hold on
-      plot(data.range,data.upTrajectory);
-      plot(data.range,data.downTrajectory);
+      line1=plot(data.range,data.upTrajectory,'k-','LineWidth',3);
+      %line1.MarkerSize=10;
+      line1.Color=[1 0 0];
+      line2=plot(data.range,data.downTrajectory,'k--','LineWidth',3);
+      %line2.MarkerSize=3;
+      line2.Color=[1 .5 0];
     end
     function axes=AnalysisODEFrequency_ReducedModels_Input(obj)
-      data=obj.datalayer.get('AnalysisODEFrequency_ReducedModels_Input');
-      axes=plot(data.time,data.input)
+      data=obj.datalayer.get('AnalysisODEFrequencySeparation_ReducedModels');
+      line=plot(data.time,data.input,'LineWidth',2);
+      axes=gca;
     end
     function axes=AnalysisODEFrequency_ReducedModels_Bound(obj)
       data=obj.datalayer.get('AnalysisODEFrequency_ReducedModels_Input');
-      axes=plot(data.time,data.upperbound)
-      axes=plot(data.time,data.lowerbound)
+      axes=plot(data.time,data.upperbound,'LineWidth',2);
+      axes=plot(data.time,data.lowerbound,'LineWidth',2);
     end
     function axes=AnalysisODEFrequencySeparation_ReducedModel(obj)
       data=obj.datalayer.get('AnalysisODEFrequencySeparation_ReducedModels');
       range1=linspace(0,2,201);
       range2=linspace(0,2,2001);
       hold on
-      axes=plot(range1,data.trajectory_LIC_w0p01.state((end-200):end));
-      axes=plot(range1,data.trajectory_HIC_w0p01.state((end-200):end));
-      axes=plot(range2,data.trajectory_LIC_w0p0001.state((end-2000):end));
-      axes=plot(range2,data.trajectory_HIC_w0p0001.state((end-2000):end));
+      line1=plot(range1,data.trajectory_LIC_w0p01.state((end-200):end),'r-','LineWidth',2);
+      line2=plot(range1,data.trajectory_HIC_w0p01.state((end-200):end),'r--','LineWidth',2);
+      line2.Color=[1 .5 0];
+      line3=plot(range2,data.trajectory_LIC_w0p0001.state((end-2000):end),'b-','LineWidth',2);
+      line4=plot(range2,data.trajectory_HIC_w0p0001.state((end-2000):end),'b--','LineWidth',2);
+      line4.Color=[0 .5 1];
     end
     function axes=AnalysisODEHysteresis_FullModelAutoregulated(obj)
       
@@ -242,30 +212,14 @@ classdef AxesLayer
       
     end
     function axes=AnalysisFitFullModel(obj)
-        
+      
     end
     function axes=AnalysisFitReducedModel(obj)
       
     end
     function axes=CalibrationCurve_FullReduced(obj)
     end
-    function axes=AnalysisSSAFSPPredictiveModelControl_Trajectory(obj)
-      data=obj.datalayer.AnalysisSSAFSPPredictiveModelControl()
-      hold on
-      plot(data.time,data.X)
-      plot(data.time,data.Y)
-      plot(data.time,data.predictionY(1:length(data.time)))
-      hold off
-      axes=gca;
-    end
-    function axes=AnalysisSSAFSPPredictiveModelControl_JointProbability(obj)
-      data=obj.datalayer.AnalysisSSAFSPPredictiveModelControl()
-      pcolorProbability(data.Pxy)
-      xlabel('Species Count Non-Target')
-      ylabel('Species Count Target')
-      LabelPlot(num2str(data.score))
-      axes=gca;
-    end
+
     function axes=AnalysisSSAFSPPredictiveModelControl_Histogram(obj)
       data=obj.datalayer.AnalysisSSAFSPPredictiveModelControl()
       hold on
@@ -275,6 +229,278 @@ classdef AxesLayer
       ylabel('Probability')
       hold off
       axes=gca;
+    end
+    function axes=AnalysisSSATwoCellSwapReducedModel_ControlInput(obj)
+      data=obj.datalayer.get('AnalysisSSATwoCellSwapReducedModel');
+      axis1=area(data.trajectory.node{1}.time(1:length(data.U)),data.U,'FaceColor','m');
+      axis1.EdgeAlpha=0;
+      tightLayout
+      set(gca, 'YGrid', 'off', 'XGrid', 'on')
+      xlabel('time(minutes)')
+      ylabel('Control Input')
+      LabelPlot('A')
+      axes=gca;
+    end
+    function axes=AnalysisSSATwoCellSwapReducedModel_Trajectory(obj)
+      data=obj.datalayer.get('AnalysisSSATwoCellSwapReducedModel');
+      v = [0 0; 1000,0; 1000,60; 0,60];
+      f = [1 2 3 4];
+      patch('Faces',f,'Vertices',v,'FaceColor','blue','FaceAlpha',.1)
+      v = [1000 0; 2000,0; 2000,60; 1000,60];
+      f = [1 2 3 4];
+      patch('Faces',f,'Vertices',v,'FaceColor','red','FaceAlpha',.1)
+      v = [2000 0; 3000,0; 3000,60; 2000,60];
+      f = [1 2 3 4];
+      hold on
+      patch('Faces',f,'Vertices',v,'FaceColor','blue','FaceAlpha',.1)
+      plot(data.trajectory.node{1}.time,30*ones(size(data.trajectory.node{1}.time)),'k-','LineWidth',1);
+      plot(data.trajectory.node{1}.time,10*ones(size(data.trajectory.node{1}.time)),'k-','LineWidth',1);
+      s1=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(1,:)','LineWidth',2);
+      s1.Color=[0 0 1]*.8;
+      s2=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(2,:)','LineWidth',2);
+      s2.Color=[1 0 0]*.8;
+      plot([1000,1000],[0 80],'k-');
+      plot([2000,2000],[0 80],'k-');
+      axis([0 3000 0 60])
+      tightLayout
+      set(gca, 'YGrid', 'on', 'XGrid', 'on')
+      xlabel('time(minutes)')
+      ylabel('Species Count')
+      LabelPlot('B')
+      axes=gca;
+    end
+    function axes=AnalysisSSATwoCellSwapReducedModel_HistogramTarget(obj)
+      data=obj.datalayer.get('AnalysisSSATwoCellSwapReducedModel');
+      hold on
+      obj.makePlotHistogram(data.initialTargetData(:),0:60-.5,[1 .75 0],.6)
+      obj.makePlotHistogram(data.finalTargetData(:),0:60-.5,'red',.4)
+      plot((0:49),data.targetMarginal,'g-.','color',[0 0 0]+.1,'linewidth',2)
+      tightLayout
+      box on
+      ylabel('Probability')
+      xlabel('Species Count')
+      legend('Initial','Final','Steady State')
+      LabelPlot('C')
+      axes=gca;
+      axes.Position=[0.6916    0.5804    0.2767    0.3626];
+    end
+    function AnalysisSSATwoCellSwapReducedModel_HistogramNonTarget(obj)
+      data=obj.datalayer.get('AnalysisSSATwoCellSwapReducedModel');
+      hold on
+      obj.makePlotHistogram(data.initialNonTargetData(:),0:60-.5,'cyan',.6)
+      obj.makePlotHistogram(data.finalNonTargetData(:),0:60-.5,'blue',.4)
+      plot((0:49),data.nonTargetMarginal,'g-.','color',[0 0 0]+.1,'linewidth',2)
+      tightLayout
+      box on
+      ylabel('Probability')
+      xlabel('Species Count')
+      legend('Initial','Final','Steady State')
+      axes=gca;
+      axes.Position=[0.6916    0.0967    0.2767    0.3626];
+      LabelPlot('D')
+    end
+    function AnalysisSSAFourCellSwapReducedModel_ControlInput(obj)
+      data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
+      axis1=area(data.trajectory.node{1}.time(1:length(data.U)),data.U,'FaceColor','m');
+      axis1.EdgeAlpha=0;
+      tightLayout
+      set(gca, 'YGrid', 'off', 'XGrid', 'on')
+      xlabel('time(minutes)')
+      ylabel('Control Input')
+      LabelPlot('A')
+      axes=gca;
+    end
+    function AnalysisSSAFourCellSwapReducedModel_Trajectory(obj)
+      data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
+      v = [0 0; 1000,0; 1000,60; 0,60];
+      f = [1 2 3 4];
+      patch('Faces',f,'Vertices',v,'FaceColor','blue','FaceAlpha',.1)
+      v = [1000 0; 2000,0; 2000,60; 1000,60];
+      f = [1 2 3 4];
+      patch('Faces',f,'Vertices',v,'FaceColor','red','FaceAlpha',.1)
+      v = [2000 0; 3000,0; 3000,60; 2000,60];
+      f = [1 2 3 4];
+      patch('Faces',f,'Vertices',v,'FaceColor','green','FaceAlpha',.1)
+      hold on
+      plot(data.trajectory.node{1}.time,30*ones(size(data.trajectory.node{1}.time)),'k-','LineWidth',1);
+      plot(data.trajectory.node{1}.time,10*ones(size(data.trajectory.node{1}.time)),'k-','LineWidth',1);
+      s1=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(1,:)','LineWidth',2);
+      s1.Color=[0 0 1]*.8;
+      s2=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(2,:)','LineWidth',2);
+      s2.Color=[1 0 0]*.8;
+      s3=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(3,:)','LineWidth',2);
+      s3.Color=[0 1 0]*.8;
+      s4=stairs(data.trajectory.node{1}.time,data.trajectory.node{1}.state(4,:)','LineWidth',1);
+      s4.Color=[.5 .5 .5]*.8;
+      plot([1000,1000],[0 80],'k-');
+      plot([2000,2000],[0 80],'k-');
+      axis([0 3000 0 60])
+      tightLayout
+      set(gca, 'YGrid', 'on', 'XGrid', 'on')
+      xlabel('time(minutes)')
+      ylabel('Species Count')
+      LabelPlot('B')
+      axes=gca;
+    end
+    function AnalysisSSAFourCellSwapReducedModel_HistogramTarget(obj)
+      data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
+      hold on
+      obj.makePlotHistogram(data.initialTargetData(:),0:60-.5,[1 .75 0],.6)
+      obj.makePlotHistogram(data.finalTargetData(:),0:60-.5,'red',.4)
+      plot((0:49),data.targetMarginal,'g-.','color',[0 0 0]+.1,'linewidth',2)
+      tightLayout
+      box on
+      ylabel('Probability')
+      xlabel('Species Count')
+      legend('Initial','Final','Steady State')
+      LabelPlot('C')
+      axes=gca;
+      axes.Position=[0.6916    0.5804    0.2767    0.3626];
+    end
+    function AnalysisSSAFourCellSwapReducedModel_HistogramNonTarget(obj)
+      data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
+      hold on
+      obj.makePlotHistogram(data.initialNonTargetData(:),0:60-.5,'cyan',.6)
+      obj.makePlotHistogram(data.finalNonTargetData(:),0:60-.5,'blue',.4)
+      plot((0:49),data.nonTargetMarginal,'g-.','color',[0 0 0]+.1,'linewidth',2)
+      tightLayout
+      box on
+      ylabel('Probability')
+      xlabel('Species Count')
+      legend('Initial','Final','Steady State')
+      axes=gca;
+      axes.Position=[0.6916    0.0967    0.2767    0.3626];
+      LabelPlot('D')
+    end
+    function axes=AnalysisSSAFSPPredictiveModelControl_ControlInput(obj)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
+      axes=area(data.time,data.U,'FaceColor','m');
+      axes.EdgeAlpha=0;
+      set(gca, 'YGrid', 'off', 'XGrid', 'on')
+      xlabel('time(minutes)')
+      ylabel('Control Input')
+      grid(gca,'on');
+      xlim([0 3000]);
+      axes=gca;
+    end
+    function AnalysisSSAFSPPredictiveModelControl_Trajectory(obj)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
+      hold on
+      [X,Y]=meshgrid(data.time,0:49);
+      pcolorplot=pcolor(X,Y,data.P);
+      pcolorplot.EdgeAlpha=0;
+      colormap(flipud(gray))
+      set(gco,'handlevisibility','off')
+      caxis([0 0.2])
+      hold on
+      plot(data.time,data.X,'LineWidth',2)
+      plot(data.time,data.Y,'LineWidth',2)
+      plot(data.time,data.predictionY,'LineWidth',2)
+      legend('Probability','Target','NonTarget','Prediction')
+      xlim([0 3000]);
+      grid(gca,'on')
+      box(gca,'on')
+      xlabel('time (minutes)')
+      ylabel('Species Count')
+    end
+    function AnalysisSSAFSPPredictiveModelControl_JD(obj)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
+      [xVec]=[1:(size(data.steadystate,1))]-1;
+      [yVec]=[1:(size(data.steadystate,2))]-1;
+      [X,Y]=meshgrid(xVec,yVec);
+      hold on
+      pFig=pcolor(X,Y,data.steadystate);
+      pFig.EdgeAlpha=0;
+      axis([0,50,0,50]);
+      cmap=hot;
+      colormap(gca,cmap(20:end,:))
+      blueX=scatter(data.target(2),data.target(1),30,'wo');
+      blueX.MarkerEdgeColor=[1 1 1];
+      blueX.LineWidth=2;
+      caxis([0 .04])
+      axes=gca;
+      xlabel('Species Count')
+      ylabel('Species Count')
+      colorbar()
+    end
+    function AnalysisSSAFSPPredictiveModelControl_MD(obj)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
+      hold on
+      plot([data.target(1) data.target(1)],[0 1],'b--','HandleVisibility','off')
+      plot(data.target(1),0,'bp','Markersize',10,'MarkerFaceColor' ,'blue','HandleVisibility','off')
+      plot([data.target(2) data.target(2)],[0 1],'r--','HandleVisibility','off')
+      plot(data.target(2),0,'rp','Markersize',10,'MarkerFaceColor','red','HandleVisibility','off')
+      xMarginal=sum(data.steadystate,2);
+      yMarginal=sum(data.steadystate,1);
+      lineP1ot1=plot(0:(length(xMarginal)-1),xMarginal,'b-');
+      lineP1ot1.LineWidth=3;
+      linePlot2=plot(0:(length(yMarginal)-1),yMarginal,'r-.');
+      linePlot2.LineWidth=3;
+      ylim([0,.2])
+      xlim([0 50])
+      axes=gca;
+      axes.YGrid='on';
+      text(31,.16,sprintf('J= %.0f',data.score),'FontSize',11,'FontWeight','bold');
+      xlabel('Species Count')
+      ylabel('Probability')
+    end
+    function axes=makePlotForce(obj,data)
+      hold on
+      pcolorProbability(data.controlInput);
+      plotQuiver=quiver(data.sampleX,data.sampleY,data.forcesX,data.forcesY,4/data.stepSize^2,'LineWidth',1);
+      plotQuiver.Color=[1,1,1];
+      xlim([0 50]);
+      ylim([0 50]);
+      set(gca,'xticklabel',[])
+      set(gca,'yticklabel',[])
+      caxis([0 1000]);
+      axes=gca;
+    end
+    function axes=makePlotJointDistrbution(obj,data)
+      hold on
+      [xVec]=[1:(size(data.steadystate,1))]-1;
+      [yVec]=[1:(size(data.steadystate,2))]-1;
+      [X,Y]=meshgrid(xVec,yVec);
+      pFig=pcolor(X,Y,data.steadystate);
+      pFig.EdgeAlpha=0;
+      axis([0,50,0,50])
+      cmap=hot;
+      colormap(gca,cmap(20:end,:))
+      blueX=scatter(data.target(2),data.target(1),30,'wo');
+      blueX.MarkerEdgeColor=[1 1 1];
+      blueX.LineWidth=2;
+      set(gca,'xticklabel',[])
+      set(gca,'yticklabel',[])
+      caxis([0 .04])
+      axes=gca;
+    end
+    function axes=makePlotMarginalDistribution(obj,data)
+      hold on
+      plot([data.target(1) data.target(1)],[0 1],'b--','HandleVisibility','off')
+      plot(data.target(1),0,'bp','Markersize',10,'MarkerFaceColor' ,'blue','HandleVisibility','off')
+      plot([data.target(2) data.target(2)],[0 1],'r--','HandleVisibility','off')
+      plot(data.target(2),0,'rp','Markersize',10,'MarkerFaceColor','red','HandleVisibility','off')
+      xMarginal=sum(data.steadystate,2);
+      yMarginal=sum(data.steadystate,1);
+      lineP1ot1=plot(0:(length(xMarginal)-1),xMarginal,'b-');
+      lineP1ot1.LineWidth=3;
+      linePlot2=plot(0:(length(yMarginal)-1),yMarginal,'r-.');
+      linePlot2.LineWidth=3;
+      ylim([0,.2])
+      xlim([0 50])
+      set(gca,'xticklabel',[])
+      set(gca,'yticklabel',[])
+      hold off
+      axes=gca;
+      axes.YGrid='on';
+      text(31,.16,sprintf('J= %.0f',data.score),'FontSize',11,'FontWeight','bold');
+    end
+    function histogramFig=makePlotHistogram(obj,data,bins,color,alpha)
+      histogramFig=histogram(data,bins,'Normalization','probability');
+      histogramFig.EdgeAlpha=0;
+      histogramFig.FaceAlpha=alpha;
+      histogramFig.FaceColor=color;
+      histogramFig.LineWidth=2;
     end
   end
 end

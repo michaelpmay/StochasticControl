@@ -1,8 +1,8 @@
 addpath(genpath('utility/'));
 clear all
-quartiles=[.75 .8 .85 .9];
+quartiles=[.8];
 for k=1:5
-parfor i=1:length(quartiles)
+for i=1:length(quartiles)
   data{i}=getData(quartiles(i));
   makeplot(data{i})
 end
