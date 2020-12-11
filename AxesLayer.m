@@ -10,21 +10,44 @@ classdef AxesLayer
     function axes=AnalysisODEFrequencyOmegaCrit_ReducedModel(obj)
       data=obj.datalayer.get('AnalysisODEFrequencyOmegaCrit_ReducedModel');
       hold on
-      line1=plot(data.wHigh_LIC.state((end-50):end),'b-','LineWidth',2)
-      line1.Color=[0 0 1];
-      line2=plot(data.wHigh_HIC.state((end-50):end),'b--','LineWidth',2)
-      line2.Color=[0 0 1]*.7;
-      line3=plot(data.wLow_LIC.state((end-50):end),'r-','LineWidth',2)
+      line1=plot(linspace(0,2,51),data.wHigh_LIC.state((end-50):end),'g-','LineWidth',3)
+      line1.Color=[0 1 0];
+      line2=plot(linspace(0,2,51),data.wHigh_HIC.state((end-50):end),'g--','LineWidth',3)
+      line2.Color=[0 .5 1];
+      line3=plot(linspace(0,2,51),data.wLow_LIC.state((end-50):end),'r-.','LineWidth',3)
       line3.Color=[1 0 0];
-      line4=plot(data.wLow_HIC.state((end-50):end),'r--','LineWidth',2)
-      line4.Color=[1 0 0]*.7;
+      line4=plot(linspace(0,2,51),data.wLow_HIC.state((end-50):end),'r--','LineWidth',3)
+      line4.Color=[1 .5 0];
+      axes=gca;
+      axes.Color=[1 1 1]*.95;
+      axes.XGrid = 'on';
     end
     function axes=AnalysisODESSAFrequency_ReducedModel_Trajectory(obj)
       data=obj.datalayer.get('AnalysisODESSAFrequency_ReducedModel');
+      traj=data.SSA.node{1}.state((end-1500):end)>20;
+      time=data.SSA.node{1}.time(1:1501);
       hold on
-      plot(data.ODE_HIC.state((end-1500):end),'LineWidth',2)
-      plot(data.ODE_LIC.state((end-1500):end),'LineWidth',2)
-      plot(data.SSA.node{1}.state((end-1500):end),'LineWidth',2)
+      for i=2:2:length(traj)
+        xl=[time(i-1) time(i+1)];
+        yl=[0 60];
+        if traj(i)==1
+          p{i}=patch([xl(1),xl(2),xl(2),xl(1),xl(1)],...
+                 [yl(1),yl(1),yl(2),yl(2),yl(1)],'blue');
+        else
+          p{i}=patch([xl(1),xl(2),xl(2),xl(1),xl(1)],...
+                 [yl(1),yl(1),yl(2),yl(2),yl(1)],'red');
+        end
+        p{i}.FaceAlpha=.1;
+        p{i}.EdgeAlpha=0;
+        p{i}.HandleVisibility='off';
+      end
+      line1=plot(time,data.ODE_HIC.state((end-1500):end),'LineWidth',3);
+      line2=plot(time,data.ODE_LIC.state((end-1500):end),'LineWidth',3);
+      line3=plot(time,data.SSA.node{1}.state((end-1500):end),'LineWidth',3)
+      line3.Color=[1 0 1]*.7;
+      axes=gca;
+      box(axes)
+      axes.Color=[1 1 1]*.95;
     end
     function axes=AnalysisFSPReducedModelControlPairs_UnregulatedUniform_Force(obj)
       data=obj.datalayer.get('AnalysisFSPReducedModelControlPairs_UnregulatedUniform');
@@ -117,16 +140,28 @@ classdef AxesLayer
     end
     function axes=ModelFitODE_UnregulatedReducedModel_Trajectory(obj)
       data=obj.datalayer.get('ModelFitODE_UnregulatedReducedModel')
-      line=plot(data.time,data.state,'b-','Linewidth',3);
+      hold on
+      line1=plot(data.time,data.state,'b-','Linewidth',3);
       
     end
     function axes=ModelFitODE_ExperimentalData_Trajectory(obj)
       data=obj.datalayer.get('ModelFitODE_ExperimentalData')
       axes=plot(data.time,data.state/max(data.state)*20,'k.','MarkerSize',24)
     end
+    function axes=ModelFitODEUnregulatedReducedModel_Calibration(obj)
+      data=obj.datalayer.get('ModelFitODEUnregulatedReducedModel_Calibration');
+      hold on
+      line1=plot(data.calibration(1,:),data.calibration(2,:),'LineWidth',3);
+      line2=plot(data.TruePoints(1,:),data.TruePoints(2,:),'k.','MarkerSize',24);
+      axes=gca;
+      axes.Color=[1 1 1]*.95;
+      axes.XGrid = 'on';
+    end
     function axes=ModelFitSSA_UnregulatedReducedModel_Low_Histogram(obj)
       data=obj.datalayer.get('ModelFitSSA_UnregulatedReducedModel_Low')
-      axes=histogram(data.state,[0:60],'normalization','Probability', 'EdgeAlpha', 0);
+      histogram1=histogram(data.state,[0:60],'normalization','Probability', 'EdgeAlpha', 0);
+      axes=gca;
+      axes.Color=[1 1 1]*.95;
     end
     function axes=ModelFitSSA_UnregulatedReducedModel_Med_Histogram(obj)
       data=obj.datalayer.get('ModelFitSSA_UnregulatedReducedModel_Med')
@@ -140,16 +175,17 @@ classdef AxesLayer
       X=[90 145];
       xBox = [0, 0, X(1), X(1), 0];
       yBox = [0, 120, 120, 0, 0];
-      patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
-      set(gco, 'HandleVisibility', 'off');
+      p1=patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
+      set(p1, 'HandleVisibility', 'off');
       xBox = [X(1), X(1), X(2), X(2), 0];
       yBox = [0, 120, 120, 0, 0];
-      set(gco, 'HandleVisibility', 'off');
-      patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.2, 'EdgeAlpha', 0);
+      p2=patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.2, 'EdgeAlpha', 0);
+      set(p2, 'HandleVisibility', 'off');
+      
       xBox = [X(2), X(2), 1000, 1000, 0];
       yBox = [0, 120, 120, 0, 0];
-      patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
-      set(gco, 'HandleVisibility', 'off');
+      p3=patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.05, 'EdgeAlpha', 0);
+      set(p3, 'HandleVisibility', 'off');
     end
     function axes=AnalysisODEHysteresis_ReducedModelAutoregulated(obj)
       data=obj.datalayer.get('AnalysisODEHysteresis_ReducedModelAutoregulated');
@@ -173,25 +209,33 @@ classdef AxesLayer
     end
     function axes=AnalysisODEFrequency_ReducedModels_Input(obj)
       data=obj.datalayer.get('AnalysisODEFrequencySeparation_ReducedModels');
-      line=plot(data.time,data.input,'LineWidth',2);
+      hold on
+      line2=plot(data.time,data.upperbound,'k--','Linewidth',1);
+      line3=plot(data.time,data.lowerbound,'k--','Linewidth',1);
+      line1=plot(data.time,data.input,'m-','LineWidth',3);
+      xBox = [0, 0, 2, 2, 0];
+      yBox = [data.lowerbound(1), data.upperbound(1), data.upperbound(1), data.lowerbound(1), data.lowerbound(1)];
+      p1=patch(xBox, yBox, 'black', 'FaceColor', 'black', 'FaceAlpha', 0.1, 'EdgeAlpha', 0);
+      set(p1, 'HandleVisibility', 'off');
       axes=gca;
-    end
-    function axes=AnalysisODEFrequency_ReducedModels_Bound(obj)
-      data=obj.datalayer.get('AnalysisODEFrequency_ReducedModels_Input');
-      axes=plot(data.time,data.upperbound,'LineWidth',2);
-      axes=plot(data.time,data.lowerbound,'LineWidth',2);
+      axes.Color=[1 1 1]*.95;
+      axes.XGrid = 'on';
     end
     function axes=AnalysisODEFrequencySeparation_ReducedModel(obj)
       data=obj.datalayer.get('AnalysisODEFrequencySeparation_ReducedModels');
       range1=linspace(0,2,201);
       range2=linspace(0,2,2001);
       hold on
-      line1=plot(range1,data.trajectory_LIC_w0p01.state((end-200):end),'r-','LineWidth',2);
-      line2=plot(range1,data.trajectory_HIC_w0p01.state((end-200):end),'r--','LineWidth',2);
-      line2.Color=[1 .5 0];
-      line3=plot(range2,data.trajectory_LIC_w0p0001.state((end-2000):end),'b-','LineWidth',2);
-      line4=plot(range2,data.trajectory_HIC_w0p0001.state((end-2000):end),'b--','LineWidth',2);
+      line3=plot(range2,data.trajectory_LIC_w0p0001.state((end-2000):end),'g-','LineWidth',3);
+      line4=plot(range2,data.trajectory_HIC_w0p0001.state((end-2000):end),'g--','LineWidth',3);
       line4.Color=[0 .5 1];
+      line1=plot(range1,data.trajectory_LIC_w0p01.state((end-200):end),'r-.','LineWidth',3);
+      line2=plot(range1,data.trajectory_HIC_w0p01.state((end-200):end),'r--','LineWidth',3);
+      line2.Color=[1 .5 0];
+      
+      axes=gca;
+      axes.Color=[1 1 1]*.95;
+      axes.XGrid = 'on';
     end
     function axes=AnalysisODEHysteresis_FullModelAutoregulated(obj)
       
@@ -219,7 +263,6 @@ classdef AxesLayer
     end
     function axes=CalibrationCurve_FullReduced(obj)
     end
-
     function axes=AnalysisSSAFSPPredictiveModelControl_Histogram(obj)
       data=obj.datalayer.AnalysisSSAFSPPredictiveModelControl()
       hold on
@@ -240,6 +283,8 @@ classdef AxesLayer
       ylabel('Control Input')
       LabelPlot('A')
       axes=gca;
+      axes.Color=[1 1 1]*.95;
+      axes.XGrid = 'on';
     end
     function axes=AnalysisSSATwoCellSwapReducedModel_Trajectory(obj)
       data=obj.datalayer.get('AnalysisSSATwoCellSwapReducedModel');
@@ -283,6 +328,7 @@ classdef AxesLayer
       LabelPlot('C')
       axes=gca;
       axes.Position=[0.6916    0.5804    0.2767    0.3626];
+      axes.Color=[1 1 1]*.95;
     end
     function AnalysisSSATwoCellSwapReducedModel_HistogramNonTarget(obj)
       data=obj.datalayer.get('AnalysisSSATwoCellSwapReducedModel');
@@ -297,6 +343,7 @@ classdef AxesLayer
       legend('Initial','Final','Steady State')
       axes=gca;
       axes.Position=[0.6916    0.0967    0.2767    0.3626];
+      axes.Color=[1 1 1]*.95;
       LabelPlot('D')
     end
     function AnalysisSSAFourCellSwapReducedModel_ControlInput(obj)
@@ -309,6 +356,7 @@ classdef AxesLayer
       ylabel('Control Input')
       LabelPlot('A')
       axes=gca;
+      axes.Color=[1 1 1]*.95;
     end
     function AnalysisSSAFourCellSwapReducedModel_Trajectory(obj)
       data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
@@ -342,7 +390,7 @@ classdef AxesLayer
       LabelPlot('B')
       axes=gca;
     end
-    function AnalysisSSAFourCellSwapReducedModel_HistogramTarget(obj)
+    function axes=AnalysisSSAFourCellSwapReducedModel_HistogramTarget(obj)
       data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
       hold on
       obj.makePlotHistogram(data.initialTargetData(:),0:60-.5,[1 .75 0],.6)
@@ -356,8 +404,9 @@ classdef AxesLayer
       LabelPlot('C')
       axes=gca;
       axes.Position=[0.6916    0.5804    0.2767    0.3626];
+      axes.Color=[1 1 1]*.95;
     end
-    function AnalysisSSAFourCellSwapReducedModel_HistogramNonTarget(obj)
+    function axes=AnalysisSSAFourCellSwapReducedModel_HistogramNonTarget(obj)
       data=obj.datalayer.get('AnalysisSSAFourCellSwapReducedModel');
       hold on
       obj.makePlotHistogram(data.initialNonTargetData(:),0:60-.5,'cyan',.6)
@@ -370,6 +419,7 @@ classdef AxesLayer
       legend('Initial','Final','Steady State')
       axes=gca;
       axes.Position=[0.6916    0.0967    0.2767    0.3626];
+      axes.Color=[1 1 1]*.95;
       LabelPlot('D')
     end
     function axes=AnalysisSSAFSPPredictiveModelControl_ControlInput(obj)
@@ -382,8 +432,9 @@ classdef AxesLayer
       grid(gca,'on');
       xlim([0 3000]);
       axes=gca;
+      axes.Color=[1 1 1]*.95;
     end
-    function AnalysisSSAFSPPredictiveModelControl_Trajectory(obj)
+    function axes=AnalysisSSAFSPPredictiveModelControl_Trajectory(obj)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
       hold on
       [X,Y]=meshgrid(data.time,0:49);
@@ -396,14 +447,15 @@ classdef AxesLayer
       plot(data.time,data.X,'LineWidth',2)
       plot(data.time,data.Y,'LineWidth',2)
       plot(data.time,data.predictionY,'LineWidth',2)
-      legend('Probability','Target','NonTarget','Prediction')
+      legend({'Probability','Target','NonTarget','Prediction'},'Orientation','horizontal');
       xlim([0 3000]);
       grid(gca,'on')
       box(gca,'on')
       xlabel('time (minutes)')
       ylabel('Species Count')
+      axes=gca;
     end
-    function AnalysisSSAFSPPredictiveModelControl_JD(obj)
+    function axes=AnalysisSSAFSPPredictiveModelControl_JD(obj)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
       [xVec]=[1:(size(data.steadystate,1))]-1;
       [yVec]=[1:(size(data.steadystate,2))]-1;
@@ -423,7 +475,7 @@ classdef AxesLayer
       ylabel('Species Count')
       colorbar()
     end
-    function AnalysisSSAFSPPredictiveModelControl_MD(obj)
+    function axes=AnalysisSSAFSPPredictiveModelControl_MD(obj)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveModelControl');
       hold on
       plot([data.target(1) data.target(1)],[0 1],'b--','HandleVisibility','off')
@@ -443,6 +495,39 @@ classdef AxesLayer
       text(31,.16,sprintf('J= %.0f',data.score),'FontSize',11,'FontWeight','bold');
       xlabel('Species Count')
       ylabel('Probability')
+      axes=gca;
+      axes.Color=[1 1 1]*.95;
+    end
+    function axes=CalibrationCurveUnregulatedFullReduced_Hysteresis(obj)
+      data1=obj.datalayer.get('CalibrationCurveHysteresisCalibratedModel');
+      data2=obj.datalayer.get('AnalysisODEHysteresis_ReducedModelAutoregulated');
+      hold on
+      line1=plot(data1.range,data1.upTrajectory,'LineWidth',2)
+      line2=plot(data1.range,data1.downTrajectory,'LineWidth',2)
+      line3=plot(data2.range,data2.upTrajectory,'LineWidth',2)
+      line4=plot(data2.range,data2.downTrajectory,'LineWidth',2)
+      axes=gca;
+    end
+    function axes=AnalysisODEFrequencySeparation_FullModels_TrajectoryLow(obj)
+      data=obj.datalayer.get('AnalysisODEFrequencySeparation_FullModels');
+      hold on
+      line1=plot(data.upAnalysis,data.range,'LineWidth',2)
+      line2=plot(data.downanalysis,data.range,'LineWidth',2)
+      axes=gca;
+    end
+    function axes=AnalysisODEFrequencySeparation_FullModels_TrajectoryMed(obj)
+      data=obj.datalayer.get('AnalysisODEFrequencySeparation_FullModels');
+      hold on
+      line1=plot(data.upAnalysis,data.range,'LineWidth',2)
+      line2=plot(data.downanalysis,data.range,'LineWidth',2)
+      axes=gca;
+    end
+    function axes=AnalysisODEFrequencySeparation_FullModels_TrajectoryHigh(obj)
+      data=obj.datalayer.get('AnalysisODEFrequencySeparation_FullModels');
+      hold on
+      line1=plot(data.upAnalysis,data.range,'LineWidth',2)
+      line2=plot(data.downanalysis,data.range,'LineWidth',2)
+      axes=gca;
     end
     function axes=makePlotForce(obj,data)
       hold on

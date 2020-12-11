@@ -14,9 +14,9 @@ classdef ModelFactory
     ControlInput2D=@(t,x,field)field(x(1)+1,x(2)+1);
     ControlInput1D=@(t,x,field)field(x(1)+1);
     frequencyInput=@(t,x,u)u(2)*sin(2*pi*u(1).*t)+u(3)
-    u=[200    0  60]
+    u=[200    0  50]
     eu=[249.588 1.3809 60.6751]
-    fullKhammashU=[320 0 20]
+    fullU=[320 0 20]
     time=linspace(0,780)
     dims=[50 50]
     controlable=true;
@@ -49,6 +49,14 @@ classdef ModelFactory
       model.initialState=[0;0];
     end
     function model=unregulatedModelWithExperimentalInput(obj)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ka obj.ga obj.alpha obj.u];
+      model.rxnRate=@(t,x,p)[p(1)+p(3)*obj.ExperimentalInput(t,x,obj.u) ; p(2)*x(1)];
+      model.initialState=[0];
+      model.time=obj.time;
+    end
+    function model=unregulatedModelWithExperimentalInputNoAlpha(obj)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
       model.parameters=[obj.ka obj.ga obj.alpha];
@@ -162,7 +170,6 @@ classdef ModelFactory
       model.initialState=[1;1;0;0;0;1;1;0;0;0];
       model.time=obj.time;
     end
-    
     function model=optimizedTwoCellModel(obj)
       model=obj.autoregulatedModelWithoutInput;
       load('data/controlers/FullControlerAutoregulatedModelControler');
@@ -223,7 +230,6 @@ classdef ModelFactory
         end
       end
     end
-    
     function model=simple2by2Model(obj)
       model=obj.makeModelObject();
       model.rxnRate=@(t,x,p)[p(1)+exp(-p(5)*t);p(2)*x(1);p(3)+exp(-p(6)*t);p(4)*x(2)];
@@ -341,7 +347,7 @@ classdef ModelFactory
         p(7)*x(4);
         p(8)*x(4);
         obj.ga*x(5)];
-      model.initialState=[0;0;0;0;0]
+      model.initialState=[0;0;0;0;0];
       model.time=obj.time;
     end
     function model=khammashFullAutoModelWithControlInput(obj,controlInput,scale)
@@ -506,13 +512,22 @@ classdef ModelFactory
         (p(2))*x(1);
         3*p(1);
         (p(2))*x(2);
-        (p(3)*interp1(calibration(1,:),calibration(2,:),p(13)))*x(1)*x(2);
+        (p(3)*calibrate(p(13),calibration))*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
         p(6)*x(3)*(obj.maxGenes-x(4));
         (p(7))*x(4);
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5)];
+      function output=calibrate(input,calibration)
+        if input<calibration(1,1)
+          output=calibration(2,1);
+        elseif input>(calibration(1,end))
+          output=calibration(2,end);
+        else
+          output=interp1(calibration(1,:),calibration(2,:),input);
+        end
+      end
     end
     function model=fullAutoModel(obj)
       model=obj.fullModelWithExperimentalInput;
@@ -546,14 +561,12 @@ classdef ModelFactory
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5)];
     end
-    function model=calibratedFullAutoModelWithFrequencyInput(obj,freq,amp,dc)
+    function model=calibratedFullAutoModelWithFrequencyInput(obj,freq,amp,dc,calibration)
       layer=DataLayer()
-      layer.CalibrationCurve_FullReduced
-      load('data/file/makeAutoModelCalibration/calibration')
+      data=layer.get('CalibrationCurveUnregulatedFullReduced')
+      calibration=data.calibration;
       model=obj.fullAutoModel;
-      calibrationFS=calibrationFS;
       input=@(t)amp*sin(2*pi*freq*t)+dc;
-      cInput=@(t)interp1(calibrationFS(1,:),calibrationFS(2,:),input(t))
       model.rxnRate=@(t,x,p)[
         p(1);
         (p(2))*x(1);
@@ -568,9 +581,13 @@ classdef ModelFactory
         obj.ga*x(5)];
       function output=cinput(t)
         input=@(t)amp*sin(2*pi*freq*t)+dc;
-        output=interp1(calibrationFS(1,:),calibrationFS(2,:),input(t));
-        if isnan(output)
-          output=calibrationFS(2,end);
+        currentInput=input(t);
+        if currentInput<calibration(1,1)
+          output=calibration(1,2);
+        elseif currentInput>calibration(1,end)
+          output=calibration(end,2);
+        else
+          output=interp1(calibration(1,:),calibration(2,:),input(t));
         end
       end
     end

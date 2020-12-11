@@ -1,6 +1,6 @@
 classdef SteadyStateControlOptimizer
   properties
-    maxControlerBounds=10
+    maxControlerBounds=600
     minControlerBounds=.000001
     numIterations=50
     modelFsp

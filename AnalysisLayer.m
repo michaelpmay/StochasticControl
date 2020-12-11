@@ -33,7 +33,6 @@ classdef AnalysisLayer
       data.time=2*timeRange/max(timeRange);
       data.upperbound=145*ones(size(timeRange));
       data.lowerbound=90*ones(size(timeRange));
-      data.input=input;
     end
     function data=AnalysisODEFrequencySeparation_FullModels()
       builder=ModelFactoryTestModels;
@@ -64,8 +63,8 @@ classdef AnalysisLayer
           end
           initialmodel{i}.time=0:2000;
           initialOde{i}=SolverODE(initialmodel{i});
-          data=initialOde{i}.run;
-          initialState=data.state(:,end);
+          traj=initialOde{i}.run;
+          initialState=traj.state(:,end);
           ode{i}.model=model{i};
           ode{i}.model.time=time;
           ode{i}.model.initialState=initialState;
@@ -73,17 +72,20 @@ classdef AnalysisLayer
           pBucket=pBucket.add(func{end},{});
         end
       end
-      data=pBucket.run();
+      data.trajectories=pBucket.nonParallelRun();
+      input=@(t,x,p)build.frequencyInput(t,x,p);
+      timeRange=linspace(0,2/freq,100)
+      data.input=input(timeRange,0,[freq amp dc]);
+      data.time=2*timeRange/max(timeRange);
     end
     function data=AnalysisODEFrequencyOmegaCrit_ReducedModel()
       build=ModelFactory;
-      freq=linspace(0.004353,0.004352,2);
+      freq=linspace(0.0043525,0.0043522,2);
       T=1./freq;
       amp=[.21]/build.alpha;%.315
       dc=.210/build.alpha;
       initialState=[0, 40];
       time=[0 1000];
-      
       steps=6500;%500000
       menu=ParallelMenu;
       for i=1:length(freq)
@@ -272,20 +274,22 @@ classdef AnalysisLayer
       %not needed
     end
     function data=OptimizeControlerReducedModels()
-      data.FullControlAutoregulatedModelControler=makeFullControlerAutoregulatedModelOptimization(60,70);
-      data.UniformControlAutoregulatedModelControler=makeUniformControlerAutoregulatedModelOptimization(60,20);
-      data.FullControlUnregulatedModelControler=makeFullControlerUnregulatedModelOptimization(60,70);
-      data.UniformControlUnregulatedModelControler=makeUniformControlerUnregulatedModelOptimization(60,20);
-      data.ReducedControlAutoregulatedModelControler=makeReducedControlerAutoregulatedModelOptimization(90,120);
+      data.FullControlAutoregulatedModelControler=makeFullControlerAutoregulatedModelOptimization(1,70);
+      data.UniformControlAutoregulatedModelControler=makeUniformControlerAutoregulatedModelOptimization(1,20);
+      data.FullControlUnregulatedModelControler=makeFullControlerUnregulatedModelOptimization(1,70);
+      data.UniformControlUnregulatedModelControler=makeUniformControlerUnregulatedModelOptimization(1,20);
+      data.ReducedControlAutoregulatedModelControler=makeReducedControlerAutoregulatedModelOptimization(1,120);
       
       function controlInput=makeFullControlerAutoregulatedModelOptimization(numIterations,gNumIterations)
         builder=ModelFactory;
         model=builder.autoregulatedModelWithoutInput();
-        model.controlInput=300*ones(50);
+        layer=DataLayer;
+        controller=layer.get('ControlInputs_ReducedModels');
+        model.controlInput=controller.FullControlAutoregulatedModelControler;
         modelFsp=TwoCellFSP(model,[50 50]);
         
         optimizer=GradientControlerOptimizer;
-        optimizer.initialRate=.5;
+        optimizer.initialRate=5000;
         optimizer.saveInject=false;
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=FullGradientCalculator();
@@ -296,11 +300,13 @@ classdef AnalysisLayer
       function controlInput=makeUniformControlerAutoregulatedModelOptimization(numIterations,gNumIterations)
         builder=ModelFactory;
         model=builder.autoregulatedModelWithoutInput();
-        model.controlInput=300*ones(50);
+        layer=DataLayer();
+        controller=layer.get('ControlInputs_ReducedModels');
+        model.controlInput=controller.UniformControlAutoregulatedModelControler;
         modelFsp=TwoCellFSP(model,[50 50]);
         
         optimizer=GradientControlerOptimizer;
-        optimizer.initialRate=.5;
+        optimizer.initialRate=5000;
         optimizer.saveInject=false;
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=UniformGradientCalculator(modelFsp);
@@ -311,11 +317,12 @@ classdef AnalysisLayer
       function controlInput=makeFullControlerUnregulatedModelOptimization(numIterations,gNumIterations)
         builder=ModelFactory;
         model=builder.unregulatedModelWithoutInput();
-        model.controlInput=300*ones(50);
+        layer=DataLayer();
+        controller=layer.get('ControlInputs_ReducedModels');
+        model.controlInput=controller.FullControlUnregulatedModelControler;
         modelFsp=TwoCellFSP(model,[50 50]);
         optimizer=GradientControlerOptimizer;
-        optimizer.initialControler=.3*ones(50);
-        optimizer.initialRate=.5;
+        optimizer.initialRate=5000;
         optimizer.saveInject=false;
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=FullGradientCalculator();
@@ -327,10 +334,12 @@ classdef AnalysisLayer
       function controlInput=makeUniformControlerUnregulatedModelOptimization(numIterations,gNumIterations)
         builder=ModelFactory;
         model=builder.unregulatedModelWithoutInput();
-        model.controlInput=300*ones(50);
+        layer=DataLayer();
+        controller=layer.get('ControlInputs_ReducedModels');
+        model.controlInput=controller.UniformControlUnregulatedModelControler;
         modelFsp=TwoCellFSP(model,[50 50]);
         optimizer=GradientControlerOptimizer;
-        optimizer.initialRate=.5;
+        optimizer.initialRate=5000;
         optimizer.saveInject=false;
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=UniformGradientCalculator(modelFsp);
@@ -341,11 +350,12 @@ classdef AnalysisLayer
       function controlInput=makeReducedControlerAutoregulatedModelOptimization(numIterations,gNumIterations)
         builder=ModelFactory;
         model=builder.autoregulatedModelWithoutInput();
-        model.controlInput=300*ones(50);
+        layer=DataLayer();
+        controller=layer.get('ControlInputs_ReducedModels');
+        model.controlInput=controller.ReducedControlAutoregulatedModelControler;
         modelFsp=TwoCellFSP(model,[50 50]);
         optimizer=GradientControlerOptimizer;
-        optimizer.initialControler=controlInput;
-        optimizer.initialRate=.02;
+        optimizer.initialRate=5000;
         optimizer.saveInject=true;
         optimizer.numIterations=numIterations;
         optimizer.gradCalc=ReducedGradientCalculator(modelFsp);
@@ -604,52 +614,81 @@ classdef AnalysisLayer
       data.ReducedControlAutoregulatedModelControler_FMCalibration=controlInput;
     end
     function data=ControlInputs_ReducedModels()
+      load 'data/controlers/Controllers_ReducedModels.mat'
+    end
+    function data=ControlInputs_ReducedModelsOld()
       load data/controlers/FullControlerAutoregulatedModelControler.mat
-      data.FullControlAutoregulatedModelControler=controlInput;
+      data.FullControlAutoregulatedModelControler_FMCalibration=controlInput;
       
       load data/controlers/UniformControlerAutoregulatedModelControler.mat
-      data.UniformControlAutoregulatedModelControler=controlInput;
+      data.UniformControlAutoregulatedModelControler_FMCalibration=controlInput;
       
       load data/controlers/FullControlerUnregulatedModelControler.mat
-      data.FullControlUnregulatedModelControler=controlInput;
+      data.FullControlUnregulatedModelControler_FMCalibration=controlInput;
       
       load data/controlers/UniformControlerUnegulatedModelControler.mat
-      data.UniformControlUnregulatedModelControler=controlInput;
+      data.UniformControlUnregulatedModelControler_FMCalibration=controlInput;
       
       load data/controlers/ReducedControlerAutoregulatedModelControler.mat
-      data.ReducedControlAutoregulatedModelControler=controlInput;
+      data.ReducedControlAutoregulatedModelControler_FMCalibration=controlInput;
     end
-    function data=CalibrationCurve_UnregulatedFullReduced()
+    function data=CalibrationCurveUnregulatedFullReduced()
       build=ModelFactoryTestModels;
       fullModel=build.fullModelWithUniformLight(0);
       unregModel=build.unregulatedModelWithUniformLight(0);
       uRange=0:5:1000;
-      [upAnalysisR,~]=performAnalysis(unregModel,3,1,uRange);
-      [upAnalysisF,~]=performAnalysis(fullModel,9,5,uRange);
+      [upAnalysisR,downAnalysisR]=performAnalysis(unregModel,3,1,uRange);
+      [upAnalysisF,downAnalysisF]=performAnalysis(fullModel,9,5,uRange);
       rangeProtein=[0:.01:80];
       trajectoryAF=interp1(upAnalysisF,uRange,rangeProtein);
       trajectoryAS=interp1(upAnalysisR,uRange,rangeProtein);
       calibration=[trajectoryAS;trajectoryAF];
-      calibration(1,:)=0;
-      for i=2:length(calibration)
-        if isnan(calibration(:,i))
-          calibration(:,i)=[];
-        end
-      end
+      calibration(:,1)=0;
       data.uRange=uRange;
       data.upAnalysisReduced=upAnalysisR;
+      data.downAnalysisReduced=downAnalysisR;
       data.upAnalysisFull=upAnalysisF;
+      data.downAnalysisFull=downAnalysisF;
       data.calibration=calibration;
       function [upAnalysis,downAnalysis]=performAnalysis(model,lightIndex,speciesIndex,uRange)
         modelOde=SolverODE(model);
         analyzer=HisteresisAnalysis(modelOde);
-        analyzer.time=linspace(0,70,70);
+        analyzer.time=linspace(0,700,70);
         analyzer.speciesIndex=speciesIndex;
         analyzer.uRange=uRange;
         [upAnalysis,downAnalysis]=analyzer.analyze(lightIndex);
         %plot(analyzer.uRange,upAnalysis,spec1,analyzer.uRange,downAnalysis,spec2);
         range=analyzer.uRange;
       end
+    end
+    function data=CalibrationCurveHysteresisCalibratedModel()
+      layer=DataLayer();
+      loaddata=layer.get('CalibrationCurveUnregulatedFullReduced');
+      build=ModelFactoryTestModels;
+      calibratedModel=build.calibratedFullAutoModel(loaddata.calibration);
+      uRange=0:5:1000;
+      [upAnalysisC,downAnalysisC]=performAnalysis(calibratedModel,13,5,uRange);
+      data.upTrajectory=upAnalysisC;
+      data.downTrajectory=downAnalysisC;
+      data.range=uRange;
+      function [upAnalysis,downAnalysis]=performAnalysis(model,lightIndex,speciesIndex,uRange)
+        modelOde=SolverODE(model);
+        analyzer=HisteresisAnalysis(modelOde);
+        analyzer.time=linspace(0,30,50);
+        analyzer.speciesIndex=speciesIndex;
+        analyzer.uRange=uRange;
+        [upAnalysis,downAnalysis]=analyzer.analyze(lightIndex);
+        %plot(analyzer.uRange,upAnalysis,spec1,analyzer.uRange,downAnalysis,spec2);
+        range=analyzer.uRange;
+      end
+    end
+    function data=ModelFitODEUnregulatedReducedModel_Calibration()
+      build=ModelFactory;
+      x=build.fullU([1 3 2]);
+      y=build.u([1 3 2]);
+      data.calibration(1,:)=interp1(y,x,linspace(x(1),x(end)),'spline');
+      data.calibration(2,:)=linspace(x(1),x(end));
+      data.TruePoints=[x;y];
     end
     function data=ModelFitODE_UnregulatedFullModel()
       build=ModelFactoryTestModels;

@@ -1,8 +1,16 @@
 classdef TwoCellFSPGeneratorAlpha < TwoCellFSPGenerator
   properties
-    alpha=0.0203*20/300
+    alpha
   end
   methods
+    function obj=TwoCellFSPGeneratorAlpha(model,dims)
+      obj.model=model;
+      obj.dims=dims;
+      build=ModelFactory;
+      obj.alpha=build.alpha;
+      obj.aMatrix=obj.getAMatrix();
+      obj.bMatrix=obj.getBMatrix();
+    end
     function bArray=getBArray(obj)
       [xv,yv] = obj.getXYV();
       bArray=zeros([obj.dims(1),obj.dims(2),obj.dims(1),obj.dims(2)]);

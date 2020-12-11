@@ -8,11 +8,16 @@ classdef TwoCellFSPGenerator
     bMatrix
   end
   methods
-    function obj=TwoCellFSPGenerator(model,dims)
+    function obj=TwoCellFSPGenerator(varargin)
+      if length(varargin)==2
         obj.model=model;
         obj.dims=dims;
         obj.aMatrix=obj.getAMatrix();
         obj.bMatrix=obj.getBMatrix();
+      else
+        
+      end
+        
     end
     function hArray=getHArray(obj)
       [xv,yv] = obj.getXYV();
