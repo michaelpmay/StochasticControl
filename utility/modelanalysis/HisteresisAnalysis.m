@@ -10,7 +10,7 @@ classdef HisteresisAnalysis
       obj.ode=ode;
     end
     function [upAnalysis,downAnalysis]=analyze(obj,parameterIndex)
-      obj.ode.model.initialState=zeros(size(obj.ode.model.initialState));
+      obj.ode.model.initialState(obj.speciesIndex)=0;
       obj.ode.model.time=obj.time;
       N=length(obj.uRange);
       upAnalysis=[];
@@ -29,8 +29,8 @@ classdef HisteresisAnalysis
         downAnalysis(end+1)=data{i}.state(obj.speciesIndex,end);
       end
       downAnalysis=fliplr(downAnalysis);
-      analysis=[upAnalysis,downAnalysis]
-      range=[obj.uRange,flipRange]
+      analysis=[upAnalysis,downAnalysis];
+      range=[obj.uRange,flipRange];
     end
   end
 end

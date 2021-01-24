@@ -21,6 +21,13 @@ classdef ProbabilityScore
       X=obj.getFSPSampleSpace(ssaData);
       score=obj.getScore(X);
     end
+    function score=getSSATimeTrajectoryScore(obj,state)
+      score=zeros(1,size(state,2));
+      C=obj.makeCMatrix(obj.dims);
+      for i=1:length(state)
+        score(i)=C(state(1,i)+1,state(2,i)+1);
+      end
+    end
     function score=getFSPTrajectoryScore(obj,fspState)
       for i=1:size(fspState,2)
         score(i)=obj.getScore(fspState(:,i));

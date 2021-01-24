@@ -6,17 +6,19 @@ classdef ModelFactory
     mu=8
     ga=.0203 %0.020
     %alpha=.0203*20/320*1.437
-    alpha=0.001823813123176
+    %alpha=0.001823813123176
+    alpha=1;
     ka=0.0001
     eko=3.5821;%experimental ko [3.5821]
-    fullModelParameters=[1.1164,1.1164/20,1.0000,579.5275,0.0004,0.0024,2.0309,0.025,1.2718]
-    ExperimentalInput=@(t,x,u)(u(1)*(t<270)+u(3)*(t>570)+u(2)*((t>=270)&(t<=570)))
+    %fullModelParameters=[1.1164,1.1164/20,1.0000,579.5275,0.0004,0.0024,2.0309,0.025,1.2718]
+    fullModelParameters=[2/10,10/10/20,1,20,.05,.5,.5,.0142]
+    ExperimentalInput=@(t,x,u)(u(1)*((t>0)&(t<270))+u(3)*(t>570)+u(2)*((t>=270)&(t<=570)))
     ControlInput2D=@(t,x,field)field(x(1)+1,x(2)+1);
     ControlInput1D=@(t,x,field)field(x(1)+1);
     frequencyInput=@(t,x,u)u(2)*sin(2*pi*u(1).*t)+u(3)
-    u=[200    0  50]
-    eu=[249.588 1.3809 60.6751]
-    fullU=[320 0 20]
+    uFitReduced=[0.4060  0.0000  0.1044]
+    uFitFull=[0.4060  0.0000  0.04]
+    u_exp=[320 0 20]
     time=linspace(0,780)
     dims=[50 50]
     controlable=true;
@@ -50,9 +52,20 @@ classdef ModelFactory
     end
     function model=unregulatedModelWithExperimentalInput(obj)
       model=obj.makeModelObject();
+      model.name="Unregulated Model - Input is Experimental inpput [320 0 20]";
+      model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
-      model.parameters=[obj.ka obj.ga obj.alpha obj.u];
-      model.rxnRate=@(t,x,p)[p(1)+p(3)*obj.ExperimentalInput(t,x,obj.u) ; p(2)*x(1)];
+      model.parameters=[obj.ka obj.ga obj.u_exp];
+      model.rxnRate=@(t,x,p)[p(1)+obj.ExperimentalInput(t,x,p(3:5)) ; p(2)*x(1)];
+      model.initialState=[0];
+      model.time=obj.time;
+    end
+    function model=unregulatedModelWithFitInput(obj)
+      model=obj.makeModelObject();
+      model.name="Unregulated Model - Input is Fit inpput";
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ka obj.ga obj.uFitReduced];
+      model.rxnRate=@(t,x,p)[p(1)+obj.ExperimentalInput(t,x,p(3:5)) ; p(2)*x(1)];
       model.initialState=[0];
       model.time=obj.time;
     end
@@ -88,11 +101,27 @@ classdef ModelFactory
       model.initialState=[0];
       model.time=obj.time;
     end
+    function model=unregulatedModelWithUniformLightSlowed(obj,lightLevel)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ka obj.ga lightLevel];
+      model.rxnRate=@(t,x,p)[(p(1)+obj.alpha*p(3))   ; p(2)*x(1)]/9.5;
+      model.initialState=[0];
+      model.time=obj.time;
+    end
     function model=autoregulatedModelWithUniformLight(obj,lightInput)
       model=obj.makeModelObject();
       model.stoichMatrix=[1,-1];
       model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, lightInput];
       model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.alpha*p(6);linearDegredation(x,p(5))];
+      model.initialState=[0];
+      model.time=obj.time;
+    end
+    function model=autoregulatedModelWithUniformLightSlowed(obj,lightInput)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[1,-1];
+      model.parameters=[obj.ko obj.be obj.mu obj.ka obj.ga, lightInput];
+      model.rxnRate=@(t,x,p)[hill(x,p(1),p(2),p(3),p(4))+obj.alpha*p(6);linearDegredation(x,p(5))]/9.5;
       model.initialState=[0];
       model.time=obj.time;
     end
@@ -127,7 +156,7 @@ classdef ModelFactory
         hill(x(5),p(9),p(10),p(11),p(12))+p(8)*x(4);
         obj.ga*x(5)];
     end
-    function model=fullAutoregModel2WithControlInput(obj,controlInput)
+    function model=fullAutoregModelWithControlInput(obj,controlInput)
       ControlInput2D=@(t,x)controlInput(x(5)+1,x(10)+1);
       model=obj.khammashFullModel;
       model.parameters=[model.parameters obj.ko obj.be obj.mu obj.ka];
@@ -404,11 +433,26 @@ classdef ModelFactory
         (p(2))*x(1);
         3*p(1);
         (p(2))*x(2);
-        (p(3)*obj.ExperimentalInput(t,x,[320 0 20]))*x(1)*x(2);
+        (p(3)*obj.ExperimentalInput(t,x,obj.u_exp))*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
         p(6)*x(3)*(obj.maxGenes-x(4));
         (p(7))*x(4);
+        p(8)*x(4);
+        obj.ga*x(5)];
+    end
+    function model=fullModelWithFitInput(obj)
+      model=obj.fullModel;
+      model.parameters=[obj.fullModelParameters,obj.uFitFull];
+      model.rxnRate=@(t,x,p)[p(1);
+        p(2)*x(1);
+        3*p(1);
+        p(2)*x(2);
+        (p(3)*obj.ExperimentalInput(t,x,p(9:11)))*x(1)*x(2);
+        p(4)*x(3);
+        p(5)*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        p(7)*x(4);
         p(8)*x(4);
         obj.ga*x(5)];
     end
@@ -476,42 +520,14 @@ classdef ModelFactory
         p(8)*x(4);
         obj.ga*x(5)];
     end
-    function model=semiFullModel(obj)
-      model=obj.makeModelObject;
-      model.parameters=[1.0000 1/20 0.0500 1/20 1.0000 4.2060 0.0014 0.3154 25.8416 0.0048 obj.ga];
-      model.time=linspace(1,170);
-      model.stoichMatrix=[1 0 0;
-        -1 0 0;
-        -1 1 0;
-        1 -1 0;
-        0 0 1;
-        0 0 -1;]';
-      model.rxnRate=@rateEq;
-      model.initialState=[0 0 0];
-      function rate=rateEq(t,x,p)
-        %x1 x2 x3 x4 x5 = X1 X2 x1 x2 x3
-        a=p(4)*p(5);
-        b=(-p(1)*p(5)+p(2)*p(4)-p(3)*p(5));
-        c=(-p(2)*p(3)-p(6)*p(2)*x(1));
-        X(2)=max([(-b-sqrt(b^2-4*a*c))/(2*a), (-b+sqrt(b^2-4*a*c))/(2*a)]);
-        X(1)=(p(1) + p(6)*x(1))/(p(2)+p(5)*X(2))
-        rate(1)=p(5)*X(1)*X(2);
-        rate(2)=(p(6)+p(7))*x(1) ;
-        rate(3)=p(8)*x(1)*(obj.maxGenes - x(1));
-        rate(4)=p(9)*x(2);
-        rate(5)=p(10)*x(2);
-        rate(6)=p(11)*x(3);
-        rate=rate';
-      end
-    end
     function model=calibratedFullAutoModel(obj,calibration)
-      model=obj.fullAutoModelWithInput;
-      model.parameters(end)=0;
+      model=obj.fullAutoModel;
+      model.parameters(13)=1;
       model.rxnRate=@(t,x,p)[
         p(1);
-        (p(2))*x(1);
+        (p(1)/20)*x(1);
         3*p(1);
-        (p(2))*x(2);
+        (p(1)/20)*x(2);
         (p(3)*calibrate(p(13),calibration))*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
@@ -520,17 +536,40 @@ classdef ModelFactory
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5)];
       function output=calibrate(input,calibration)
-        if input<calibration(1,1)
+        if input<=calibration(1,1)
           output=calibration(2,1);
-        elseif input>(calibration(1,end))
+        elseif input>=(calibration(1,end))
           output=calibration(2,end);
         else
           output=interp1(calibration(1,:),calibration(2,:),input);
         end
       end
     end
+    function model=calibratedFullModel(obj,calibration)
+      model=obj.fullModelWithUniformLight(0);
+      model.rxnRate=@(t,x,p)[p(1);
+        (p(2))*x(1);
+        3*p(1);
+        (p(2)/20)*x(2);
+        (p(3)*calibrate(p(9),calibration))*x(1)*x(2);
+        p(4)*x(3);
+        (p(5))*x(3);
+        p(6)*x(3)*(obj.maxGenes-x(4));
+        (p(7))*x(4);
+        p(8)*x(4);
+        obj.ga*x(5)];
+      function output=calibrate(input,calibration)
+        if input<=calibration(1,1)
+          output=calibration(2,1);
+        elseif input>=(calibration(1,end))
+          output=calibration(2,end);
+        else
+         output=interp1(calibration(1,:),calibration(2,:),input);
+        end
+      end
+    end
     function model=fullAutoModel(obj)
-      model=obj.fullModelWithExperimentalInput;
+      model=obj.fullModelWithFitInput;
       model.parameters(9:12)=[obj.ko obj.be obj.mu obj.ka];
       model.rxnRate=@(t,x,p)[
         p(1);
@@ -545,49 +584,31 @@ classdef ModelFactory
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5)];
     end
-    function model=fullAutoModelWithInput(obj)
-      model=obj.fullAutoModel;
-      model.parameters(13)=[1];
-      model.rxnRate=@(t,x,p)[
-        p(1);
-        (p(2))*x(1);
-        3*p(1);
-        (p(2))*x(2);
-        (p(3)*p(13))*x(1)*x(2);
-        p(4)*x(3);
-        (p(5))*x(3);
-        p(6)*x(3)*(obj.maxGenes-x(4));
-        (p(7))*x(4);
-        p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
-        obj.ga*x(5)];
-    end
-    function model=calibratedFullAutoModelWithFrequencyInput(obj,freq,amp,dc,calibration)
-      layer=DataLayer()
-      data=layer.get('CalibrationCurveUnregulatedFullReduced')
+    function model=calibratedFullAutoModelWithFrequencyInput(obj,freq,amp,dc)
+      layer=DataLayer();
+      data=layer.get('CalibrationCurveAutoregulatedFullReduced');
       calibration=data.calibration;
       model=obj.fullAutoModel;
-      input=@(t)amp*sin(2*pi*freq*t)+dc;
+      model.parameters(13)=1;
       model.rxnRate=@(t,x,p)[
         p(1);
-        (p(2))*x(1);
+        (p(1)/20)*x(1);
         3*p(1);
-        (p(2))*x(2);
-        (p(3)*cinput(t))*x(1)*x(2);
+        (p(1)/20)*x(2);
+        (p(3)*calibrate(amp*sin(2*pi*freq*t)+dc,calibration))*x(1)*x(2);
         p(4)*x(3);
         (p(5))*x(3);
         p(6)*x(3)*(obj.maxGenes-x(4));
         (p(7))*x(4);
         p(8)*x(4)+hill(x(5),p(9),p(10),p(11),p(12));
         obj.ga*x(5)];
-      function output=cinput(t)
-        input=@(t)amp*sin(2*pi*freq*t)+dc;
-        currentInput=input(t);
-        if currentInput<calibration(1,1)
-          output=calibration(1,2);
-        elseif currentInput>calibration(1,end)
-          output=calibration(end,2);
+      function output=calibrate(input,calibration)
+        if input<=calibration(1,1)
+          output=calibration(2,1);
+        elseif input>=(calibration(1,end))
+          output=calibration(2,end);
         else
-          output=interp1(calibration(1,:),calibration(2,:),input(t));
+          output=interp1(calibration(1,:),calibration(2,:),input);
         end
       end
     end
@@ -688,7 +709,7 @@ classdef ModelFactory
       end
     end
     function model=fullAutoregulatedModelNCellSwap(obj,controlInput,numSwaps,numCells,timeChange,relaxationTime)
-      model=obj.fullAutoModelWithInput();
+      model=obj.fullAutoModelWithUniformLight();
       model.parameters(13)=1;
       inputsBlkDiag=cell(1,numCells);
       for i=1:length(inputsBlkDiag)
@@ -772,6 +793,92 @@ classdef ModelFactory
           obj.ga*x(10)];
         %rates=individualRates(t,x((1:5)+5*(k-1)),p);
       end
+    end
+    function model=mixModelFull(obj)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[ 1  0  0;
+                          -1  0  0;
+                          -1  1  0;
+                           1 -1  0
+                           0  0  1;
+                           0  0 -1]';
+                           
+      model.rxnRate=@(t,x,p)[p(1)*[p(2)-x(1)]*[p(3)-x(1)];
+               p(4)*x(1);
+               p(5)*x(1)*(p(6)-x(2));
+               p(7)*x(2);
+               p(8)*x(2);
+               obj.ga*x(3)];
+      model.parameters=[1 1 1 1 1 1 1 1];
+      model.name="Mixed Model - Full Version";
+      model.initialState=[0 0 0]';
+      model.time=obj.time;
+    end
+    function model=mixModelFullExperimentalInput(obj)
+      model=obj.makeModelObject();
+      model.stoichMatrix=[ 1  0  0;
+                          -1  0  0;
+                          -1  1  0;
+                           1 -1  0
+                           0  0  1;
+                           0  0 -1]';
+                           
+      model.rxnRate=@(t,x,p)[obj.ExperimentalInput(t,x,obj.uFitFull)*[p(2)-x(1)]*[p(3)-x(1)];
+               p(4)*x(1);
+               p(5)*x(1)*(p(6)-x(2));
+               p(7)*x(2);
+               p(8)*x(2);
+               obj.ga*x(3)];
+      model.parameters=[1 1 1 1 1 1 1 1];
+      model.name="Mixed Model - Full Version";
+      model.initialState=[0 0 0]';
+      model.time=obj.time;
+    end
+    function model=speedFullModel(obj,speed)
+      model=obj.fullModel;
+      model.rxnRate=@(t,x,p)[
+        speed*p(1);
+        speed*p(2)*x(1);
+        speed*3*p(1);
+        speed*p(2)*x(2);
+        speed*p(3)*x(1)*x(2);
+        speed*p(4)*x(3);
+        speed*p(5)*x(3);
+        speed*p(6)*x(3)*(obj.maxGenes-x(4));
+        speed*p(7)*x(4);
+        p(8)*x(4);
+        obj.ga*x(5)];
+    end
+    function model=speedFullModelWithUniformLight(obj,speed,light)
+      model=obj.fullModel;
+      model.rxnRate=@(t,x,p)[
+        speed*p(1);
+        speed*p(2)*x(1);
+        speed*3*p(1);
+        speed*p(2)*x(2);
+        speed*light*x(1)*x(2);
+        speed*p(4)*x(3);
+        speed*p(5)*x(3);
+        speed*p(6)*x(3)*(obj.maxGenes-x(4));
+        speed*p(7)*x(4);
+        p(8)*x(4);
+        obj.ga*x(5)];
+    end
+    function model=speedFullModelFitInput(obj,speed)
+      model=obj.fullModel;
+      model.parameters=[obj.fullModelParameters,obj.uFitFull];
+      model.rxnRate=@(t,x,p)[
+        speed*p(1);
+        speed*p(2)*x(1);
+        speed*3*p(1);
+        speed*p(2)*x(2);
+        speed*(p(3)*obj.ExperimentalInput(t,x,p(9:11)))*x(1)*x(2);
+        speed*p(4)*x(3);
+        speed*p(5)*x(3);
+        speed*p(6)*x(3)*(obj.maxGenes-x(4));
+        speed*p(7)*x(4);
+        p(8)*x(4);
+        obj.ga*x(5)];
     end
   end
 end

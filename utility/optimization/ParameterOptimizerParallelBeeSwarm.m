@@ -1,7 +1,7 @@
 classdef ParameterOptimizerParallelBeeSwarm
   properties
     subOptimizer=ParameterOptimizerPseudoRandom
-    numBees=16;
+    numBees=maxNumCompThreads;
     numSteps=1;
     mutationRate=3;
   end

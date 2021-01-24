@@ -1,0 +1,16 @@
+data=layer.get('AnalysisSSATwoCellFullModel')
+figure
+subplot(2,3,1)
+spectrogram(data.U,10)
+subplot(2,3,2)
+spectrogram(data.U,100)
+subplot(2,3,3)
+spectrogram(data.U,1000)
+
+data=layer.get('AnalysisSSATwoCellReducedModel')
+subplot(2,3,4)
+spectrogram(data.U,10)
+subplot(2,3,5)
+spectrogram(data.U,100)
+subplot(2,3,6)
+spectrogram(data.U,1000)

@@ -39,6 +39,8 @@ classdef SolverODE
         time(i)=obj.model.time(i);
         state(:,i)=deval(odeData,obj.model.time(i));
         catch
+          time=time(1:(i-1));
+          state=state(:,1:(i-1));
           return
         end
       end

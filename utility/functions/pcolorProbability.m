@@ -1,4 +1,4 @@
-function pcolorProbability(probability)
+function p=pcolorProbability(probability)
   probSize=size(probability);
   xVec=(0:(probSize(1)-1))-.5;
   yVec=(0:(probSize(2)-1))-.5;
