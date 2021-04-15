@@ -9,49 +9,41 @@ classdef FigureLayer
     end
     function fig=Figure2(obj)
       fig=AcademicFigure;
-      fig.Position(3:4)=[1300 350];
-      subplot(1,3,1)
+      fig.Position(3:4)=[700 350];
+      gap=.1
+      width=[.08 .09]
+      height=[.15 .03]
+      subtightplot(1,2,1,gap,height,width)
       hold on
       obj.axes.ModelFitODE_Panel
-      xlabel('time')
+      xlabel('time [minutes]')
       ylabel('Species Count')
       hold on
       obj.axes.ModelFitODE_UnregulatedReducedModel_Trajectory
       obj.axes.ModelFitODE_UnregulatedFullModel_Trajectory
       obj.axes.ModelFitODE_ExperimentalData_Trajectory
-      l1=legend({'$\mathcal{M}_U$',"$\mathcal{M}'_U$",'Experimental Data'},'Interpreter','latex');
+      l1=legend({"$\mathcal{M}'_U$","$\mathcal{M}_U$",'Experimental Data'},'Interpreter','latex');
       box(gca)
       xlim([0 780])
       LabelPlot('A')
-      subplot(1,3,2)
+      subtightplot(1,2,2,gap,height,width)
       hold on
+      newcolors = [0 0 0
+             1.00 0.54 0.00]*.9;
+      colororder(newcolors)
+      yyaxis left
       obj.axes.ModelFitODEUnregulatedReducedModel_Calibration
-      obj.axes.ModelFitODEUnregulatedFullModel_Calibration
-      box(gca)
-      xlabel("System Input (\phi') [Watts/cm^-1]")
       ylabel("Light Input (u) [min^-1]")
+      yyaxis right
+      obj.axes.ModelFitODEUnregulatedFullModel_Calibration
+      
+      xlabel("System Input (\phi) [Watts/cm^-2]")
+      ylabel("Light Input (u) [species^-2 min^-1]")
       axis([0 350 0 .45])
+      box(gca)
       LabelPlot('B')
-      l2=legend({'Calibration Curve $\mathcal{M}_U$',"Calibration Curve $\mathcal{M}'_U$"},'Interpreter','latex');
-      l2.Position=[0.4823 0.1687 0.1318 0.0951];
-      subplot(1,3,3)
-      hold on
-      obj.axes.ModelFitSSAUnregulatedReducedModel_Calib_Histogram
-      obj.axes.ModelFitSSAUnregulatedReducedModel_Calib_Mean(gca,[30 .12])
-      obj.axes.ModelFitSSAUnregulatedFullModel_Calib_Histogram
-      obj.axes.ModelFitSSAUnregulatedFullModel_Calib_Mean(gca,[30 .11])
-      legend('$\mathcal{M}_U \phi = 20 \ W/cm^2$',"$\mathcal{M}'_U \phi = 4.6 \ W/cm^2$",'Interpreter','latex')
-      xlabel(gca,'Species Count')
-      ylabel(gca,'Probability')
-      t3=LabelPlot('C');
-      t3.Position(3)=[0.0534];
-      axe=gca;
-      axe.Children(1).FontSize=12;
-      axe.Children(1).FontWeight='bold';
-      axe.Children(1).Color=[.3 .3 1];
-      axe.Children(3).FontSize=12;
-      axe.Children(3).FontWeight='bold';
-      axe.Children(3).Color=[1 .3 .3];
+      l2=legend({"Calibration Curve $\mathcal{M}'_U$","Calibration Curve $\mathcal{M}_U$"},'Interpreter','latex');
+      l2.Position=[0.7247 0.1694 0.2414 0.0938];
     end
     function fig=Figure3(obj)
       fig=AcademicFigure;
@@ -64,7 +56,7 @@ classdef FigureLayer
       xlim(ax{1},[0 .5])
       xlabel(ax{1},'Input (Watts per cm^2)')
       ylabel(ax{1},'Species Count')
-      legend({'$\mathcal{M}_U\uparrow$','$\mathcal{M}_U\downarrow$','$\mathcal{M}_A\uparrow$','$\mathcal{M}_A\downarrow$'},'Interpreter','latex','Location','southeast')
+      legend(ax{1},{"$\mathcal{M}'_U\uparrow$","$\mathcal{M}'_U\downarrow$","$\mathcal{M}'_A\uparrow$","$\mathcal{M}'_A\downarrow$"},'Interpreter','latex','Location','southeast')
       obj.axes.AnalysisODEFrequency_ReducedModels_Input(ax{2})
       xlabel(ax{2},'Period (AU)')
       ylabel(ax{2},'Input ($[species]^-1 [min]^-1$)','Interpreter','latex')
@@ -86,12 +78,36 @@ classdef FigureLayer
     end
     function fig=Figure4(obj)
       fig=AcademicFigure;
-      fig.Position(3:4)=[800 400];
+      fig.Position(3:4)=[700 320];
+      gap=.1
+      height=[.15 .05]
+      width=[.07 .02]
+      axe=subtightplot(1,2,[1],gap,height,width)
       obj.axes.AnalysisODESSAFrequency_ReducedModel_Trajectory;
       legend('HIC','LIC','SSA')
       xlabel('time (minutes)')
       ylabel('Species Count')
       xlim([0 1000])
+      LabelPlot('A')
+      axe=subtightplot(1,2,2,gap,height,width)
+      hold on
+      obj.axes.ModelFitSSAUnregulatedReducedModel_Calib_Histogram
+      obj.axes.ModelFitSSAUnregulatedReducedModel_Calib_Mean(gca,[30 .12])
+      obj.axes.ModelFitSSAUnregulatedFullModel_Calib_Histogram
+      obj.axes.ModelFitSSAUnregulatedFullModel_Calib_Mean(gca,[30 .11])
+      legend("$\mathcal{M}'_U \phi = 20 \ W/cm^2$","$\mathcal{M}_U \phi = 4.6 \ W/cm^2$",'Interpreter','latex')
+      xlabel(gca,'Species Count')
+      ylabel(gca,'Probability')
+      t3=LabelPlot('B');
+      t3.Position=[ .61 .89 0.01 0.01];
+      axe=gca;
+      axe.Children(1).FontSize=12;
+      axe.Children(1).FontWeight='bold';
+      axe.Children(1).Color=[.3 .3 1];
+      axe.Children(3).FontSize=12;
+      axe.Children(3).FontWeight='bold';
+      axe.Children(3).Color=[1 .3 .3];
+      axe.Color=[1 1 1]*.95
     end
     function fig=Figure5(obj)
       fig=AcademicFigure;
@@ -263,15 +279,17 @@ classdef FigureLayer
       ylabel(ax{2},'Species Count');
       obj.axes.AnalysisODEFrequencySeparation_FullModels_TrajectoryLow(ax{3})
       axes(ax{3})
-      lgnd2=columnlegend(2,{"$\mathcal{M}'_A$","$\mathcal{M}_A$"},'Interpreter','latex');
-      lgnd2.Position=[0.8690 0.8351 0.1117 0.1016];
+      lgnd2=columnlegend(2,{"$\mathcal{M}'_A$","$\mathcal{M}_A$"},'Interpreter','latex','Position',[0.7947 0.8974 0.1117 0.1016]);
       ylim(ax{3},[0 50])
+      text(ax{3},1.5,40,'\omega=0.0001','FontSize',9,'FontWeight','bold')
       obj.axes.AnalysisODEFrequencySeparation_FullModels_TrajectoryMed(ax{4})   
       ylim(ax{4},[0 50])
+      text(ax{4},1.5,40,'\omega=0.001','FontSize',9,'FontWeight','bold')
       obj.axes.AnalysisODEFrequencySeparation_FullModels_TrajectoryHigh(ax{5})
       xlabel(ax{5},'Period (AU)');
       ylabel(ax{5},'Species Count');
       ylim(ax{5},[0 50])
+      text(ax{5},1.5,40,'\omega=0.01','FontSize',9,'FontWeight','bold')
       fig=gcf;
     end
     function fig=Figure11(obj)
@@ -328,7 +346,7 @@ classdef FigureLayer
       set(gca, 'XTickMode', 'auto', 'XTickLabelMode', 'auto')
       set(gca, 'YTickMode', 'auto', 'YTickLabelMode', 'auto')
       caxis([0 .1])
-      title('$\mathcal{M}_U$-UC','Interpreter','latex','Fontsize',titleFontSize)
+      title('$\mathcal{M}_U$-CUC','Interpreter','latex','Fontsize',titleFontSize)
       subtightplot(3,5,6,gap,width,height)
       obj.axes.AnalysisSSAFullModelControlPairs_UnregulatedUniform_JD;
       xlabel('Species Count');
@@ -346,7 +364,7 @@ classdef FigureLayer
       caxis([0 .1])
       set(gca,'xticklabel',[])
       set(gca,'yticklabel',[])
-      title('$\mathcal{M}_U$-FC','Interpreter','latex','Fontsize',titleFontSize)
+      title('$\mathcal{M}_U$-CFC','Interpreter','latex','Fontsize',titleFontSize)
       subtightplot(3,5,7,gap,width,height)
       obj.axes.AnalysisSSAFullModelControlPairs_UnregulatedFull_JD;
       subtightplot(3,5,12,gap,width,height)
@@ -357,7 +375,7 @@ classdef FigureLayer
       caxis([0 .1])
       set(gca,'xticklabel',[])
       set(gca,'yticklabel',[])
-      title('$\mathcal{M}_A$-UC','Interpreter','latex','Fontsize',titleFontSize);
+      title('$\mathcal{M}_A$-CUC','Interpreter','latex','Fontsize',titleFontSize);
       subtightplot(3,5,8,gap,width,height)
       obj.axes.AnalysisSSAFullModelControlPairs_AutoregulatedUniform_JD;
       subtightplot(3,5,13,gap,width,height)
@@ -368,7 +386,7 @@ classdef FigureLayer
       caxis([0 .1])
       set(gca,'xticklabel',[])
       set(gca,'yticklabel',[])
-      title('$\mathcal{M}_A$-FC','Interpreter','latex','Fontsize',titleFontSize)
+      title('$\mathcal{M}_A$-CFC','Interpreter','latex','Fontsize',titleFontSize)
       subtightplot(3,5,9,gap,width,height)
       obj.axes.AnalysisSSAFullModelControlPairs_AutoregulatedFull_JD
       subtightplot(3,5,14,gap,width,height)
@@ -379,7 +397,7 @@ classdef FigureLayer
       caxis([0 .1])
       set(gca,'xticklabel',[])
       set(gca,'yticklabel',[])
-      title('$\mathcal{M}_A$-RC','Interpreter','latex','Fontsize',titleFontSize)
+      title('$\mathcal{M}_A$-CRC','Interpreter','latex','Fontsize',titleFontSize)
       cbar1=colorbar;
       cbar1.Position=[0.9246    0.6800    0.0152    0.2400];
       subtightplot(3,5,10,gap,width,height)
@@ -613,5 +631,92 @@ classdef FigureLayer
       lgnd=legend('Target','Non-Target');
       lgnd.Position=[0.8673    0.1555    0.1109    0.0537];
     end
+    function fig=Figure20(obj)
+      N=5;
+      ax=obj.layout.Layout20;
+      fig=gcf;
+      fig.Position=[502 462 1083 339]
+      obj.axes.AnalysisSSAFSPPredictiveZModel_ControlInput(ax{1},N);
+      axis(ax{1},[0 5000 0 1]);
+      ylabel(ax{1},{'Control';'Input'});
+      set(ax{1},'xticklabel',{});
+      ax{1}.Color=[1 1 1]*.95;
+      obj.axes.AnalysisSSAFSPPredictiveZModel_Trajectory(ax{2},N);
+      obj.axes.AnalysisSSAFSPPredictiveZModel_Patches(ax{2},N);
+      ax{2}.YGrid = 'off';
+      ax{2}.YGrid = 'on';
+      ylabel(ax{2},'Species Count')
+      xlabel(ax{2},'time (minutes)')
+      axis(ax{2},[0 5000 0 60]);
+      lgnd2=legend(ax{2},{'Prediction','Target','NonTarget'},'Position',[0.1119 0.5780 0.2770 0.0531],'Orientation','horizontal','FontSize',8);
+      obj.axes.AnalysisSSAFSPPredictiveZModel_MD(ax{3},N);
+      ylabel(ax{3},'Probability')
+      xlabel(ax{3},'Species Count')
+      lgnd3=legend(ax{3},{'Target','NonTarget\newline(Overall)','Non-Target\newline(Orange Region)'},'FontSize',6,'Position', [0.8855 0.5414 0.1080 0.1824]);
+    end
+    function fig=Figure22(obj)
+      ax=obj.layout.Layout22;
+      obj.axes.AnalysisSSACorrelationsSSATwoCellFullModel_U(ax{1});
+      ylabel(ax{1},'Normalized Corr')
+      xlabel(ax{1},'\tau (min)')
+      axes(ax{1})
+      LabelPlot('A')
+      title("M_A-FC")
+      obj.axes.AnalysisSSACorrelationsSSATwoCellReducedModel_U(ax{2});
+      ylabel(ax{2},'Normalized Corr')
+      xlabel(ax{2},'\tau (min)')
+      axes(ax{2})
+      LabelPlot('B')
+      title("M'_A-FC")
+      obj.axes.AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl_U(ax{3});
+      ylabel(ax{3},'Normalized Corr')
+      xlabel(ax{3},'\tau (min)')
+      axes(ax{3})
+      LabelPlot('C')
+      title("M'_A-RC")
+      obj.axes.AnalysisSSACorrelationsSSAFSPPredictiveZModel_U(ax{4});
+      ylabel(ax{4},'Normalized Corr')
+      xlabel(ax{4},'\tau (min)')
+      axes(ax{4})
+      LabelPlot('D')
+      title("M'_A-MPC")
+      obj.axes.AnalysisSSACorrelationsSSATwoCellFullModel_T(ax{5});
+      ylabel(ax{5},'Normalized Corr')
+      xlabel(ax{5},'\tau (min)')
+      axes(ax{5})
+      LabelPlot('E')
+      title("M_A-FC")
+      obj.axes.AnalysisSSACorrelationsSSATwoCellReducedModel_T(ax{6});
+      ylabel(ax{6},'Normalized Corr')
+      xlabel(ax{6},'\tau (min)')
+      axes(ax{6})
+      LabelPlot('F')
+      title("M'_A-FC")
+      obj.axes.AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl_T(ax{7});
+      ylabel(ax{7},'Normalized Corr')
+      xlabel(ax{7},'\tau (min)')
+      axes(ax{7})
+      LabelPlot('G')
+      title("M'_A-RC")
+      obj.axes.AnalysisSSACorrelationsSSAFSPPredictiveZModel_T(ax{8});
+      ylabel(ax{8},'Normalized Corr')
+      xlabel(ax{8},'\tau (min)')
+      legend(ax{4},{'UU','TT','NN'});
+      legend(ax{8},{'UT','UN','TN'});
+      axes(ax{8})
+      LabelPlot('H')
+      title("M'_A-MPC")
+      axis(ax{1},[-1000 1000 -.1 1])
+      axis(ax{2},[-1000 1000 -.1 1])
+      axis(ax{3},[-1000 1000 -.1 1])
+      axis(ax{4},[-1000 1000 -.1 1])
+      axis(ax{5},[-1000 1000 -1 .5])
+      axis(ax{6},[-1000 1000 -1 .5])
+      axis(ax{7},[-1000 1000 -1 .5])
+      axis(ax{8},[-1000 1000 -1 .5])
+      
+      fig=gcf;
+    end
+    
   end
 end

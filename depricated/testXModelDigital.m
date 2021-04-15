@@ -9,8 +9,10 @@ score=ProbabilityScore(dims);
 C=score.C;
 builder=ModelFactory;
 model=builder.autoregulatedModelWithoutInput;
-optimalControler=load('data/autoregulatedReducedControler_110gmres.mat');
-optimalControler=optimalControler.controlInput(1:dims(1));
+layer=DataLayer;
+data
+data=layer.get('ControlInputs_ReducedModels');
+optimalControler=data.ReducedControlAutoregulatedModelControler(1:dims(1));
 model.controlInput=repmat(optimalControler,[1,dims(2)]);
 modelFsp=TwoCellFSP(model,dims);
 N=prod(modelFsp.dims);
@@ -24,11 +26,11 @@ parpool(3)
 catch
   %do nothing
 end
-for i=1:5
+parfor i=1:3
   scoreTrajectory{i}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,1);
   save
 end
-for i=1:5
+parfor i=1:3
   scoreTrajectoryNoE{i}=simulate(genSet,B,C,dt,N,lowerBound,upperBound,modelFsp,dims,model,optimalControler,uRange,0);
   save
 end
@@ -40,7 +42,8 @@ iterFsp=IterableFsp;
 iterFsp.state=Po;
 J=eye(N+1);
 J=J(:,1:(end-1));
-Ps=modelFsp.getSteadyState;
+Ps=zeros(50);
+Ps(31,11)=1;
 shiftJ=getJacobian(dims);
 L1=0*ones(N,N);
 L1(:,N+1)=model.controlInput(:);
@@ -76,12 +79,10 @@ for i=1:K
   sumE=sum(histE,2);
   if FB==true
     L1=-eye(N,N)*.2;
-    L2=-eye(N,N)*.1;
   else
     L1=0;
-    L2=0;
   end
-  U=shiftJ*(L1*E+L2*sumE)+optimalControler;
+  U=shiftJ*(L1*E)+optimalControler;
   U(U<lowerBound)=lowerBound;
   U(U>upperBound)=upperBound;
   u=U(s+1)

@@ -8,7 +8,7 @@ classdef IterableFsp
   end
   methods
     function obj=iterate(obj,stateGenerator,time)
-      obj=obj.appendNextState(obj.stateStep(stateGenerator));
+      obj=obj.appendNextState(obj.stateStep(stateGenerator),time);
       obj=obj.appendNextTime(time);
     end
     function obj=iterateStep(obj,stateGenerator,timeStep)
@@ -18,7 +18,7 @@ classdef IterableFsp
     function lastState=getLastState(obj)
       lastState=obj.state(:,end);
     end
-    function newState=stateStep(obj,stateGenerator)
+    function newState=stateStep(obj,stateGenerator,time)
       newState=stateGenerator*obj.state(:,end);
     end
     function obj=appendNextState(obj,newStates)

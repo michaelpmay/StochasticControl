@@ -33,6 +33,7 @@ classdef AnalysisLayer
       data.time=2*timeRange/max(timeRange);
       data.upperbound=145*ones(size(timeRange));
       data.lowerbound=90*ones(size(timeRange));
+      
     end
     function data=AnalysisODEFrequencySeparation_FullModels()
       builder=ModelFactoryTestModels;
@@ -80,7 +81,7 @@ classdef AnalysisLayer
           ind=ind+1;
         end
       end
-    end 
+    end
     function data=AnalysisODEFrequencyOmegaCrit_ReducedModel()
       build=ModelFactory;
       freq=linspace(0.0043525,0.0043522,2);
@@ -1077,15 +1078,20 @@ classdef AnalysisLayer
       data.state=realData.state;
     end
     function data=AnalysisSSAFSPPredictiveReducedModelControl()
-      quartiles=[.80];
-      data=getData(quartiles);
+      quantiles=0.5:0.05:.95;
+      quantiles=quantiles(3);
+      bucket=ParallelMenu;
+      for i=1:length(quantiles)
+        bucket=bucket.add(@getData,{quantiles(i)})
+      end
+      data=bucket.run()
       function data=getData(quart)
         build=ModelFactory;
         layer=DataLayer;
         controller=layer.get('ControlInputs_ReducedModels');
         controlInput=controller.FullControlAutoregulatedModelControler;
         controlInput(200,200)=0;
-        time=0:.5:100000;
+        time=0:.5:200000;
         dT=time(2)-time(1);
         model=build.autoregulatedModelWithUniformLight(0);
         model.time=[0 dT];
@@ -1498,6 +1504,320 @@ classdef AnalysisLayer
         x=[1:length(probability)]-1;
         prediction=x*probability;
         prediction=round(prediction);
+      end
+    end
+    function data=AnalysisSSAFSPPredictiveZModel()
+      scale=1e-10  ;
+      bucket=ParallelMenu;
+      M=24*4;
+      for j=1:length(scale)
+        for i=1:M
+          bucket=bucket.add(@getData,{scale(j)});
+        end
+      end
+      data.trajectories=bucket.run();
+      ind=0;
+      for j=1:length(scale)
+        for i=1:M
+          ind=ind+1;
+          data.tscore(i,j)=data.trajectories{ind}.Pscore;
+        end
+      end
+      Jp=0;
+      Jb=0;
+      Js=0;
+      Pp=zeros([50 1]);
+      Pb=zeros([50 1]);
+      Ps=zeros([50 1]);
+      indp=0;
+      indb=0;
+      inds=0;
+      for j=1:M
+        P=cumsum(data.trajectories{j}.P);
+        vec=sum(P<.9)<16;
+        vec2=sum(P<.1)>16;
+        for i=15000:(length(data.trajectories{j}.time)-1)
+          if vec(i)&vec(i+1)
+            Jp=Jp+data.trajectories{j}.TScore(i);
+            Pp=Pp+data.trajectories{j}.P(:,i);
+            indp=indp+1;
+          elseif vec2(i)&vec2(i+1)
+            Jb=Jb+data.trajectories{j}.TScore(i);
+            Pb=Pb+data.trajectories{j}.P(:,i);
+            indb=indb+1;
+          end
+          Js=Js+data.trajectories{j}.TScore(i);
+          Ps=Ps+data.trajectories{j}.P(:,i);
+          inds=inds+1;
+        end
+      end
+      data.Pp=Pp./sum(Pp);
+      data.Pb=Pb./sum(Pb);
+      data.Ps=Ps./sum(Ps);
+      data.Jp=sum(Jp)/indp;
+      data.Jb=sum(Jb)/indb;
+      data.Js=sum(Js)/inds;
+      function data=getData(scale)
+        build=ModelFactory;
+        layer=DataLayer;
+        controller=layer.get('ControlInputs_ReducedModels');
+        controlInput=controller.ReducedControlAutoregulatedModelControler;
+        controlInput(200,200)=0;
+        time=0:.2:13000;
+        dT=time(2)-time(1);
+        model=build.autoregulatedModelWithUniformLight(0);
+        model.time=[0 dT];
+        ssaX=SolverSSA(model);
+        ssaY=SolverSSA(model);
+        fsp=SolverFSP(model,[50]);
+        currentX=30;
+        currentY=10;
+        ssaX.model.initialState=currentX;
+        ssaY.model.initialState=currentY;
+        currentYPrediction=ones(50,1);
+        currentYPrediction=currentYPrediction/sum(currentYPrediction);
+        fsp.model.initialState=currentYPrediction;
+        historyYPrediction=zeros(1,length(time));
+        historyX=zeros(1,length(time));
+        historyY=zeros(1,length(time));
+        historyU=zeros(1,length(time));
+        historyZ=zeros(1,length(time));
+        historyP=zeros(50,length(time));
+        PTarget=zeros([50 1]);
+        PTarget(11)=1;
+        PTarget=PTarget(:);
+        xv=0:49;
+        Z=[linspace(1,0,11),linspace(0,-1,50-11)]*scale;
+        for j =1:length(time)
+          time(j)
+          state=[currentX];
+          %estState=min(state,49);
+          z=Z*(currentYPrediction);
+          input=max(controlInput(state+1,1)+z,0);
+          ssaX.model.parameters(6)=input;
+          ssaY.model.parameters(6)=input;
+          fsp.model.parameters(6)=input;
+          ssaXdata=ssaX.run();
+          ssaYdata=ssaY.run();
+          fspdata=fsp.run();
+          currentX=ssaXdata.node{1}.state(end);
+          currentY=ssaYdata.node{1}.state(end);
+          currentYPrediction=fspdata.state(:,end);
+          ssaX.model.initialState=currentX;
+          ssaY.model.initialState=currentY;
+          fsp.model.initialState=currentYPrediction;
+          historyX(j)=currentX;
+          historyY(j)=currentY;
+          historyU(j)=input;
+          historyP(:,j)=currentYPrediction;
+          historyZ(j)=z;
+        end
+        Pxy=zeros(80,80);
+        trim=sum(time>3000);
+        for k=trim:length(historyX)
+          if (historyX(k)<80) && (historyY(k)<80)
+            Pxy(historyX(k)+1,historyY(k)+1)=Pxy(historyX(k)+1,historyY(k)+1)+1;
+          end
+        end
+        Pxy=Pxy./sum(sum(Pxy));
+        score=ProbabilityScore([80 80]);
+        data.U=historyU;
+        data.steadystate=Pxy;
+        data.time=time;
+        data.X=historyX;
+        data.Y=historyY;
+        data.P=historyP;
+        data.Z=historyZ;
+        data.predictionY=historyYPrediction;
+        data.Pscore=score.getScore(Pxy);
+        data.TScore=score.getSSATimeTrajectoryScore([data.X;data.Y]);
+        data.target=[30 10];
+      end
+      function prediction=quartile(probability,ratio)
+        cprobability=cumsum(probability);
+        index=find(cprobability>ratio,1);
+        probability=probability*0;
+        probability(index)=1;
+        x=[1:length(probability)]-1;
+        prediction=x*probability;
+        prediction=round(prediction);
+      end
+    end
+    function data=AnalysisSSACorrelationsSSAFSPPredictiveZModel()
+      layer=DataLayer;
+      data1=layer.get('AnalysisSSAFSPPredictiveZModel');
+      ubound=1000*5;
+      for i =1:length(data1.trajectories)
+      corrUUi{i}=crosscorr(data1.trajectories{i}.U(3000:end),data1.trajectories{i}.U(3000:end),'NumLags',ubound);
+      corrTTi{i}=crosscorr(data1.trajectories{i}.X(3000:end),data1.trajectories{i}.X(3000:end),'NumLags',ubound);
+      corrTNi{i}=crosscorr(data1.trajectories{i}.X(3000:end),data1.trajectories{i}.Y(3000:end),'NumLags',ubound);
+      corrUTi{i}=crosscorr(data1.trajectories{i}.U(3000:end),data1.trajectories{i}.X(3000:end),'NumLags',ubound);
+      corrUNi{i}=crosscorr(data1.trajectories{i}.U(3000:end),data1.trajectories{i}.Y(3000:end),'NumLags',ubound);
+      corrNNi{i}=crosscorr(data1.trajectories{i}.Y(3000:end),data1.trajectories{i}.Y(3000:end),'NumLags',ubound);
+      end
+      corrUU=zeros(size(corrUUi{1}));
+      corrTT=zeros(size(corrUUi{1}));
+      corrTN=zeros(size(corrUUi{1}));
+      corrUT=zeros(size(corrUUi{1}));
+      corrUN=zeros(size(corrUUi{1}));
+      corrNN=zeros(size(corrUUi{1}));
+      for i =1:length(data1.trajectories)
+      corrUU=corrUUi{i}+corrUU;
+      corrTT=corrTTi{i}+corrTT;
+      corrTN=corrTNi{i}+corrTN;
+      corrUT=corrUTi{i}+corrUT;
+      corrUN=corrUNi{i}+corrUN;
+      corrNN=corrNNi{i}+corrNN;
+      end
+      data.tau=(-ubound:1:ubound)*(data1.trajectories{1}.time(2)-data1.trajectories{1}.time(1));
+      data.corrUU=corrUU/length(data1.trajectories);
+      data.corrUT=corrUT/length(data1.trajectories);
+      data.corrUN=corrUN/length(data1.trajectories);
+      data.corrTT=corrTT/length(data1.trajectories);
+      data.corrTN=corrTN/length(data1.trajectories);
+      data.corrNN=corrNN/length(data1.trajectories);
+    end
+    function data=AnalysisSSACorrelationsSSATwoCellFullModel()
+      layer=DataLayer;
+      data1=layer.get('AnalysisSSATwoCellFullModel');
+      ubound=1000;
+      data.tau=(-ubound:1:ubound)*(data1.time(2)-data1.time(1));
+      data.corrUU=crosscorr(data1.U(3000:end),data1.U(3000:end),'NumLags',ubound);
+      data.corrUT=crosscorr(data1.U(3000:end),data1.trajectory.node{1}.state(5,3000:end),'NumLags',ubound);
+      data.corrUN=crosscorr(data1.U(3000:end),data1.trajectory.node{1}.state(10,3000:end),'NumLags',ubound);
+      data.corrTT=crosscorr(data1.trajectory.node{1}.state(5,3000:end),data1.trajectory.node{1}.state(5,3000:end),'NumLags',ubound);
+      data.corrTN=crosscorr(data1.trajectory.node{1}.state(5,3000:end),data1.trajectory.node{1}.state(10,3000:end),'NumLags',ubound);
+      data.corrNN=crosscorr(data1.trajectory.node{1}.state(10,3000:end),data1.trajectory.node{1}.state(10,3000:end),'NumLags',ubound);
+    end
+    function data=AnalysisSSACorrelationsSSATwoCellReducedModel()
+      layer=DataLayer;
+      data1=layer.get('AnalysisSSATwoCellReducedModel');
+      ubound=1000;
+      data.tau=(-ubound:1:ubound)*(data1.time(2)-data1.time(1));
+      data.corrUU=crosscorr(data1.U(3000:end),data1.U(3000:end),'NumLags',ubound);
+      data.corrUT=crosscorr(data1.U(3000:end),data1.trajectory.node{1}.state(1,3000:end),'NumLags',ubound);
+      data.corrUN=crosscorr(data1.U(3000:end),data1.trajectory.node{1}.state(2,3000:end),'NumLags',ubound);
+      data.corrTT=crosscorr(data1.trajectory.node{1}.state(1,3000:end),data1.trajectory.node{1}.state(1,3000:end),'NumLags',ubound);
+      data.corrTN=crosscorr(data1.trajectory.node{1}.state(1,3000:end),data1.trajectory.node{1}.state(2,3000:end),'NumLags',ubound);
+      data.corrNN=crosscorr(data1.trajectory.node{1}.state(2,3000:end),data1.trajectory.node{1}.state(2,3000:end),'NumLags',ubound);
+    end
+    function data=AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl()
+      layer=DataLayer;
+      data1=layer.get('AnalysisSSATwoCellReducedModelReducedControl');
+      ubound=1000
+      data.tau=(-ubound:1:ubound)*(data1.time(2)-data1.time(1));
+      data.corrUU=crosscorr(data1.U(3000:end),data1.U(3000:end),'NumLags',ubound);
+      data.corrUT=crosscorr(data1.U(3000:end),data1.trajectory.node{1}.state(1,3000:end),'NumLags',ubound);
+      data.corrUN=crosscorr(data1.U(3000:end),data1.trajectory.node{1}.state(2,3000:end),'NumLags',ubound);
+      data.corrTT=crosscorr(data1.trajectory.node{1}.state(1,3000:end),data1.trajectory.node{1}.state(1,3000:end),'NumLags',ubound);
+      data.corrTN=crosscorr(data1.trajectory.node{1}.state(1,3000:end),data1.trajectory.node{1}.state(2,3000:end),'NumLags',ubound);
+      data.corrNN=crosscorr(data1.trajectory.node{1}.state(2,3000:end),data1.trajectory.node{1}.state(2,3000:end),'NumLags',ubound);
+    end
+    function data=AnalysisCoordinateSystemBadMBadC()
+      k1=1;
+      gamma=1;
+      k2=1;
+      A=[-k1    gamma 0 0
+          k1 -(gamma) 0 0
+          0 0 -k1    gamma 
+          0 0 k1 -(gamma)];
+      B(:,:,1)=[-2 0 0 0
+                1 0 0 0 
+                0 0 0 0
+                1 0 0 0];
+      B(:,:,2)=[0 0 0 0
+                0 -1 0 0 
+                0 0 0 0
+                0 1 0 0];
+      B(:,:,3)=[0 0 0 0
+                0 0 0 0 
+                0 0 -1 0
+                0 0 1 0];
+      Po=null(A);
+      Po=Po./sum(Po);
+      uv=0:.01:20;
+      [Xu,Yu]=meshgrid(uv,uv);
+      for i=1:length(Xu)
+        for j=1:length(Yu)
+          u=[uv(i),uv(j)];
+          p=null(A+squeeze(B(:,:,1))*u(1)+squeeze(B(:,:,2))*u(2)+squeeze(B(:,:,3))*u(2));
+        data(:,i,j)=sum(p,2)./sum(sum(p));
+        end
+      end
+    end
+    function data=AnalysisCoordinateSystemBadMGoodC()
+      k1=1;
+      gamma=1;
+      k2=1;
+      A=[-k1 gamma       0
+          k1 -(k2+gamma) 2*gamma
+          0  k2 -2*gamma];
+      B(:,:,1)=[-1 0 0;
+                 1 0 0;
+                 0 0 0];
+      B(:,:,2)=[0 0  0;
+                0 -0 1;
+                0 0  -1];
+      Po=null(A);
+      Po=Po./sum(Po);
+      uv=0:.01:20;
+      [Xu,Yu]=meshgrid(uv,uv);
+      for i=1:length(Xu)
+        for j=1:length(Yu)
+          u=[uv(i),uv(j)];
+          p=null(A+squeeze(B(:,:,1))*u(1)+squeeze(B(:,:,2))*u(2));
+        data(:,i,j)=p./sum(p);
+        end
+      end
+    end
+    function data=AnalysisCoordinateSystemGoodMBadC()
+      k1=.1;
+      gamma=1;
+      k2=2;
+      A=[-k1 gamma       0
+          k1 -(k2+gamma) 2*gamma
+          0  k2 -2*gamma];
+      B(:,:,1)=[-1 0 0;
+                 1 0 0;
+                 0 0 0];
+      B(:,:,2)=[0 1  0;
+                0 -1 0;
+                0 0 0 ];
+      Po=null(A);
+      Po=Po./sum(Po);
+      uv=0:.01:20;
+      [Xu,Yu]=meshgrid(uv,uv);
+      for i=1:length(Xu)
+        for j=1:length(Yu)
+          u=[uv(i),uv(j)];
+          p=null(A+squeeze(B(:,:,1))*u(1)+squeeze(B(:,:,2))*u(2));
+        data(:,i,j)=p./sum(p);
+        end
+      end
+    end
+    function data=AnalysisCoordinateSystemGoodMGoodC()
+      k1=.1;
+      gamma=1;
+      k2=2;
+      A=[-k1 gamma       0
+          k1 -(k2+gamma) 2*gamma
+          0  k2 -2*gamma];
+      B(:,:,1)=[-1 0 0;
+                 1 0 0;
+                 0 0 0];
+      B(:,:,2)=[0 0  0;
+                0 -0 1;
+                0 0 -1 ];
+      Po=null(A);
+      Po=Po./sum(Po);
+      uv=0:.01:20;
+      [Xu,Yu]=meshgrid(uv,uv);
+      for i=1:length(Xu)
+        for j=1:length(Yu)
+          u=[uv(i),uv(j)];
+          p=null(A+squeeze(B(:,:,1))*u(1)+squeeze(B(:,:,2))*u(2));
+        data(:,i,j)=p./sum(p);
+        end
       end
     end
     function data=HysteresisAnalysis(model,lightIndex,speciesIndex)

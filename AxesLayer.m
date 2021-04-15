@@ -21,7 +21,8 @@ classdef AxesLayer
     end
     function axes=AnalysisODESSAFrequency_ReducedModel_Trajectory(obj)
       data=obj.datalayer.get('AnalysisODESSAFrequency_ReducedModel');
-      traj=data.SSA.node{1}.state((end-1500):end)>20;
+      midpoint=(data.ODE_HIC.state+data.ODE_LIC.state)/2;
+      traj=data.SSA.node{1}.state((end-1500):end)>midpoint((end-1500):end);
       time=data.SSA.node{1}.time(1:1501);
       hold on
       for i=2:2:length(traj)
@@ -29,19 +30,21 @@ classdef AxesLayer
         yl=[0 60];
         if traj(i)==1
           p{i}=patch([xl(1),xl(2),xl(2),xl(1),xl(1)],...
-                 [yl(1),yl(1),yl(2),yl(2),yl(1)],'blue');
+            [yl(1),yl(1),yl(2),yl(2),yl(1)],'blue');
         else
           p{i}=patch([xl(1),xl(2),xl(2),xl(1),xl(1)],...
-                 [yl(1),yl(1),yl(2),yl(2),yl(1)],'red');
+            [yl(1),yl(1),yl(2),yl(2),yl(1)],'red');
         end
         p{i}.FaceAlpha=.1;
         p{i}.EdgeAlpha=0;
         p{i}.HandleVisibility='off';
       end
-      line1=plot(time,data.ODE_HIC.state((end-1500):end),'LineWidth',3);
-      line2=plot(time,data.ODE_LIC.state((end-1500):end),'LineWidth',3);
-      line3=plot(time,data.SSA.node{1}.state((end-1500):end),'LineWidth',3)
+      line4=plot(time,midpoint((end-1500):end),'k--','LineWidth',1,'Color',[1 1 1]*.45,'HandleVisibility','off')
+      line1=plot(time,data.ODE_HIC.state((end-1500):end),'LineWidth',3,'Color',[0 0 1]);
+      line2=plot(time,data.ODE_LIC.state((end-1500):end),'LineWidth',3,'Color',[1 0 0]);
+      line3=plot(time,data.SSA.node{1}.state((end-1500):end),'LineWidth',3,'Color',[1 0 1])
       line3.Color=[1 0 1]*.7;
+      
       axes=gca;
       box(axes)
       axes.Color=[1 1 1]*.95;
@@ -240,8 +243,8 @@ classdef AxesLayer
     end
     function axes=ModelFitSSAUnregulatedReducedModel_Calib_Histogram(obj)
       data=obj.datalayer.get('ModelFitSSAUnregulatedReducedModel_Calib');
-      h1=histogram(data.state,[0:50],'normalization','Probability', 'EdgeAlpha', 0);
-      h1.FaceColor=[0 .25 1];
+      h1=histogram(data.state,[0:50],'normalization','Probability','DisplayStyle','stairs','LineWidth',3);
+      h1.EdgeColor=[0 .25 1];
       axes=gca;
       box(gca,'on');
     end
@@ -273,8 +276,8 @@ classdef AxesLayer
     end
     function axes=ModelFitSSAUnregulatedFullModel_Calib_Histogram(obj)
       data=obj.datalayer.get('ModelFitSSAUnregulatedFullModel_Calib');
-      h1=histogram(data.state,[0:50],'normalization','Probability', 'EdgeAlpha', 0);
-      h1.FaceColor=[1 .25 0];
+      h1=histogram(data.state,[0:50],'normalization','Probability','DisplayStyle','stairs','LineWidth',3);
+      h1.EdgeColor=[1 .25 0];
       axes=gca;
       box(gca,'on');
     end
@@ -452,28 +455,22 @@ classdef AxesLayer
       area1=area(ax,data.time,data.U,'FaceColor','m');
       area1.EdgeAlpha=0;
     end
-    function axes=AnalysisSSAFSPPredictiveReducedModelReducedControl_Trajectory(obj,ax)
+    function ax=AnalysisSSAFSPPredictiveReducedModelReducedControl_Trajectory(obj,ax)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveReducedModelReducedControl');
-      hold on
+      hold(ax,'on')
       [X,Y]=meshgrid(data.time,0:49);
-      pcolorplot=pcolor(X,Y,data.P);
+      pcolorplot=pcolor(ax,X,Y,data.P);
       pcolorplot.EdgeAlpha=0;
       colormap(flipud(gray))
-      set(gco,'handlevisibility','off')
-      caxis([0 0.2])
-      hold on
-      plot(data.time,data.X,'LineWidth',2)
-      plot(data.time,data.Y,'LineWidth',2)
-      plot(data.time,data.predictionY,'LineWidth',2)
-      legend({'Probability','Target','NonTarget','Prediction'},'Orientation','horizontal');
-      xlim([0 3000]);
-      grid(gca,'on')
-      box(gca,'on')
-      xlabel('time (minutes)')
-      ylabel('Species Count')
-      axes=gca;
+      set(ax,'handlevisibility','off')
+      caxis(ax,[0 0.2])
+      hold(ax,'on')
+      plot(ax,data.time,data.X,'LineWidth',2)
+      plot(ax,data.time,data.Y,'LineWidth',2)
+      plot(ax,data.time,data.predictionY,'LineWidth',2)
+      xlim(ax,[0 3000]);
     end
-    function axes=AnalysisSSAFSPPredictiveReducedModelReducedControl_JD(obj,ax)
+    function ax=AnalysisSSAFSPPredictiveReducedModelReducedControl_JD(obj,ax)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveReducedModelReducedControl');
       [xVec]=[1:(size(data.steadystate,1))]-1;
       [yVec]=[1:(size(data.steadystate,2))]-1;
@@ -487,26 +484,23 @@ classdef AxesLayer
       blueX=scatter(data.target(2),data.target(1),30,'wo');
       blueX.MarkerEdgeColor=[1 1 1];
       blueX.LineWidth=2;
-      caxis([0 .04])
-      axes=gca;
-      xlabel('Species Count')
-      ylabel('Species Count')
+      caxis(ax,[0 .04])
     end
     function axes=AnalysisSSAFSPPredictiveReducedModelReducedControl_MD(obj,ax)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveReducedModelReducedControl');
-      hold on
+      hold(ax,'on')
       plot([data.target(1) data.target(1)],[0 1],'b--','HandleVisibility','off')
       plot(data.target(1),0,'bp','Markersize',10,'MarkerFaceColor' ,'blue','HandleVisibility','off')
       plot([data.target(2) data.target(2)],[0 1],'r--','HandleVisibility','off')
       plot(data.target(2),0,'rp','Markersize',10,'MarkerFaceColor','red','HandleVisibility','off')
       xMarginal=sum(data.steadystate,2);
       yMarginal=sum(data.steadystate,1);
-      lineP1ot1=plot(0:(length(xMarginal)-1),xMarginal,'b-');
+      lineP1ot1=plot(ax,0:(length(xMarginal)-1),xMarginal,'b-');
       lineP1ot1.LineWidth=3;
-      linePlot2=plot(0:(length(yMarginal)-1),yMarginal,'r-.');
+      linePlot2=plot(ax,0:(length(yMarginal)-1),yMarginal,'r-.');
       linePlot2.LineWidth=3;
-      ylim([0,.2])
-      xlim([0 50])
+      ylim(ax,[0,.2])
+      xlim(ax,[0 50])
       axes=gca;
       axes.YGrid='on';
       text(31,.16,sprintf('J= %.0f',data.Pscore),'FontSize',11,'FontWeight','bold');
@@ -515,16 +509,21 @@ classdef AxesLayer
       axes=gca;
       axes.Color=[1 1 1]*.95;
     end
-    function axes=AnalysisSSAFSPPredictiveReducedModelReducedControl_ScoreDist(obj,ax)
+    function ax=AnalysisSSAFSPPredictiveReducedModelReducedControl_ScoreDist(obj,ax)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveReducedModelReducedControl');
       hold(ax,'on')
-      h1=histogram(data.TScore.^.5,0:2:50-1,'Normalization','probability');
+      h1=histogram(ax,data.TScore.^.5,0:2:50-1,'Normalization','probability');
       line=plot(ax,[data.Pscore.^.5,data.Pscore.^.5],[0,1],'k--','LineWidth',.1);
       h1.EdgeAlpha=0;
       h1.FaceColor=[0.4941 0.1843 0.5569];
       t=LabelPlot(sprintf('J = %0.0f',data.Pscore));
       t.Position(3)=[0.1192];
-      axes.Color=[1 1 1]*.95;
+      ax.Color=[1 1 1]*.95;
+    end
+    function ax=AnalysisSSAFSPPredictiveReducedModelReducedControl_PScore(obj,ax,position)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveReducedModelReducedControl');
+      text(ax,position(1),position(2),sprintf('J= %.0f',data.Pscore),'FontSize',11,'FontWeight','bold','Color',[1 1 1]);
+      axis(ax,[0 50 0 50])
     end
     function ax=AnalysisSSAFSPPredictiveReducedModelControl_ControlInput(obj,ax)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveReducedModelControl');
@@ -645,7 +644,7 @@ classdef AxesLayer
       linePlot2=plot(ax,0:(length(yMarginal)-1),yMarginal,'r-.');
       linePlot2.LineWidth=3;
       ylim([0,.2])
-      xlim([0 50]) 
+      xlim([0 50])
     end
     function ax=AnalysisSSAFSPPredictiveFullModelControl_PScore(obj,ax)
       data=obj.datalayer.get('AnalysisSSAFSPPredictiveFullModelControl');
@@ -830,6 +829,163 @@ classdef AxesLayer
       t=LabelPlot(sprintf('J = %0.0f',data.Pscore));
       t.Position(3)=[0.1192];
       axes.Color=[1 1 1]*.95;
+    end
+    function ax=AnalysisSSAFSPPredictiveZModel_ControlInput(obj,ax,N)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveZModel');
+      areaplot=area(ax,data.trajectories{N}.time,data.trajectories{N}.U,'FaceColor','m');
+      areaplot.EdgeAlpha=0;
+      grid(ax,'on');
+      ax.Color=[1 1 1]*.95;
+    end
+    function ax=AnalysisSSAFSPPredictiveZModel_Patches(obj,ax,N)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveZModel');
+      P=cumsum(data.trajectories{N}.P);
+      vec=sum(P<.9)<16;
+      vec2=sum(P<.1)>16;
+      for i=1:length(data.trajectories{N}.time)
+        if vec(i)&vec(i+1)
+          xv=[data.trajectories{N}.time(i) data.trajectories{N}.time(i+1)];
+          patch(ax,[xv(1) xv(2) xv(2) xv(1)],[0 0 60 60],[1 .5 0],'EdgeAlpha',0,'FaceAlpha',.2,'FaceColor',[1 .5 0]*.8);
+        end
+      end
+    end
+    function ax=AnalysisSSAFSPPredictiveZModel_Trajectory(obj,ax,N)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveZModel');
+      hold(ax,'on');
+      [X,Y]=meshgrid(data.trajectories{N}.time,0:49);
+      pcolorplot=pcolor(ax,X,Y,data.trajectories{N}.P);
+      pcolorplot.EdgeAlpha=0;
+      colormap(ax,flipud(gray*.95))
+      set(ax,'handlevisibility','off')
+      caxis(ax,[0 0.2])
+      hold(ax,'on');
+      plot(ax,data.trajectories{N}.time,data.trajectories{N}.X,'LineWidth',2)
+      plot(ax,data.trajectories{N}.time,data.trajectories{N}.Y,'LineWidth',2)
+      plot(ax,data.trajectories{N}.time,data.trajectories{N}.predictionY,'LineWidth',2)
+    end
+    function ax=AnalysisSSAFSPPredictiveZModel_JD(obj,ax,N)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveZModel');
+      [xVec]=[1:(size(data.trajectories{N}.steadystate,1))]-1;
+      [yVec]=[1:(size(data.trajectories{N}.steadystate,2))]-1;
+      [X,Y]=meshgrid(xVec,yVec);
+      hold(ax,'on');
+      steadystate=zeros(size(data.trajectories{N}.steadystate));
+      for i=2:length(data.trajectories)
+        steadystate=steadystate+data.trajectories{i}.steadystate;
+      end
+      steadystate=steadystate./sum(sum(steadystate));
+      pFig=pcolor(ax,X,Y,steadystate);
+      pFig.EdgeAlpha=0;
+      axis(ax,[0,50,0,50]);
+      cmap=hot;
+      colormap(gca,cmap)
+      blueX=scatter(ax,data.trajectories{N}.target(2),data.trajectories{1}.target(1),30,'wo');
+      blueX.MarkerEdgeColor=[1 1 1];
+      blueX.LineWidth=2;
+      caxis([0 .04])
+    end
+    function ax=AnalysisSSAFSPPredictiveZModel_MD(obj,ax,N)
+      N=3;
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveZModel');
+      hold(ax,'on');
+      plot(ax,[data.trajectories{N}.target(1) data.trajectories{N}.target(1)],[0 1],'b--','HandleVisibility','off')
+      plot(ax,data.trajectories{N}.target(1),0,'bp','Markersize',10,'MarkerFaceColor' ,'blue','HandleVisibility','off')
+      plot(ax,[data.trajectories{N}.target(2) data.trajectories{N}.target(2)],[0 1],'r--','HandleVisibility','off')
+      plot(ax,data.trajectories{N}.target(2),0,'rp','Markersize',10,'MarkerFaceColor','red','HandleVisibility','off')
+      xMarginal=zeros([1 length(data.trajectories{N}.steadystate)]);
+      yMarginal=zeros([1 length(data.trajectories{N}.steadystate)]);
+      for i=1:length(data.trajectories)
+        xMarginal=xMarginal+sum(data.trajectories{i}.steadystate,2)';
+        yMarginal=yMarginal+sum(data.trajectories{i}.steadystate,1);
+      end
+      xMarginal=xMarginal./sum(xMarginal);
+      yMarginal=yMarginal./sum(yMarginal);
+      lineP1ot1=plot(0:(length(xMarginal)-1),xMarginal,'-','Color',[0 0 1],'LineWidth',3);
+      linePlot2=plot(0:(length(yMarginal)-1),yMarginal,'-.','Color',[1 0 0],'LineWidth',3);
+      linePlot3=plot(0:(length(data.Pp)-1),data.Pp,'-','Color',[1 .5 0],'LineWidth',3);
+      ylim([0,.2])
+      xlim([0 50])
+      text(ax,31,.16,sprintf('J= %.0f',mean(data.tscore)),'FontSize',11,'FontWeight','bold');
+    end
+    function axes=AnalysisSSAFSPPredictiveZModel_ScoreDist(obj,ax)
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveFullModelControlSlowed');
+      N=3;
+      hold(ax,'on')
+      h1=histogram(ax,data.trajectories{N}.TScore.^.5,0:2:50-1,'Normalization','probability');
+      line=plot(ax,[data.trajectories{N}.Pscore.^.5,data.trajectories{1}.Pscore.^.5],[0,1],'k--','LineWidth',.1);
+      h1.EdgeAlpha=0;
+      h1.FaceColor=[0.4941 0.1843 0.5569];
+      xlabel('Distance')
+      ylabel('Probability')
+      axes=gca;
+      box(axes);
+      t=LabelPlot(sprintf('J = %0.0f',data.trajectories{N}.Pscore));
+      t.Position(3)=[0.1192];
+      axes.Color=[1 1 1]*.95;
+    end
+    function ax=AnalysisSSAFSPPredictiveZModel_TransientDistributions(obj,ax)
+      N=3;
+      data=obj.datalayer.get('AnalysisSSAFSPPredictiveZModel');
+      controller=obj.datalayer.get('ControlInputs_ReducedModels');
+      controller=controller.ReducedControlAutoregulatedModelControler;
+      controller=controller(:,1);
+      Jp=0;
+      Jb=0;
+      Js=0;
+      Pp=zeros([50 1]);
+      Pb=zeros([50 1]);
+      Ps=zeros([50 1]);
+      indp=0;
+      indb=0;
+      inds=0;
+      for j=1:length(data.trajectories)
+        P=cumsum(data.trajectories{j}.P);
+        vec=sum(P<.9)<16;
+        vec2=sum(P<.1)>16;
+        for i=15000:65000
+          if vec(i)&vec(i+1)
+            Jp=Jp+data.trajectories{j}.TScore(i);
+            Pp=Pp+data.trajectories{j}.P(:,i);
+            indp=indp+1;
+          elseif vec2(i)&vec2(i+1)
+            Jb=Jb+data.trajectories{j}.TScore(i);
+            Pb=Pb+data.trajectories{j}.P(:,i);
+            indb=indb+1;
+          end
+          Js=Js+data.trajectories{j}.TScore(i);
+          Ps=Ps+data.trajectories{j}.P(:,i);
+          inds=inds+1;
+        end
+      end
+      Pp=Pp./sum(Pp);
+      Pb=Pb./sum(Pb);
+      Ps=Ps./sum(Ps);
+      Jp=sum(Jp)/indp;
+      Jb=sum(Jb)/indb;
+      Js=sum(Js)/inds;
+      hold(ax,'on')
+      M=10;
+      ind=(1:M)*6500;
+      scale=1e-10;
+      Z=[linspace(1,0,11),linspace(0,-1,50-11)]*scale;
+      positiveVisibilityFlag='on';
+      negativeVisibilityFlag='on';
+      plot(ax,0:49,Ps,'LineWidth',3,'Color',[1 0 1]*.8)
+      for i=1:M
+        if data.trajectories{N}.Z(ind(i))>0
+          color=[1 0 0];
+          plot(ax,0:49,data.trajectories{N}.P(:,ind(i)),'k-','Color',color*.65,...
+          'HandleVisibility','off','LineWidth',1,'HandleVisibility',positiveVisibilityFlag);
+        positiveVisibilityFlag='off';
+        else
+          color=[0 0 1];
+          plot(ax,0:49,data.trajectories{N}.P(:,ind(i)),'k-','Color',color*.65,...
+          'HandleVisibility','off','LineWidth',1,'HandleVisibility',negativeVisibilityFlag);
+        negativeVisibilityFlag='off';
+        end
+      end
+      
+      axis(ax,[0 50 0 .2])
     end
     function ax=AnalysisSSATwoCellFullModel_ControlInput(obj,ax)
       data=obj.datalayer.get('AnalysisSSATwoCellFullModel');
@@ -1127,6 +1283,68 @@ classdef AxesLayer
       line1.Color=[0 1 1]*.8;
       line2=plot(ax,period,data{3,3}.state(5,(end-80):end),'-.','LineWidth',3);
       line2.Color=[0 1 1]*.4;
+    end
+    function ax=AnalysisSSACorrelationsSSATwoCellFullModel_U(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSATwoCellFullModel');
+      hold(ax,'on')
+      lineWidth=3;
+      plot(ax,data.tau,data.corrUU,'LineWidth',lineWidth,'Color',[0 0 1])
+      plot(ax,data.tau,data.corrTT,'LineWidth',lineWidth,'Color',[1 0 1])
+      plot(ax,data.tau,data.corrNN,'LineWidth',lineWidth,'Color',[0 .5 1])
+    end
+    function AnalysisSSACorrelationsSSATwoCellReducedModel_U(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSATwoCellReducedModel');
+      hold(ax,'on')
+      lineWidth=3;
+      plot(ax,data.tau,data.corrUU,'LineWidth',lineWidth,'Color',[0 0 1])
+      plot(ax,data.tau,data.corrTT,'LineWidth',lineWidth,'Color',[1 0 1])
+      plot(ax,data.tau,data.corrNN,'LineWidth',lineWidth,'Color',[0 .5 1])
+    end
+    function ax=AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl_U(obj,ax);
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl');
+      hold(ax,'on')
+      hold(ax,'on')
+      lineWidth=3;
+      plot(ax,data.tau,data.corrUU,'LineWidth',lineWidth,'Color',[0 0 1])
+      plot(ax,data.tau,data.corrTT,'LineWidth',lineWidth,'Color',[1 0 1])
+      plot(ax,data.tau,data.corrNN,'LineWidth',lineWidth,'Color',[0 .5 1])
+    end
+    function ax=AnalysisSSACorrelationsSSAFSPPredictiveZModel_U(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSAFSPPredictiveZModel');
+      hold(ax,'on')
+      hold(ax,'on')
+      lineWidth=3;
+      plot(ax,data.tau,data.corrUU,'LineWidth',lineWidth,'Color',[0 0 1])
+      plot(ax,data.tau,data.corrTT,'LineWidth',lineWidth,'Color',[1 0 1])
+      plot(ax,data.tau,data.corrNN,'LineWidth',lineWidth,'Color',[0 .5 1])
+    end
+    function ax=AnalysisSSACorrelationsSSATwoCellFullModel_T(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSATwoCellFullModel');
+      hold(ax,'on')
+      plot(ax,data.tau,data.corrUT,'LineWidth',3,'Color',[1 0 0])
+      plot(ax,data.tau,data.corrUN,'LineWidth',3,'Color',[1 .5 0])
+      plot(ax,data.tau,data.corrTN,'LineWidth',3,'Color',[0 1 0])
+    end
+    function ax=AnalysisSSACorrelationsSSATwoCellReducedModel_T(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSATwoCellReducedModel');
+      hold(ax,'on')
+      plot(ax,data.tau,data.corrUT,'LineWidth',3,'Color',[1 0 0])
+      plot(ax,data.tau,data.corrUN,'LineWidth',3,'Color',[1 .5 0])
+      plot(ax,data.tau,data.corrTN,'LineWidth',3,'Color',[0 1 0])
+    end
+    function ax=AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl_T(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSATwoCellReducedModelReducedControl');
+      hold(ax,'on')
+      plot(ax,data.tau,data.corrUT,'LineWidth',3,'Color',[1 0 0])
+      plot(ax,data.tau,data.corrUN,'LineWidth',3,'Color',[1 .5 0])
+      plot(ax,data.tau,data.corrTN,'LineWidth',3,'Color',[0 1 0])
+    end
+    function ax=AnalysisSSACorrelationsSSAFSPPredictiveZModel_T(obj,ax)
+      data=obj.datalayer.get('AnalysisSSACorrelationsSSAFSPPredictiveZModel');
+      hold(ax,'on')
+      plot(ax,data.tau,data.corrUT,'LineWidth',3,'Color',[1 0 0])
+      plot(ax,data.tau,data.corrUN,'LineWidth',3,'Color',[1 .5 0])
+      plot(ax,data.tau,data.corrTN,'LineWidth',3,'Color',[0 1 0])
     end
     function axes=makePlotForce(~,data)
       hold on

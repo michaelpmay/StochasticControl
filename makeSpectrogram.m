@@ -1,16 +1,14 @@
+addpath(genpath('utility'))
+layer=DataLayer;
+cMin=-60
+cMax=0
 data=layer.get('AnalysisSSATwoCellFullModel')
 figure
-subplot(2,3,1)
-spectrogram(data.U,10)
-subplot(2,3,2)
-spectrogram(data.U,100)
-subplot(2,3,3)
-spectrogram(data.U,1000)
+subplot(1,2,1)
+s1=spectrogram(data.U,2000)
+caxis([cMin cMax])
 
 data=layer.get('AnalysisSSATwoCellReducedModel')
-subplot(2,3,4)
-spectrogram(data.U,10)
-subplot(2,3,5)
-spectrogram(data.U,100)
-subplot(2,3,6)
-spectrogram(data.U,1000)
+subplot(1,2,2)
+s2=spectrogram(data.U,2000)
+caxis([cMin cMax])

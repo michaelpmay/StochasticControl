@@ -164,5 +164,44 @@ classdef FigureLayout
       ax{3}=axes('Position',[0.6916 0.15 0.2293 0.7830],'Box','on','Color',color,'XGrid','on');
       LabelPlot('C')
     end
+    function ax=Layout20(obj)
+      color=[1 1 1]*.95;
+      fig=obj.getFigure();
+      fig.Position=[1170 1670 1000 300];
+      ax{1}=axes('Position',[0.1 0.7 0.5287 0.2368],'Box','on','Color',color,'XTickLabel',[],'XGrid','on');
+      LabelPlot('A')
+      ax{2}=axes('Position',[0.1 0.15 0.5296 0.4902],'Box','on','Color',color,'XGrid','on');
+      LabelPlot('B')
+      ax{3}=axes('Position',[0.7 0.15 0.2293 0.7830],'Box','on','Color',color,'XGrid','on');
+      LabelPlot('C')
+    end
+    function ax=Layout22(obj)
+      fig=AcademicFigure;
+      fig.Position(3:4)=[1250,600];
+      gap=[.1 .05];
+      width=[.05 .04];
+      height=[.1 .04];
+      for i =1:8
+        ax{i}=subtightplot(2,4,i,gap,height,width);
+        ax{i}.Color=[1 1 1]*.95;
+        box(ax{i},'on');
+        grid(ax{i},'on');
+        if i<=4
+          xticklabels(ax{i},{});
+        end
+      end
+    end
+    function ax=Layout23(obj)
+      fig=AcademicFigure;
+      fig.Position=[1318 907 1000 300];
+      ax{1}=axes('Position',[0.0800 0.7000 0.3120 0.2368],'Color',[1 1 1]*.95,'Box','on','XGrid','on');
+      LabelPlot('A')
+      ax{2}=axes('Position',[0.0800 0.1500 0.3120 0.4902],'Color',[1 1 1]*.95,'Box','on','XGrid','on');
+      LabelPlot('B')
+      ax{3}=axes('Position',[0.4546 0.1500 0.2293 0.7830],'Color',[1 1 1]*.95,'Box','on');
+      LabelPlot('C')
+      ax{4}=axes('Position',[0.7406 0.1500 0.2293 0.7830],'Color',[1 1 1]*.95,'Box','on');
+      LabelPlot('D')
+    end
   end
 end

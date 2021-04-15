@@ -31,7 +31,7 @@ methods
   function obj=add(obj,runnable,input)
     obj=obj.attachTicketItem(runnable,input)
   end
-  function obj=clearAll(obj)
+  function obj=clear(obj)
     obj.ticketItems={};
   end
 end
